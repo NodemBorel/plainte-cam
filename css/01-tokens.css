@@ -1,0 +1,47 @@
+@import url('https://fonts.googleapis.com/css2?family=DM+Sans:ital,wght@0,400;0,500;0,600;0,700;1,400&display=swap');
+
+/* ============================================================
+   PLATEFORME PLAINTES POLICIÈRES — CAMEROUN
+   Variables et jetons de conception
+   ============================================================ */
+
+:root {
+  /* Couleurs principales */
+  --primary:    #0b1e45;
+  --primary-lt: #172d6a;
+  --green:      #0a3018;
+  --green-lt:   #145e2e;
+  --gold:       #c98b00;
+  --gold-lt:    #e6a200;
+  --orange:     #c96a00;
+  --red:        #b82c1f;
+
+  /* Neutres */
+  --bg:         #f4f4f2;
+  --white:      #ffffff;
+  --gray-1:     #f0eeeb;
+  --gray-2:     #e0ddd8;
+  --gray-3:     #a8a49c;
+  --text:       #12110e;
+  --text-light: #5c5849;
+
+  /* Effets */
+  --shadow:     0 2px 12px rgba(11,30,69,.10);
+  --radius:     6px;
+  --radius-sm:  4px;
+  --transition: .18s ease;
+}
+
+* { box-sizing: border-box; margin: 0; padding: 0; }
+
+body {
+  font-family: 'DM Sans', Arial, sans-serif;
+  background: var(--bg);
+  color: var(--text);
+  font-size: 15px;
+  line-height: 1.6;
+  min-height: 100vh;
+}
+
+a { color: inherit; text-decoration: none; }
+img { max-width: 100%; }

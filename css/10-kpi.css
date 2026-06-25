@@ -1,0 +1,36 @@
+/* ── KPI CARDS (dashboard agent/enqueteur) ───────────────── */
+.kpi-row {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 18px;
+  margin-bottom: 24px;
+}
+.kpi {
+  background: #fff;
+  border-radius: var(--radius);
+  padding: 18px 20px;
+  box-shadow: var(--shadow);
+  text-align: center;
+}
+.kpi .num { font-size: 32px; font-weight: 800; }
+.kpi .lbl { font-size: 12px; color: var(--text-light); margin-top: 4px; }
+.kpi.urgent .num { color: var(--red); }
+.kpi.en-cours .num { color: var(--orange); }
+.kpi.ok .num { color: var(--green); }
+.kpi.total .num { color: var(--primary); }
+
+/* ── PRIORITY DOT (enqueteur) ─────────────────────────────── */
+.priority-dot {
+  display: inline-block;
+  width: 8px; height: 8px;
+  border-radius: 50%;
+  margin-right: 6px;
+  vertical-align: middle;
+}
+.priority-dot.haute { background: var(--red); }
+.priority-dot.normale { background: var(--orange); }
+.priority-dot.basse { background: var(--gray-3); }
+
+@media (max-width: 860px) {
+  .kpi-row { grid-template-columns: 1fr 1fr; }
+}

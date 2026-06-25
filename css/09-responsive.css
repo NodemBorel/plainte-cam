@@ -1,0 +1,28 @@
+/* ── RESPONSIVE ──────────────────────────────────────────── */
+@media (max-width: 1024px) {
+  .footer-grid { grid-template-columns: 1fr 1fr; }
+  .legal-grid { grid-template-columns: 1fr; }
+}
+@media (max-width: 960px) {
+  #apercu-pv { font-size: 12px; }
+  [style*="grid-template-columns:1fr 280px"] { grid-template-columns: 1fr !important; }
+}
+@media (max-width: 860px) {
+  .stats-grid { grid-template-columns: 1fr 1fr; }
+  .sidebar { display: none; }
+  .form-row { grid-template-columns: 1fr; }
+  .services-grid { grid-template-columns: 1fr; }
+  .steps-list { grid-template-columns: 1fr; }
+  .stats-home { grid-template-columns: 1fr 1fr; }
+  .contact-grid { grid-template-columns: 1fr; }
+  .header-inner { flex-wrap: wrap; }
+  .nav-inner { padding: 0 20px; overflow-x: auto; }
+  .top-bar { padding: 6px 20px; flex-wrap: wrap; gap: 6px; }
+  .hero-banner { padding: 40px 20px; }
+  .hero-banner h1 { font-size: 26px; }
+  .container { padding: 0 20px; }
+}
+@media (max-width: 600px) {
+  .footer-grid { grid-template-columns: 1fr; }
+  .stats-home { grid-template-columns: 1fr 1fr; }
+}

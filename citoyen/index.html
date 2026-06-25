@@ -1,0 +1,520 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>PlainteCam — Espace Citoyen</title>
+  <link rel="stylesheet" href="../css/style.css">
+</head>
+<body>
+<div id="toast-container"></div>
+
+<!-- NAVBAR -->
+<nav class="navbar">
+  <div class="navbar-brand">
+    <a href="../index.html" style="color:#fff;display:flex;align-items:center;gap:8px;text-decoration:none">
+      <span style="font-size:16px;font-weight:700">PlainteCam</span>
+    </a>
+    <span class="badge-flag">Espace Citoyen</span>
+  </div>
+  <div class="navbar-links">
+    <a href="#" class="active" data-page="page-depot" onclick="showPage('page-depot');return false">Nouvelle plainte</a>
+    <a href="#" data-page="page-suivi" onclick="showPage('page-suivi');return false">Suivre un dossier</a>
+    <a href="#" data-page="page-mes-plaintes" onclick="showPage('page-mes-plaintes');return false">Mes plaintes</a>
+    <a href="#" data-page="page-profil" onclick="showPage('page-profil');return false">Mon profil</a>
+  </div>
+  <div class="navbar-user">
+    <div class="avatar">JM</div>
+    <div style="display:flex;flex-direction:column;line-height:1.2">
+      <span style="color:#fff;font-size:13px;font-weight:600">Jean MBIDA</span>
+      <span style="color:rgba(255,255,255,.5);font-size:11px">Citoyen vérifié</span>
+    </div>
+    <a href="../auth/citoyen.html" class="btn-deconnexion" title="Se déconnecter">Déconnexion</a>
+  </div>
+</nav>
+
+<div class="page-wrapper">
+
+<!-- SIDEBAR -->
+<aside class="sidebar">
+  <div class="sidebar-user-block">
+    <div class="sidebar-avatar">JM</div>
+    <div>
+      <div class="sidebar-username">Jean MBIDA</div>
+      <div class="sidebar-role">Citoyen vérifié</div>
+    </div>
+  </div>
+  <div class="sidebar-section">Mon espace</div>
+  <div class="sidebar-item active" data-page="page-depot" onclick="showPage('page-depot')">
+    Nouvelle plainte
+  </div>
+  <div class="sidebar-item" data-page="page-suivi" onclick="showPage('page-suivi')">
+    Suivre un dossier
+  </div>
+  <div class="sidebar-item" data-page="page-mes-plaintes" onclick="showPage('page-mes-plaintes')">
+    Mes plaintes
+  </div>
+  <div class="sidebar-item" data-page="page-profil" onclick="showPage('page-profil')">
+    Mon profil
+  </div>
+  <div class="sidebar-section">Aide</div>
+  <div class="sidebar-item" onclick="toast('Assistance — support@plaintecam.gov.cm','')">
+    Assistance
+  </div>
+  <div class="sidebar-bottom">
+    <a href="../auth/citoyen.html" class="sidebar-logout">Se déconnecter</a>
+  </div>
+</aside>
+
+<!-- MAIN -->
+<main class="main-content">
+
+<!-- ==============================
+     PAGE : DÉPÔT DE PLAINTE
+     ============================== -->
+<div id="page-depot" class="page">
+  <div class="page-title">Déposer une plainte</div>
+  <div class="page-subtitle">Remplissez ce formulaire étape par étape ou utilisez la saisie vocale. L'IA vous guidera pour compléter votre dossier.</div>
+
+  <!-- Steps indicator -->
+  <div class="steps">
+    <div class="step-item">
+      <div class="step-circle active" id="sc1">1</div>
+      <div class="step-label">Nature</div>
+    </div>
+    <div class="step-connector"></div>
+    <div class="step-item">
+      <div class="step-circle" id="sc2">2</div>
+      <div class="step-label">Faits</div>
+    </div>
+    <div class="step-connector"></div>
+    <div class="step-item">
+      <div class="step-circle" id="sc3">3</div>
+      <div class="step-label">Mis en cause</div>
+    </div>
+    <div class="step-connector"></div>
+    <div class="step-item">
+      <div class="step-circle" id="sc4">4</div>
+      <div class="step-label">Questions</div>
+    </div>
+    <div class="step-connector"></div>
+    <div class="step-item">
+      <div class="step-circle" id="sc5">5</div>
+      <div class="step-label">Confirmation</div>
+    </div>
+  </div>
+
+  <div class="card">
+
+    <!-- ÉTAPE 1 — NATURE -->
+    <div class="depot-section" data-step="1">
+      <h3 style="margin-bottom:20px;font-size:17px">Étape 1 — Nature de l'infraction</h3>
+      <div class="form-row">
+        <div class="form-group">
+          <label class="form-label">Type d'infraction <span>*</span></label>
+          <select class="form-control" id="nature-infraction">
+            <option value="">-- Sélectionner --</option>
+            <option value="Vol simple" selected>Vol simple</option>
+            <option value="Vol avec violence">Vol avec violence</option>
+            <option value="Agression physique">Agression physique</option>
+            <option value="Escroquerie / Fraude">Escroquerie / Fraude</option>
+            <option value="Harcèlement">Harcèlement</option>
+            <option value="Dégradation de biens">Dégradation de biens</option>
+            <option value="Accident de la route">Accident de la route</option>
+            <option value="Autre">Autre</option>
+          </select>
+        </div>
+        <div class="form-group">
+          <label class="form-label">Date des faits <span>*</span></label>
+          <input type="date" class="form-control" value="2026-05-15">
+        </div>
+      </div>
+      <div class="form-group">
+        <label class="form-label">Région <span>*</span></label>
+        <select class="form-control" id="lieu-region" onchange="updateDepts()">
+          <option value="">-- Sélectionner la région --</option>
+          <option value="centre">Centre</option>
+          <option value="littoral">Littoral</option>
+          <option value="ouest">Ouest</option>
+          <option value="nord_ouest">Nord-Ouest</option>
+          <option value="sud_ouest">Sud-Ouest</option>
+          <option value="adamaoua">Adamaoua</option>
+          <option value="nord">Nord</option>
+          <option value="extreme_nord">Extrême-Nord</option>
+          <option value="est">Est</option>
+          <option value="sud">Sud</option>
+        </select>
+      </div>
+      <div class="form-row">
+        <div class="form-group">
+          <label class="form-label">Département <span>*</span></label>
+          <select class="form-control" id="lieu-dept" onchange="updateArrondissements()" disabled>
+            <option value="">-- Sélectionner d'abord la région --</option>
+          </select>
+        </div>
+        <div class="form-group">
+          <label class="form-label">Arrondissement <span>*</span></label>
+          <select class="form-control" id="lieu-arrond" onchange="updateQuartiers()" disabled>
+            <option value="">-- Sélectionner d'abord le département --</option>
+          </select>
+        </div>
+      </div>
+      <div class="form-group">
+        <label class="form-label">Quartier <span>*</span></label>
+        <select class="form-control" id="lieu-quartier" onchange="updateLieuFaits()" disabled>
+          <option value="">-- Sélectionner d'abord l'arrondissement --</option>
+        </select>
+      </div>
+      <div class="form-group">
+        <label class="form-label">Adresse précise</label>
+        <input type="text" class="form-control" id="lieu-adresse" placeholder="Ex: Rue Kennedy, en face du marché, carrefour...">
+        <div class="form-hint">Précisez un repère, une rue ou un point remarquable si possible.</div>
+      </div>
+      <input type="hidden" id="lieu-faits" value="">
+      <div class="alert alert-info" id="commissariat-info" style="display:none">
+        <div id="commissariat-info-text">Le commissariat compétent sera déterminé automatiquement d'après le lieu que vous indiquez.</div>
+      </div>
+      <div class="alert alert-info" id="commissariat-default">
+        <div>Le commissariat compétent sera déterminé automatiquement d'après le lieu que vous indiquez.</div>
+      </div>
+    </div>
+
+    <!-- ÉTAPE 2 — DÉCLARATION -->
+    <div class="depot-section" data-step="2" style="display:none">
+      <h3 style="margin-bottom:16px;font-size:17px">Étape 2 — Votre déclaration</h3>
+
+      <!-- Choix mode -->
+      <div style="display:flex;gap:12px;margin-bottom:20px">
+        <button class="btn btn-primary" onclick="setMode('texte')">Saisie écrite</button>
+        <button class="btn btn-outline" onclick="setMode('vocal')">Saisie vocale</button>
+      </div>
+
+      <!-- Mode texte -->
+      <div id="mode-texte">
+        <div class="form-group">
+          <label class="form-label">Décrivez les faits <span>*</span></label>
+          <textarea class="form-control" id="declaration-text" rows="7"
+            placeholder="Décrivez en détail ce qui s'est passé : quand, où, comment, qui était présent...">Le 15 mai 2026 vers 14h00, je me trouvais au Marché Mokolo à Yaoundé. Un individu inconnu, jeune homme d'environ 25 ans, vêtu d'un tee-shirt rouge, a arraché mon téléphone Samsung Galaxy de couleur noire de ma main alors que je consultais mes messages. Il a immédiatement pris la fuite en courant en direction de la rue principale. La valeur du téléphone est de 150 000 FCFA. Je n'ai pas pu l'attraper mais un commerçant présent a pu partiellement voir la scène.</textarea>
+          <div class="form-hint">Soyez le plus précis possible : dates, heures, description du suspect, témoins, préjudice subi.</div>
+        </div>
+      </div>
+
+      <!-- Mode vocal -->
+      <div id="mode-vocal" style="display:none">
+        <div class="recorder-wrap">
+          <button class="mic-btn" id="mic-btn" onclick="toggleRecording()" aria-label="Démarrer l'enregistrement"></button>
+          <div id="rec-status" style="font-weight:600;margin-bottom:8px">Appuyez sur le microphone pour commencer</div>
+          <div id="rec-timer" style="font-size:24px;font-weight:700;color:var(--primary);font-family:monospace">00:00</div>
+          <div class="transcription-box" id="transcription-live">
+            <span style="color:var(--gray-3)">La transcription apparaîtra ici...</span>
+          </div>
+          <div style="margin-top:14px;display:none" id="validate-transcription">
+            <button class="btn btn-success" onclick="validateTranscription()">Valider cette transcription</button>
+            <button class="btn btn-outline btn-sm" onclick="toggleRecording()" style="margin-left:8px">Réenregistrer</button>
+          </div>
+        </div>
+      </div>
+
+      <!-- Upload pièces jointes -->
+      <div class="form-group" style="margin-top:18px">
+        <label class="form-label">Pièces jointes (photos, documents)</label>
+        <div style="border:1px dashed var(--gray-3);border-radius:var(--radius-sm);padding:18px;text-align:center;cursor:pointer;background:var(--gray-1)" onclick="toast('Fichier joint','')">
+          <div style="font-size:13px;color:var(--text-light)">Cliquez pour ajouter des fichiers (JPG, PDF, MP4 — max 20 Mo par fichier)</div>
+        </div>
+        <div style="margin-top:6px;font-size:13px;color:var(--green-lt)">photo_scene_01.jpg — 2,4 Mo (ajoute)</div>
+      </div>
+    </div>
+
+    <!-- ÉTAPE 3 — MIS EN CAUSE -->
+    <div class="depot-section" data-step="3" style="display:none">
+      <h3 style="margin-bottom:20px;font-size:17px">Étape 3 — Identité du mis en cause</h3>
+      <div class="alert alert-info" style="margin-bottom:18px">
+        <div>Si vous ne connaissez pas le mis en cause, laissez les champs d'identité vides. La description physique est suffisante pour constituer le dossier.</div>
+      </div>
+      <div class="form-row">
+        <div class="form-group">
+          <label class="form-label">Nom (si connu)</label>
+          <input type="text" class="form-control" placeholder="Nom du mis en cause">
+        </div>
+        <div class="form-group">
+          <label class="form-label">Prénom</label>
+          <input type="text" class="form-control" placeholder="Prénom">
+        </div>
+        <div class="form-group">
+          <label class="form-label">Adresse (si connue)</label>
+          <input type="text" class="form-control" placeholder="Adresse du mis en cause">
+        </div>
+        <div class="form-group">
+          <label class="form-label">Téléphone (si connu)</label>
+          <input type="tel" class="form-control" placeholder="+237 6XX XXX XXX">
+        </div>
+      </div>
+      <div class="form-group">
+        <label class="form-label">Description physique</label>
+        <textarea class="form-control" rows="3" placeholder="Taille, corpulence, vêtements portés, signes particuliers...">Jeune homme, environ 25 ans, taille moyenne, tee-shirt rouge, jean bleu, a pris la fuite en courant.</textarea>
+      </div>
+    </div>
+
+    <!-- ÉTAPE 4 — QUESTIONS COMPLÉMENTAIRES -->
+    <div class="depot-section" data-step="4" style="display:none">
+      <h3 style="margin-bottom:6px;font-size:17px">Étape 4 — Questions complémentaires</h3>
+      <p style="font-size:13px;color:var(--text-light);margin-bottom:20px">Le système analyse votre déclaration et pose uniquement les questions sur les informations manquantes pour compléter votre dossier.</p>
+      <div class="chat-wrap" id="qa-container"></div>
+    </div>
+
+    <!-- ÉTAPE 5 — APERÇU & VALIDATION -->
+    <div class="depot-section" data-step="5" style="display:none">
+      <h3 style="margin-bottom:4px;font-size:17px">Étape 5 — Aperçu de votre déclaration</h3>
+      <p style="font-size:13px;color:var(--text-light);margin-bottom:20px">Lisez attentivement le document généré. Vous pouvez le transmettre ou retourner corriger une étape.</p>
+
+      <div style="display:grid;grid-template-columns:1fr 280px;gap:20px;align-items:start">
+
+        <!-- Document aperçu -->
+        <div class="pv-document" id="apercu-pv">
+          <div class="pv-stamp">COMMISSARIAT<br>CITÉ VERTE<br>YAOUNDÉ</div>
+          <div class="pv-header">
+            <div style="font-size:11px;color:#666;letter-spacing:.05em">RÉPUBLIQUE DU CAMEROUN · MINISTÈRE DE LA SÉCURITÉ</div>
+            <h2>DÉCLARATION DE PLAINTE</h2>
+            <div class="ref" id="apercu-ref">Réf. en attente de numérotation</div>
+          </div>
+          <div class="pv-body" id="apercu-body">
+            <!-- rempli par buildRecap() -->
+          </div>
+          <div class="pv-signature" style="margin-top:32px">
+            <div style="text-align:center">
+              <div style="border-top:1px solid #999;width:160px;padding-top:6px;font-size:12px;color:#666">Signature du déclarant<br>Jean MBIDA</div>
+            </div>
+            <div style="text-align:center">
+              <div style="border-top:1px solid #ccc;width:180px;padding-top:6px;font-size:12px;color:#aaa;font-style:italic">Cachet du commissariat<br>(après réception)</div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Panneau décision -->
+        <div style="display:flex;flex-direction:column;gap:14px">
+          <div style="background:var(--white);border:1px solid var(--gray-2);border-radius:var(--radius);padding:18px">
+            <div style="font-size:12px;font-weight:700;text-transform:uppercase;letter-spacing:.08em;color:var(--primary);margin-bottom:12px">Votre déclaration</div>
+            <div id="recap-mini" style="font-size:13px;line-height:2;color:var(--text-light)"></div>
+          </div>
+
+          <div class="alert alert-warning" style="margin:0">
+            <div style="font-size:12px;line-height:1.6">En transmettant ce document, vous attestez sur l'honneur que les informations sont exactes. Toute fausse déclaration est passible de poursuites selon le Code pénal camerounais.</div>
+          </div>
+
+          <button class="btn btn-primary btn-lg" style="justify-content:center" onclick="submitPlainte()">
+            Transmettre au commissariat
+          </button>
+          <button class="btn btn-outline" style="justify-content:center;color:var(--red);border-color:var(--red)" onclick="rejectAndCorrect()">
+            Corriger ma déclaration
+          </button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Navigation steps -->
+    <div class="divider"></div>
+    <div style="display:flex;justify-content:space-between">
+      <button class="btn btn-outline" id="btn-prev-step" onclick="prevDepotStep()" disabled>Retour</button>
+      <button class="btn btn-primary btn-lg" id="btn-next-step" onclick="nextDepotStep()">Continuer</button>
+    </div>
+  </div>
+</div>
+
+<!-- ==============================
+     MODAL : CHOIX ÉTAPE À CORRIGER
+     ============================== -->
+<div class="modal-overlay" id="modal-corriger">
+  <div class="modal-box" style="max-width:460px">
+    <div class="modal-header">
+      <span class="card-title">Corriger ma déclaration</span>
+      <button class="modal-close" onclick="closeModal('modal-corriger')">✕</button>
+    </div>
+    <div class="modal-body">
+      <p style="font-size:13px;color:var(--text-light);margin-bottom:20px">Sélectionnez l'étape que vous souhaitez corriger. Vous reviendrez à l'aperçu après modification.</p>
+      <div style="display:flex;flex-direction:column;gap:10px">
+        <button class="btn btn-outline" style="justify-content:flex-start;gap:12px" onclick="goToStep(1)">
+          <span style="width:24px;height:24px;border-radius:50%;background:var(--primary);color:#fff;display:flex;align-items:center;justify-content:center;font-size:12px;font-weight:700;flex-shrink:0">1</span>
+          Nature de l'infraction, date et lieu des faits
+        </button>
+        <button class="btn btn-outline" style="justify-content:flex-start;gap:12px" onclick="goToStep(2)">
+          <span style="width:24px;height:24px;border-radius:50%;background:var(--primary);color:#fff;display:flex;align-items:center;justify-content:center;font-size:12px;font-weight:700;flex-shrink:0">2</span>
+          Votre déclaration (texte ou vocal)
+        </button>
+        <button class="btn btn-outline" style="justify-content:flex-start;gap:12px" onclick="goToStep(3)">
+          <span style="width:24px;height:24px;border-radius:50%;background:var(--primary);color:#fff;display:flex;align-items:center;justify-content:center;font-size:12px;font-weight:700;flex-shrink:0">3</span>
+          Identité du mis en cause
+        </button>
+        <button class="btn btn-outline" style="justify-content:flex-start;gap:12px" onclick="goToStep(4)">
+          <span style="width:24px;height:24px;border-radius:50%;background:var(--primary);color:#fff;display:flex;align-items:center;justify-content:center;font-size:12px;font-weight:700;flex-shrink:0">4</span>
+          Réponses aux questions complémentaires
+        </button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ==============================
+     PAGE : CONFIRMATION
+     ============================== -->
+<div id="page-confirmation" class="page" style="display:none">
+  <div style="max-width:600px;margin:0 auto;padding:32px 20px">
+    <div class="alert alert-success" style="margin-bottom:24px">
+      <div><strong>Plainte enregistrée officiellement.</strong> Votre dossier a été transmis au commissariat compétent.</div>
+    </div>
+
+    <div class="attestation card">
+      <div style="font-size:11px;color:var(--text-light);text-transform:uppercase;letter-spacing:.08em;font-weight:700">Attestation de dépôt de plainte</div>
+      <div class="big-num">N° 2026-00451</div>
+      <div style="font-size:13px;color:var(--text-light)">Déposée le 15 mai 2026 à 14h32 — Jean MBIDA</div>
+      <div style="font-size:13px;margin:10px 0">Commissariat Cité Verte, Yaoundé</div>
+      <div class="qr-placeholder">
+        <div></div><div style="background:transparent"></div><div></div>
+        <div style="background:transparent"></div><div></div><div style="background:transparent"></div>
+        <div></div><div style="background:transparent"></div><div></div>
+      </div>
+      <div style="font-size:11px;color:var(--text-light)">Code QR de vérification sécurisé</div>
+    </div>
+
+    <div class="alert alert-info" style="margin-top:20px">
+      <div>
+        <strong>Notification SMS envoyée</strong><br>
+        <em>"Votre plainte N°2026-00451 a bien été reçue. Attestation disponible dans votre espace. Commissariat Cité Verte."</em>
+      </div>
+    </div>
+
+    <div style="display:flex;gap:12px;margin-top:20px;flex-wrap:wrap">
+      <button class="btn btn-primary" onclick="toast('Attestation téléchargée','')">Télécharger l'attestation PDF</button>
+      <button class="btn btn-outline" onclick="showPage('page-suivi')">Suivre mon dossier</button>
+      <button class="btn btn-outline" onclick="resetDepot()">Nouvelle plainte</button>
+    </div>
+  </div>
+</div>
+
+<!-- ==============================
+     PAGE : SUIVI DOSSIER
+     ============================== -->
+<div id="page-suivi" class="page" style="display:none">
+  <div class="page-title">Suivre mon dossier</div>
+  <div class="page-subtitle">Entrez votre numéro de dossier pour consulter l'avancement en temps réel.</div>
+
+  <div class="card" style="max-width:600px;margin-bottom:24px">
+    <div class="form-group">
+      <label class="form-label">Numéro de dossier</label>
+      <div style="display:flex;gap:10px">
+        <input type="text" class="form-control" id="suivi-numero" value="2026-00451" placeholder="Ex: 2026-00451">
+        <button class="btn btn-primary" onclick="initSuivi()">Rechercher</button>
+      </div>
+      <div class="form-hint">Numéro reçu par SMS lors du dépôt de votre plainte.</div>
+    </div>
+  </div>
+
+  <div id="suivi-result" style="display:none"></div>
+</div>
+
+<!-- ==============================
+     PAGE : MES PLAINTES
+     ============================== -->
+<div id="page-mes-plaintes" class="page" style="display:none">
+  <div class="page-title">Mes plaintes</div>
+  <div class="page-subtitle">Historique de toutes vos plaintes déposées.</div>
+  <div class="card">
+    <div class="table-wrap">
+      <table>
+        <thead><tr>
+          <th>N° dossier</th><th>Type</th><th>Date dépôt</th><th>Statut</th><th>Action</th>
+        </tr></thead>
+        <tbody>
+          <tr>
+            <td><strong>2026-00451</strong></td>
+            <td>Vol simple</td>
+            <td>15/05/2026</td>
+            <td><span class="badge badge-orange">En instruction</span></td>
+            <td><button class="btn btn-primary btn-sm" onclick="showPage('page-suivi');document.getElementById('suivi-numero').value='2026-00451';initSuivi()">Consulter</button></td>
+          </tr>
+          <tr>
+            <td><strong>2024-00102</strong></td>
+            <td>Dégradation</td>
+            <td>10/03/2024</td>
+            <td><span class="badge badge-green">Clôturé</span></td>
+            <td><button class="btn btn-outline btn-sm">Consulter</button></td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+</div>
+
+<!-- ==============================
+     PAGE : PROFIL
+     ============================== -->
+<div id="page-profil" class="page" style="display:none">
+  <div class="page-title">Mon profil</div>
+  <div class="page-subtitle">Informations personnelles liées à votre compte.</div>
+  <div class="card" style="max-width:600px">
+    <div style="display:flex;align-items:center;gap:20px;margin-bottom:24px">
+      <div style="width:70px;height:70px;border-radius:50%;background:var(--primary);display:flex;align-items:center;justify-content:center;font-size:28px;color:#fff;font-weight:700">JM</div>
+      <div>
+        <div style="font-size:20px;font-weight:700">Jean MBIDA</div>
+        <div style="color:var(--text-light);font-size:14px">Citoyen — Compte vérifié</div>
+      </div>
+    </div>
+    <div class="form-row">
+      <div class="form-group">
+        <label class="form-label">Nom</label>
+        <input class="form-control" value="MBIDA">
+      </div>
+      <div class="form-group">
+        <label class="form-label">Prénom</label>
+        <input class="form-control" value="Jean">
+      </div>
+      <div class="form-group">
+        <label class="form-label">Téléphone</label>
+        <input class="form-control" value="+237 677 000 000">
+      </div>
+      <div class="form-group">
+        <label class="form-label">N° CNI</label>
+        <input class="form-control" value="XXXXXXXXXXXXXXX">
+      </div>
+    </div>
+    <button class="btn btn-primary" onclick="toast('Profil mis à jour','')">Enregistrer les modifications</button>
+  </div>
+</div>
+
+</main>
+</div><!-- end page-wrapper -->
+
+<!-- FOOTER -->
+<footer class="app-footer">
+  <div class="app-footer-inner">
+    <span>PlainteCam &copy; 2026 — Direction Générale de la Sûreté Nationale — République du Cameroun</span>
+    <div class="app-footer-links">
+      <a href="../index.html">Accueil</a>
+      <span>|</span>
+      <a href="../index.html#base-legale">Base légale</a>
+      <span>|</span>
+      <a href="../index.html#contact">Contact &amp; Assistance</a>
+      <span>|</span>
+      <a href="#">Mentions légales</a>
+    </div>
+  </div>
+</footer>
+
+<script src="../js/modules/utils.js"></script>
+<script src="../js/modules/data.js"></script>
+<script src="../js/modules/questionnaire.js"></script>
+<script src="../js/data/geo.js"></script>
+<script src="../js/pages/citoyen.js"></script>
+<script src="../js/pages/citoyen-geo.js"></script>
+<script>
+  document.getElementById('lieu-adresse').addEventListener('input', function() {
+    if (document.getElementById('lieu-quartier').value) updateLieuFaits();
+  });
+  showPage('page-depot');
+  updateDepotSteps();
+  document.querySelectorAll('.sidebar-item').forEach(i => {
+    i.addEventListener('click', () => showPage(i.dataset.page));
+  });
+  if (location.hash === '#suivi') showPage('page-suivi');
+</script>
+</body>
+</html>

@@ -1,0 +1,360 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>PlainteCam — Espace Enquêteur</title>
+  <link rel="stylesheet" href="../css/style.css">
+</head>
+<body>
+<div id="toast-container"></div>
+
+<!-- NAVBAR -->
+<nav class="navbar" style="background:var(--green)">
+  <div class="navbar-brand">
+    <a href="../index.html" style="color:#fff;display:flex;align-items:center;gap:8px;text-decoration:none">
+      <span style="font-size:16px;font-weight:700">PlainteCam</span>
+    </a>
+    <span class="badge-flag">Espace Enquêteur</span>
+  </div>
+  <div class="navbar-links">
+    <a href="#" class="active" onclick="showPage('page-dashboard');return false">Mes dossiers</a>
+    <a href="#" onclick="showPage('page-pv');return false">Procès-verbaux</a>
+    <a href="#" onclick="showPage('page-convocations');return false">Convocations</a>
+  </div>
+  <div class="navbar-user">
+    <div class="avatar" style="background:var(--green-lt)">NK</div>
+    <div style="display:flex;flex-direction:column;line-height:1.2">
+      <span style="color:#fff;font-size:13px;font-weight:600">Insp. KANA</span>
+      <span style="color:rgba(255,255,255,.5);font-size:11px">Enquêteur</span>
+    </div>
+    <a href="../auth/agent.html" class="btn-deconnexion" title="Se déconnecter">Déconnexion</a>
+  </div>
+</nav>
+
+<div class="page-wrapper">
+
+<!-- SIDEBAR -->
+<aside class="sidebar">
+  <div class="sidebar-user-block">
+    <div class="sidebar-avatar" style="background:var(--green-lt)">NK</div>
+    <div>
+      <div class="sidebar-username">Insp. KANA</div>
+      <div class="sidebar-role">Enquêteur — Cité Verte</div>
+    </div>
+  </div>
+  <div class="sidebar-section">Instruction</div>
+  <div class="sidebar-item active" data-page="page-dashboard" onclick="navEnq(this,'page-dashboard')">
+    Mes dossiers
+    <span class="badge badge-orange" style="margin-left:auto;font-size:10px">3</span>
+  </div>
+  <div class="sidebar-item" data-page="page-pv" onclick="navEnq(this,'page-pv')">
+    Procès-verbaux
+    <span class="badge badge-red" style="margin-left:auto;font-size:10px">1</span>
+  </div>
+  <div class="sidebar-item" data-page="page-convocations" onclick="navEnq(this,'page-convocations')">
+    Convocations
+  </div>
+  <div class="sidebar-section">Mon compte</div>
+  <div class="sidebar-item" data-page="page-profil" onclick="navEnq(this,'page-profil')">
+    Mon profil
+  </div>
+  <div class="sidebar-bottom">
+    <a href="../auth/agent.html" class="sidebar-logout">Se déconnecter</a>
+  </div>
+</aside>
+
+<!-- MAIN -->
+<main class="main-content">
+
+<!-- ============================
+     PAGE : MES DOSSIERS
+     ============================ -->
+<div id="page-dashboard" class="page">
+  <div class="page-title">Mes dossiers affectés</div>
+  <div class="page-subtitle">Commissariat Cité Verte — Insp. KANA</div>
+
+  <div class="kpi-row">
+    <div class="kpi urgent">
+      <div class="num">1</div>
+      <div class="lbl">PV à signer</div>
+    </div>
+    <div class="kpi en-cours">
+      <div class="num">3</div>
+      <div class="lbl">En instruction</div>
+    </div>
+    <div class="kpi ok">
+      <div class="num">5</div>
+      <div class="lbl">Clôturés ce mois</div>
+    </div>
+    <div class="kpi total">
+      <div class="num">8</div>
+      <div class="lbl">Total dossiers actifs</div>
+    </div>
+  </div>
+
+  <div class="card">
+    <div class="card-header">
+      <span class="card-title">Dossiers en cours</span>
+      <div style="display:flex;gap:8px">
+        <select class="form-control" style="max-width:160px;font-size:13px" onchange="filterMesDossiers(this.value)">
+          <option value="">Tous les statuts</option>
+          <option>EN_INSTRUCTION</option>
+          <option>AUDITION</option>
+          <option>DECISION</option>
+        </select>
+      </div>
+    </div>
+    <div class="table-wrap">
+      <table>
+        <thead><tr>
+          <th>N° Dossier</th><th>Plaignant</th><th>Type</th><th>Date dépôt</th>
+          <th>Priorité</th><th>Score IA</th><th>Statut</th><th>Actions</th>
+        </tr></thead>
+        <tbody id="mes-dossiers-tbody"></tbody>
+      </table>
+    </div>
+  </div>
+</div>
+
+<!-- ============================
+     PAGE : PROCÈS-VERBAUX
+     ============================ -->
+<div id="page-pv" class="page" style="display:none">
+  <div class="page-title">Procès-verbaux à valider</div>
+  <div class="page-subtitle">Documents générés par IA — en attente de votre signature</div>
+
+  <!-- Alerte PV en attente -->
+  <div class="alert alert-warning" style="margin-bottom:20px">
+    <div>1 procès-verbal en attente de signature — Dossier N° 2026-00451</div>
+  </div>
+
+  <div style="display:grid;grid-template-columns:1fr 2fr;gap:20px">
+    <div class="card">
+      <div class="card-title" style="margin-bottom:14px">Informations du dossier</div>
+      <div style="font-size:14px;line-height:2">
+        <div><strong>N° :</strong> 2026-00451</div>
+        <div><strong>Plaignant :</strong> Jean MBIDA</div>
+        <div><strong>Type :</strong> Escroquerie</div>
+        <div><strong>Score :</strong> <span style="color:var(--green-lt)">78 %</span></div>
+        <div><strong>Affecté le :</strong> 15/05/2026</div>
+        <div><strong>Généré le :</strong> 15/05/2026 à 14h35</div>
+      </div>
+      <div class="divider"></div>
+      <div style="font-size:13px;color:var(--text-light);margin-bottom:12px">
+        PV pré-rempli par le module IA (CamemBERT) à partir de la déclaration. Vérifiez les informations avant signature.
+      </div>
+      <button class="btn btn-primary btn-full" onclick="signPV()">Signer le PV</button>
+      <button class="btn btn-outline btn-full" style="margin-top:8px" onclick="toast('PDF exporté','')">Exporter en PDF</button>
+      <button class="btn btn-outline btn-full" style="margin-top:8px;color:var(--red);border-color:var(--red)" onclick="toast('PV renvoyé pour correction','')">Demander une correction</button>
+    </div>
+
+    <div>
+      <div class="pv-document">
+        <div class="pv-stamp">COMMISSARIAT<br>CITÉ VERTE<br>YAOUNDÉ</div>
+        <div class="pv-header">
+          <div style="font-size:12px;color:#666">RÉPUBLIQUE DU CAMEROUN · MINISTÈRE DE LA SÉCURITÉ</div>
+          <h2>PROCÈS-VERBAL D'AUDITION</h2>
+          <div class="ref">Réf. PV-2026-00451 · Dossier N° 2026-00451</div>
+        </div>
+        <div class="pv-body">
+          <p>L'an deux mille vingt-six, le <span class="field">quinze mai</span> à <span class="field">quatorze heures trente-deux</span>,</p>
+          <p>Nous, <span class="field">Inspecteur N. KANA</span>, officier de police judiciaire au commissariat de Cité Verte, Yaoundé,</p>
+          <p>avons procédé à l'audition de :</p>
+          <p>
+            <strong>M. Jean MBIDA</strong>, né le XX/XX/XXXX à Yaoundé,<br>
+            de nationalité camerounaise, demeurant à Biyem-Assi,<br>
+            porteur de la CNI N° XXXXXXXXXXXXXXX,
+          </p>
+          <p>Lequel nous a déclaré ce qui suit, après avoir prêté serment de dire la vérité :</p>
+          <p style="background:#f9f9f9;border-left:3px solid var(--primary);padding:12px;border-radius:4px;font-style:italic">
+            "Le 12 mai 2026, j'ai été victime d'une escroquerie par un individu se présentant comme un agent d'une société de micro-finance. Il m'a soutenu un virement de 200 000 FCFA promettant un remboursement avec intérêts. Depuis lors, il est injoignable et son numéro est hors service."
+          </p>
+          <p>Lecture faite du présent procès-verbal, le comparant déclare qu'il est fidèle à ses déclarations et le signe.</p>
+          <div id="pv-ia-badge" style="display:none" class="alert alert-success">
+            PV signé électroniquement par Insp. KANA le 15/05/2026 à 15h12
+          </div>
+        </div>
+        <div class="pv-signature">
+          <div style="text-align:center">
+            <div style="border-top:1px solid #999;width:160px;padding-top:6px;font-size:12px">Signature du plaignant<br>Jean MBIDA</div>
+          </div>
+          <div style="text-align:center">
+            <div id="sig-box" style="border-top:1px solid #999;width:180px;padding-top:6px;font-size:12px">Signature de l'enquêteur<br>Insp. N. KANA</div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ============================
+     PAGE : CONVOCATIONS
+     ============================ -->
+<div id="page-convocations" class="page" style="display:none">
+  <div class="page-title">Convocations</div>
+  <div class="page-subtitle">Émission et suivi des convocations pour les mis en cause.</div>
+
+  <div style="display:grid;grid-template-columns:1fr 1fr;gap:20px">
+
+    <!-- Nouvelle convocation -->
+    <div class="card">
+      <div class="card-header">
+        <span class="card-title">Émettre une convocation</span>
+      </div>
+      <div class="form-group">
+        <label class="form-label">Dossier concerné</label>
+        <select class="form-control">
+          <option>2026-00451 — Jean MBIDA (Escroquerie)</option>
+          <option>2026-00312 — Marie ESSOMBA (Harcèlement)</option>
+          <option>2026-00278 — Paul NKOA (Fraude)</option>
+        </select>
+      </div>
+      <div class="form-group">
+        <label class="form-label">Nom du mis en cause</label>
+        <input class="form-control" type="text" placeholder="Nom complet" value="FOUDA Ernest">
+      </div>
+      <div class="form-row">
+        <div class="form-group">
+          <label class="form-label">Date de convocation</label>
+          <input class="form-control" type="date" value="2026-05-22">
+        </div>
+        <div class="form-group">
+          <label class="form-label">Heure</label>
+          <input class="form-control" type="time" value="09:00">
+        </div>
+      </div>
+      <div class="form-group">
+        <label class="form-label">Motif</label>
+        <textarea class="form-control" rows="3">Audition dans le cadre de l'instruction d'une plainte pour escroquerie déposée le 12/05/2026.</textarea>
+      </div>
+      <div style="display:flex;gap:10px;margin-top:4px">
+        <button class="btn btn-primary" onclick="toast('Convocation émise et envoyée par SMS','')">Émettre la convocation</button>
+        <button class="btn btn-outline" onclick="toast('Aperçu PDF généré','')">Aperçu PDF</button>
+      </div>
+    </div>
+
+    <!-- Historique -->
+    <div class="card">
+      <div class="card-header">
+        <span class="card-title">Historique des convocations</span>
+      </div>
+      <div style="font-size:13px">
+        <div style="padding:12px 0;border-bottom:1px solid var(--gray-2)">
+          <div style="display:flex;justify-content:space-between;align-items:flex-start">
+            <div>
+              <strong>FOUDA Ernest</strong> — Dossier 2026-00451<br>
+              <span class="text-muted">Convoqué le 22/05/2026 à 09h00</span>
+            </div>
+            <span class="badge badge-orange">En attente</span>
+          </div>
+        </div>
+        <div style="padding:12px 0;border-bottom:1px solid var(--gray-2)">
+          <div style="display:flex;justify-content:space-between;align-items:flex-start">
+            <div>
+              <strong>BELLO Hassan</strong> — Dossier 2026-00312<br>
+              <span class="text-muted">Convoqué le 10/05/2026 à 10h00</span>
+            </div>
+            <span class="badge badge-green">Comparu</span>
+          </div>
+        </div>
+        <div style="padding:12px 0">
+          <div style="display:flex;justify-content:space-between;align-items:flex-start">
+            <div>
+              <strong>NKOA Simon</strong> — Dossier 2026-00278<br>
+              <span class="text-muted">Convoqué le 05/05/2026 à 14h00</span>
+            </div>
+            <span class="badge badge-red">Absent</span>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ============================
+     PAGE : PROFIL
+     ============================ -->
+<div id="page-profil" class="page" style="display:none">
+  <div class="page-title">Mon profil</div>
+  <div class="page-subtitle">Informations de votre compte institutionnel.</div>
+  <div class="card" style="max-width:560px">
+    <div style="display:flex;align-items:center;gap:20px;margin-bottom:24px">
+      <div style="width:64px;height:64px;border-radius:50%;background:var(--green-lt);display:flex;align-items:center;justify-content:center;font-size:24px;color:#fff;font-weight:700">NK</div>
+      <div>
+        <div style="font-size:18px;font-weight:700">Inspecteur KANA</div>
+        <div style="color:var(--text-light);font-size:13px">Enquêteur — Commissariat Cité Verte</div>
+        <div style="font-size:12px;color:var(--gold);font-weight:600;margin-top:2px">Matricule : SN–2021044</div>
+      </div>
+    </div>
+    <div class="form-row">
+      <div class="form-group">
+        <label class="form-label">Nom</label>
+        <input class="form-control" value="KANA">
+      </div>
+      <div class="form-group">
+        <label class="form-label">Prénom</label>
+        <input class="form-control" value="Nicole">
+      </div>
+      <div class="form-group">
+        <label class="form-label">Grade</label>
+        <input class="form-control" value="Inspecteur de Police" disabled>
+      </div>
+      <div class="form-group">
+        <label class="form-label">Spécialité</label>
+        <input class="form-control" value="Escroquerie, Fraude" disabled>
+      </div>
+    </div>
+    <div class="form-group">
+      <label class="form-label">E-mail institutionnel</label>
+      <input class="form-control" value="n.kana@police.cm" disabled>
+    </div>
+    <button class="btn btn-primary" onclick="toast('Profil mis à jour','')">Enregistrer les modifications</button>
+    <div class="divider"></div>
+    <div class="form-group">
+      <label class="form-label">Nouveau mot de passe</label>
+      <input class="form-control" type="password" placeholder="••••••••••">
+    </div>
+    <div class="form-group">
+      <label class="form-label">Confirmer le mot de passe</label>
+      <input class="form-control" type="password" placeholder="••••••••••">
+    </div>
+    <button class="btn btn-outline" onclick="toast('Mot de passe mis à jour','')">Changer le mot de passe</button>
+  </div>
+</div>
+
+</main>
+</div><!-- page-wrapper -->
+
+<!-- MODAL DOSSIER -->
+<div class="modal-overlay" id="modal-dossier">
+  <div class="modal-box" style="max-width:760px">
+    <div class="modal-header">
+      <span class="card-title" id="modal-dossier-title">Dossier</span>
+      <button class="modal-close" onclick="closeModal('modal-dossier')">✕</button>
+    </div>
+    <div class="modal-body" id="modal-dossier-body"></div>
+  </div>
+</div>
+
+<!-- FOOTER -->
+<footer class="app-footer">
+  <div class="app-footer-inner">
+    <span>PlainteCam &copy; 2026 — Direction Générale de la Sûreté Nationale — République du Cameroun</span>
+    <div class="app-footer-links">
+      <a href="../index.html">Accueil</a>
+      <span>|</span>
+      <a href="../index.html#base-legale">Base légale</a>
+      <span>|</span>
+      <a href="../index.html#contact">Assistance</a>
+      <span>|</span>
+      <a href="#">Mentions légales</a>
+    </div>
+  </div>
+</footer>
+
+<script src="../js/modules/utils.js"></script>
+<script src="../js/modules/data.js"></script>
+<script src="../js/pages/enqueteur-init.js"></script>
+</body>
+</html>

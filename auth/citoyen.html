@@ -1,0 +1,268 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>PlainteCam — Connexion Citoyen</title>
+  <link rel="stylesheet" href="../css/style.css">
+</head>
+<body>
+
+<!-- LEFT PANEL -->
+<div class="auth-left auth-left--primary">
+  <div class="auth-brand">
+    <div class="auth-seal">DGSN<br>CM</div>
+    <div>
+      <div class="auth-brand-name">PlainteCam</div>
+      <div class="auth-brand-sub">Sûreté Nationale</div>
+    </div>
+  </div>
+  <div class="auth-left-body">
+    <h2>Votre plainte, déposée en toute sécurité</h2>
+    <p>Accédez à votre espace citoyen pour déposer ou suivre vos dossiers de plainte auprès des services de police.</p>
+    <ul class="auth-feature-list">
+      <li>Dépôt de plainte par écrit ou par voix, depuis votre téléphone</li>
+      <li>Suivi en temps réel de l'avancement de votre dossier</li>
+      <li>Attestation officielle de dépôt téléchargeable au format PDF</li>
+      <li>Notifications SMS à chaque étape du traitement</li>
+      <li>Vos données protégées conformément à la législation camerounaise</li>
+    </ul>
+  </div>
+  <div class="auth-left-footer">
+    PlainteCam — République du Cameroun — Ministère de la Sécurité
+  </div>
+</div>
+
+<!-- RIGHT PANEL -->
+<div class="auth-right">
+  <div class="auth-card">
+
+    <a href="../index.html" class="back-link" style="text-decoration:none">Retour à l'accueil</a>
+
+    <div class="auth-card-title">Espace Citoyen</div>
+    <div class="auth-card-sub">Connectez-vous ou créez votre compte pour accéder à la plateforme.</div>
+
+    <!-- TABS -->
+    <div class="auth-tabs">
+      <button class="auth-tab active" onclick="switchTab('login')">Se connecter</button>
+      <button class="auth-tab" onclick="switchTab('register')">Créer un compte</button>
+    </div>
+
+    <!-- ── CONNEXION ── -->
+    <div class="auth-panel active" id="panel-login">
+
+      <!-- Step 1 : Téléphone / Email -->
+      <div class="auth-step active" id="login-step1">
+        <div class="form-group">
+          <label for="login-phone">Numéro de téléphone</label>
+          <div class="field-phone">
+            <span class="phone-prefix">+237</span>
+            <input class="form-control" type="tel" id="login-phone"
+              placeholder="6XX XXX XXX" maxlength="9" inputmode="numeric">
+          </div>
+          <div class="hint">Un code de vérification sera envoyé par SMS.</div>
+        </div>
+        <div class="form-divider"></div>
+        <div class="form-group">
+          <label for="login-email">Adresse e-mail <span style="color:var(--text-light);font-weight:400">(optionnel)</span></label>
+          <input class="form-control" type="email" id="login-email" placeholder="votre@email.com">
+        </div>
+        <div class="auth-actions">
+          <button class="btn btn-primary btn-lg" onclick="goLoginStep2()">Recevoir le code OTP</button>
+        </div>
+      </div>
+
+      <!-- Step 2 : OTP -->
+      <div class="auth-step" id="login-step2">
+        <button class="back-link" onclick="goBack('login')">Modifier le numéro</button>
+        <div class="otp-dest">Code envoyé au <strong id="login-phone-display">+237 6XX XXX XXX</strong></div>
+        <div class="otp-label">Entrez le code à 6 chiffres</div>
+        <div class="otp-inputs" id="login-otp-inputs">
+          <input type="text" class="otp-box" maxlength="1" inputmode="numeric">
+          <input type="text" class="otp-box" maxlength="1" inputmode="numeric">
+          <input type="text" class="otp-box" maxlength="1" inputmode="numeric">
+          <input type="text" class="otp-box" maxlength="1" inputmode="numeric">
+          <input type="text" class="otp-box" maxlength="1" inputmode="numeric">
+          <input type="text" class="otp-box" maxlength="1" inputmode="numeric">
+        </div>
+        <div class="otp-resend">Vous n'avez pas reçu le code ? <a onclick="resendOtp('login-otp-inputs')">Renvoyer</a></div>
+        <div class="auth-actions">
+          <button class="btn btn-primary btn-lg" onclick="validateOtp('login')">Valider et se connecter</button>
+        </div>
+      </div>
+
+    </div><!-- /panel-login -->
+
+    <!-- ── INSCRIPTION ── -->
+    <div class="auth-panel" id="panel-register">
+
+      <!-- Step 1 : Informations personnelles -->
+      <div class="auth-step active" id="register-step1">
+        <div class="form-row">
+          <div class="form-group">
+            <label for="reg-prenom">Prénom</label>
+            <input class="form-control" type="text" id="reg-prenom" placeholder="Jean">
+          </div>
+          <div class="form-group">
+            <label for="reg-nom">Nom</label>
+            <input class="form-control" type="text" id="reg-nom" placeholder="Mbarga">
+          </div>
+        </div>
+        <div class="form-group">
+          <label for="reg-phone">Numéro de téléphone</label>
+          <div class="field-phone">
+            <span class="phone-prefix">+237</span>
+            <input class="form-control" type="tel" id="reg-phone"
+              placeholder="6XX XXX XXX" maxlength="9" inputmode="numeric">
+          </div>
+          <div class="hint">Ce numéro servira à vous identifier sur la plateforme.</div>
+        </div>
+        <div class="form-group">
+          <label for="reg-email">Adresse e-mail</label>
+          <input class="form-control" type="email" id="reg-email" placeholder="votre@email.com">
+          <div class="hint">Pour recevoir vos attestations et notifications.</div>
+        </div>
+        <div class="auth-actions">
+          <button class="btn btn-primary btn-lg" onclick="goRegisterStep2()">Continuer</button>
+        </div>
+        <div class="auth-switch">
+          Déjà inscrit ? <a onclick="switchTab('login')">Se connecter</a>
+        </div>
+      </div>
+
+      <!-- Step 2 : Vérification OTP -->
+      <div class="auth-step" id="register-step2">
+        <button class="back-link" onclick="goBack('register')">Modifier mes informations</button>
+        <div class="otp-dest">Code envoyé au <strong id="reg-phone-display">+237 6XX XXX XXX</strong></div>
+        <div class="otp-label">Entrez le code à 6 chiffres</div>
+        <div class="otp-inputs" id="register-otp-inputs">
+          <input type="text" class="otp-box" maxlength="1" inputmode="numeric">
+          <input type="text" class="otp-box" maxlength="1" inputmode="numeric">
+          <input type="text" class="otp-box" maxlength="1" inputmode="numeric">
+          <input type="text" class="otp-box" maxlength="1" inputmode="numeric">
+          <input type="text" class="otp-box" maxlength="1" inputmode="numeric">
+          <input type="text" class="otp-box" maxlength="1" inputmode="numeric">
+        </div>
+        <div class="otp-resend">Vous n'avez pas reçu le code ? <a onclick="resendOtp('register-otp-inputs')">Renvoyer</a></div>
+        <div class="auth-actions">
+          <button class="btn btn-primary btn-lg" onclick="validateOtp('register')">Créer mon compte</button>
+        </div>
+      </div>
+
+    </div><!-- /panel-register -->
+
+  </div>
+</div>
+
+<script>
+  /* ── Tab switching ─────────────────────────────────── */
+  function switchTab(tab) {
+    document.querySelectorAll('.auth-tab').forEach((t, i) => {
+      t.classList.toggle('active', (tab === 'login' && i === 0) || (tab === 'register' && i === 1));
+    });
+    document.getElementById('panel-login').classList.toggle('active', tab === 'login');
+    document.getElementById('panel-register').classList.toggle('active', tab === 'register');
+  }
+
+  /* ── Step navigation ───────────────────────────────── */
+  function showStep(stepId) {
+    const panel = document.getElementById(stepId).closest('.auth-panel');
+    panel.querySelectorAll('.auth-step').forEach(s => s.classList.remove('active'));
+    document.getElementById(stepId).classList.add('active');
+  }
+
+  function goLoginStep2() {
+    const phone = document.getElementById('login-phone').value.trim();
+    if (!phone) { document.getElementById('login-phone').focus(); return; }
+    document.getElementById('login-phone-display').textContent = '+237 ' + phone;
+    showStep('login-step2');
+    document.querySelector('#login-otp-inputs .otp-box').focus();
+  }
+
+  function goRegisterStep2() {
+    const phone = document.getElementById('reg-phone').value.trim();
+    const prenom = document.getElementById('reg-prenom').value.trim();
+    if (!prenom || !phone) { return; }
+    document.getElementById('reg-phone-display').textContent = '+237 ' + phone;
+    showStep('register-step2');
+    document.querySelector('#register-otp-inputs .otp-box').focus();
+  }
+
+  function goBack(panel) {
+    showStep(panel + '-step1');
+  }
+
+  function validateOtp(panel) {
+    const containerId = panel === 'login' ? 'login-otp-inputs' : 'register-otp-inputs';
+    const boxes = document.querySelectorAll('#' + containerId + ' .otp-box');
+    const code = Array.from(boxes).map(b => b.value).join('');
+    if (code.length < 6) {
+      boxes[code.length] ? boxes[code.length].focus() : boxes[0].focus();
+      return;
+    }
+    window.location.href = '../citoyen/index.html';
+  }
+
+  function resendOtp(containerId) {
+    const boxes = document.querySelectorAll('#' + containerId + ' .otp-box');
+    boxes.forEach(b => { b.value = ''; b.classList.remove('filled'); });
+    boxes[0].focus();
+  }
+
+  /* ── OTP keyboard navigation ───────────────────────── */
+  document.addEventListener('input', function(e) {
+    if (!e.target.classList.contains('otp-box')) return;
+    const box = e.target;
+    box.value = box.value.replace(/\D/g, '').slice(-1);
+    if (box.value) {
+      box.classList.add('filled');
+      const next = box.nextElementSibling;
+      if (next && next.classList.contains('otp-box')) next.focus();
+    } else {
+      box.classList.remove('filled');
+    }
+  });
+
+  document.addEventListener('keydown', function(e) {
+    if (!e.target.classList.contains('otp-box')) return;
+    if (e.key === 'Backspace' && !e.target.value) {
+      const prev = e.target.previousElementSibling;
+      if (prev && prev.classList.contains('otp-box')) {
+        prev.value = '';
+        prev.classList.remove('filled');
+        prev.focus();
+      }
+    }
+    if (e.key === 'ArrowLeft') {
+      const prev = e.target.previousElementSibling;
+      if (prev && prev.classList.contains('otp-box')) prev.focus();
+    }
+    if (e.key === 'ArrowRight') {
+      const next = e.target.nextElementSibling;
+      if (next && next.classList.contains('otp-box')) next.focus();
+    }
+  });
+
+  /* Paste support */
+  document.addEventListener('paste', function(e) {
+    if (!e.target.classList.contains('otp-box')) return;
+    e.preventDefault();
+    const text = (e.clipboardData || window.clipboardData).getData('text').replace(/\D/g, '').slice(0, 6);
+    const container = e.target.closest('.otp-inputs');
+    const boxes = container.querySelectorAll('.otp-box');
+    text.split('').forEach((ch, i) => {
+      if (boxes[i]) { boxes[i].value = ch; boxes[i].classList.add('filled'); }
+    });
+    const next = boxes[Math.min(text.length, 5)];
+    if (next) next.focus();
+  });
+
+  /* Phone: digits only */
+  ['login-phone', 'reg-phone'].forEach(id => {
+    document.getElementById(id).addEventListener('input', function() {
+      this.value = this.value.replace(/\D/g, '');
+    });
+  });
+</script>
+</body>
+</html>

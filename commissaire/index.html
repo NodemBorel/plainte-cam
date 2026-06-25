@@ -1,0 +1,407 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>PlainteCam — Espace Commissaire</title>
+  <link rel="stylesheet" href="../css/style.css">
+</head>
+<body>
+<div id="toast-container"></div>
+
+<!-- NAVBAR -->
+<nav class="navbar">
+  <div class="navbar-brand">
+    <a href="../index.html" style="color:#fff;display:flex;align-items:center;gap:8px;text-decoration:none">
+      <span style="font-size:16px;font-weight:700">PlainteCam</span>
+    </a>
+    <span class="badge-flag">Espace Commissaire</span>
+  </div>
+  <div class="navbar-links">
+    <a href="#" class="active" onclick="showPage('page-dashboard');return false">Tableau de bord</a>
+    <a href="#" onclick="showPage('page-dossiers');return false">Dossiers</a>
+    <a href="#" onclick="showPage('page-pv');return false">Procès-verbaux</a>
+    <a href="#" onclick="showPage('page-stats');return false">Statistiques</a>
+  </div>
+  <div class="navbar-user">
+    <div class="avatar" style="background:var(--green-lt)">NN</div>
+    <div style="display:flex;flex-direction:column;line-height:1.2">
+      <span style="color:#fff;font-size:13px;font-weight:600">Comm. NGUEMO</span>
+      <span style="color:rgba(255,255,255,.5);font-size:11px">Commissaire</span>
+    </div>
+    <a href="../auth/agent.html" class="btn-deconnexion" title="Se déconnecter">Déconnexion</a>
+  </div>
+</nav>
+
+<div class="page-wrapper">
+
+<!-- SIDEBAR -->
+<aside class="sidebar">
+  <div class="sidebar-user-block">
+    <div class="sidebar-avatar" style="background:var(--green-lt)">NN</div>
+    <div>
+      <div class="sidebar-username">Commissaire NGUEMO</div>
+      <div class="sidebar-role">Commissaire — Cité Verte</div>
+    </div>
+  </div>
+  <div class="sidebar-section">Activité</div>
+  <div class="sidebar-item active" data-page="page-dashboard" onclick="navAgent(this,'page-dashboard')">
+    Vue d'ensemble
+  </div>
+  <div class="sidebar-item" data-page="page-dossiers" onclick="navAgent(this,'page-dossiers')">
+    Tous les dossiers
+    <span class="badge badge-red" style="margin-left:auto;font-size:10px">2</span>
+  </div>
+  <div class="sidebar-item" data-page="page-pv" onclick="navAgent(this,'page-pv')">
+    Procès-verbaux IA
+  </div>
+  <div class="sidebar-section">Commissariat</div>
+  <div class="sidebar-item" data-page="page-stats" onclick="navAgent(this,'page-stats')">
+    Statistiques
+  </div>
+  <div class="sidebar-item" onclick="toast('Gestion des agents','')">
+    Gestion des agents
+  </div>
+  <div class="sidebar-item" onclick="toast('Routage géographique configuré','')">
+    Routage géographique
+  </div>
+  <div class="sidebar-section">Système</div>
+  <div class="sidebar-item" onclick="toast('Journaux consultés','')">
+    Journaux d'audit
+  </div>
+  <div class="sidebar-item" onclick="window.location.href='../enqueteur/index.html'" style="color:var(--green-lt);font-weight:600">
+    Espace Enquêteur
+  </div>
+  <div class="sidebar-bottom">
+    <a href="../auth/agent.html" class="sidebar-logout">Se déconnecter</a>
+  </div>
+</aside>
+
+<!-- MAIN -->
+<main class="main-content">
+
+<!-- ============================
+     PAGE : DASHBOARD
+     ============================ -->
+<div id="page-dashboard" class="page">
+  <div class="page-title">Tableau de bord — Commissaire NGUEMO</div>
+  <div class="page-subtitle">Vue en temps réel de l'activité du commissariat — Yaoundé</div>
+
+  <!-- KPIs -->
+  <div class="kpi-row">
+    <div class="kpi urgent">
+      <div class="num">2</div>
+      <div class="lbl">Non affectées (+48h)</div>
+    </div>
+    <div class="kpi en-cours">
+      <div class="num">8</div>
+      <div class="lbl">En instruction</div>
+    </div>
+    <div class="kpi ok">
+      <div class="num">14</div>
+      <div class="lbl">Clôturées ce mois</div>
+    </div>
+    <div class="kpi total">
+      <div class="num">24</div>
+      <div class="lbl">Total dossiers actifs</div>
+    </div>
+  </div>
+
+  <div style="display:grid;grid-template-columns:2fr 1fr;gap:20px">
+
+    <!-- Plaintes à affecter -->
+    <div class="card">
+      <div class="card-header">
+        <span class="card-title">Plaintes en attente d'affectation</span>
+        <span class="badge badge-red">2 nouvelles</span>
+      </div>
+      <div class="table-wrap">
+        <table>
+          <thead><tr>
+            <th>N° Dossier</th><th>Plaignant</th><th>Type</th><th>Score IA</th><th>Action</th>
+          </tr></thead>
+          <tbody>
+            <tr>
+              <td><strong>2026-00451</strong></td>
+              <td>Jean MBIDA</td>
+              <td><span class="badge badge-orange">Vol simple</span></td>
+              <td>
+                <div style="display:flex;align-items:center;gap:6px">
+                  <div class="score-bar-wrap" style="width:70px"><div class="score-bar high" style="width:82%"></div></div>
+                  <span style="font-size:12px">82%</span>
+                </div>
+              </td>
+              <td>
+                <button class="btn btn-primary btn-sm" onclick="affecterDossier('2026-00451')">Affecter</button>
+              </td>
+            </tr>
+            <tr>
+              <td><strong>2026-00398</strong></td>
+              <td>Fatima BELLO</td>
+              <td><span class="badge badge-blue">Harcèlement</span></td>
+              <td>
+                <div style="display:flex;align-items:center;gap:6px">
+                  <div class="score-bar-wrap" style="width:70px"><div class="score-bar low" style="width:45%"></div></div>
+                  <span style="font-size:12px;color:var(--red)">45%</span>
+                </div>
+              </td>
+              <td>
+                <button class="btn btn-primary btn-sm" onclick="affecterDossier('2026-00398')">Affecter</button>
+              </td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+
+    <!-- Charge enquêteurs -->
+    <div class="card">
+      <div class="card-header">
+        <span class="card-title">Charge des enquêteurs</span>
+      </div>
+      <div style="font-size:14px">
+        <div style="display:flex;justify-content:space-between;align-items:center;padding:10px 0;border-bottom:1px solid var(--gray-2)">
+          <div><strong>Insp. NGUEMO</strong><br><span class="text-muted">Vol, Agression</span></div>
+          <span class="badge badge-orange">5 dossiers</span>
+        </div>
+        <div style="display:flex;justify-content:space-between;align-items:center;padding:10px 0;border-bottom:1px solid var(--gray-2)">
+          <div><strong>Insp. KANA</strong><br><span class="text-muted">Escroquerie, Fraude</span></div>
+          <span class="badge badge-green">3 dossiers</span>
+        </div>
+        <div style="display:flex;justify-content:space-between;align-items:center;padding:10px 0">
+          <div><strong>Insp. BIYA</strong><br><span class="text-muted">Généraliste</span></div>
+          <span class="badge badge-green">2 dossiers</span>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Graphique plaintes -->
+  <div class="card" style="margin-top:20px">
+    <div class="card-header">
+      <span class="card-title">Plaintes reçues — 14 derniers jours</span>
+      <span class="text-muted">Aujourd'hui : 3 nouvelles</span>
+    </div>
+    <canvas id="chart-plaintes" width="800" height="160"></canvas>
+  </div>
+</div>
+
+<!-- ============================
+     PAGE : DOSSIERS
+     ============================ -->
+<div id="page-dossiers" class="page" style="display:none">
+  <div class="page-title">Tous les dossiers</div>
+  <div class="page-subtitle">Gestion complète des dossiers du commissariat.</div>
+
+  <!-- Filtres -->
+  <div class="card" style="padding:14px 20px;margin-bottom:16px">
+    <div style="display:flex;gap:12px;flex-wrap:wrap;align-items:center">
+      <select class="form-control" style="max-width:180px" onchange="filterDossiers(this.value)">
+        <option value="">Tous les statuts</option>
+        <option>RECU</option>
+        <option>EN_INSTRUCTION</option>
+        <option>AUDITION</option>
+        <option>DECISION</option>
+        <option>CLOTURE</option>
+      </select>
+      <select class="form-control" style="max-width:180px">
+        <option>Tous les enquêteurs</option>
+        <option>Insp. NGUEMO</option>
+        <option>Insp. KANA</option>
+        <option>Insp. BIYA</option>
+      </select>
+      <input type="date" class="form-control" style="max-width:160px" value="2026-05-15">
+      <button class="btn btn-outline btn-sm" onclick="toast('Filtre réinitialisé','')">Réinitialiser</button>
+    </div>
+  </div>
+
+  <div class="card">
+    <div class="table-wrap">
+      <table>
+        <thead><tr>
+          <th>N° Dossier</th><th>Plaignant</th><th>Type</th><th>Date dépôt</th>
+          <th>Priorité</th><th>Score IA</th><th>Statut</th><th>Enquêteur</th><th>Actions</th>
+        </tr></thead>
+        <tbody id="dossiers-tbody"></tbody>
+      </table>
+    </div>
+  </div>
+</div>
+
+<!-- ============================
+     PAGE : PV IA
+     ============================ -->
+<div id="page-pv" class="page" style="display:none">
+  <div class="page-title">Procès-verbal généré par IA</div>
+  <div class="page-subtitle">Document pré-rempli automatiquement — Dossier N° 2026-00451</div>
+
+  <div style="display:grid;grid-template-columns:1fr 2fr;gap:20px">
+    <div class="card">
+      <div class="card-title" style="margin-bottom:14px">Informations du dossier</div>
+      <div style="font-size:14px;line-height:2">
+        <div><strong>N° :</strong> 2026-00451</div>
+        <div><strong>Plaignant :</strong> Jean MBIDA</div>
+        <div><strong>Type :</strong> Vol simple</div>
+        <div><strong>Score :</strong> <span style="color:var(--green-lt)">82 %</span></div>
+        <div><strong>Enquêteur :</strong> Insp. NGUEMO</div>
+        <div><strong>Généré le :</strong> 15/05/2026 à 14h35</div>
+      </div>
+      <div class="divider"></div>
+      <div style="font-size:13px;color:var(--text-light);margin-bottom:12px">
+        Ce PV a été pré-rempli automatiquement par le module IA (CamemBERT) à partir de la déclaration du plaignant. Vérifiez et signez avant validation officielle.
+      </div>
+      <button class="btn btn-primary btn-full" onclick="signPV()">Signer le PV</button>
+      <button class="btn btn-outline btn-full" style="margin-top:8px" onclick="toast('PDF exporté','')">Exporter en PDF</button>
+    </div>
+
+    <div>
+      <div class="pv-document">
+        <div class="pv-stamp">COMMISSARIAT<br>CITÉ VERTE<br>YAOUNDÉ</div>
+        <div class="pv-header">
+          <div style="font-size:12px;color:#666">RÉPUBLIQUE DU CAMEROUN · MINISTÈRE DE LA SÉCURITÉ</div>
+          <h2>PROCÈS-VERBAL D'AUDITION</h2>
+          <div class="ref">Réf. PV-2026-00451 · Dossier N° 2026-00451</div>
+        </div>
+        <div class="pv-body">
+          <p>L'an deux mille vingt-six, le <span class="field">quinze mai</span> à <span class="field">quatorze heures trente-deux</span>,</p>
+          <p>Nous, <span class="field">Inspecteur N. NGUEMO</span>, officier de police judiciaire au commissariat de Cité Verte, Yaoundé,</p>
+          <p>avons procédé à l'audition de :</p>
+          <p>
+            <strong>M. Jean MBIDA</strong>, né le XX/XX/XXXX à Yaoundé,<br>
+            de nationalité camerounaise, demeurant à Biyem-Assi,<br>
+            porteur de la CNI N° XXXXXXXXXXXXXXX,
+          </p>
+          <p>Lequel nous a déclaré ce qui suit, après avoir prêté serment de dire la vérité, toute la vérité, rien que la vérité :</p>
+          <p style="background:#f9f9f9;border-left:3px solid var(--primary);padding:12px;border-radius:4px;font-style:italic">
+            "Le 15 mai 2026 vers 14 heures, je me trouvais au Marché Mokolo à Yaoundé. Un individu inconnu, jeune homme d'environ 25 ans, vêtu d'un tee-shirt rouge, m'a arraché mon téléphone Samsung Galaxy de couleur noire alors que je consultais mes messages. Il a aussitôt pris la fuite en courant en direction de la rue principale. Je n'ai pas pu l'attraper. Un commerçant présent sur les lieux a partiellement observé la scène. La valeur du téléphone dérobé est estimée à cent cinquante mille (150 000) francs CFA."
+          </p>
+          <p>Lecture faite du présent procès-verbal, le comparant déclare qu'il est fidèle à ses déclarations et le signe.</p>
+          <div id="pv-ia-badge" style="display:none" class="alert alert-success">
+            PV signé électroniquement par Insp. NGUEMO le 15/05/2026 à 15h12
+          </div>
+        </div>
+        <div class="pv-signature">
+          <div style="text-align:center">
+            <div style="border-top:1px solid #999;width:160px;padding-top:6px;font-size:12px">Signature du plaignant<br>Jean MBIDA</div>
+          </div>
+          <div style="text-align:center">
+            <div id="sig-box" style="border-top:1px solid #999;width:180px;padding-top:6px;font-size:12px">Signature de l'enquêteur<br>Insp. N. NGUEMO</div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ============================
+     PAGE : STATISTIQUES
+     ============================ -->
+<div id="page-stats" class="page" style="display:none">
+  <div class="page-title">Statistiques du commissariat</div>
+  <div class="page-subtitle">Rapport mensuel — Mai 2026</div>
+
+  <div class="stats-grid">
+    <div class="stat-card">
+      <div>
+        <div class="stat-num">47</div>
+        <div class="stat-label">Plaintes reçues ce mois</div>
+      </div>
+    </div>
+    <div class="stat-card green">
+      <div>
+        <div class="stat-num">14</div>
+        <div class="stat-label">Dossiers clôturés</div>
+      </div>
+    </div>
+    <div class="stat-card orange">
+      <div>
+        <div class="stat-num">6,2 j</div>
+        <div class="stat-label">Délai moyen de traitement</div>
+      </div>
+    </div>
+    <div class="stat-card" style="border-left-color:var(--gold)">
+      <div>
+        <div class="stat-num">91 %</div>
+        <div class="stat-label">Score IA moyen des dossiers</div>
+      </div>
+    </div>
+  </div>
+
+  <div style="display:grid;grid-template-columns:1fr 1fr;gap:20px">
+    <div class="card">
+      <div class="card-title" style="margin-bottom:16px">Répartition par type d'infraction</div>
+      <div id="pie-chart" style="padding:10px 0"></div>
+    </div>
+    <div class="card">
+      <div class="card-title" style="margin-bottom:16px">Charge de travail par enquêteur</div>
+      <table style="font-size:13px">
+        <thead><tr>
+          <th>Enquêteur</th><th>Actifs</th><th>Clôturés</th><th>Délai moy.</th>
+        </tr></thead>
+        <tbody>
+          <tr><td><strong>Insp. NGUEMO</strong></td><td>5</td><td>6</td><td>5.8j</td></tr>
+          <tr><td><strong>Insp. KANA</strong></td><td>3</td><td>5</td><td>7.1j</td></tr>
+          <tr><td><strong>Insp. BIYA</strong></td><td>2</td><td>3</td><td>5.2j</td></tr>
+        </tbody>
+      </table>
+      <div class="divider"></div>
+      <div class="alert alert-info" style="margin-top:0">
+        <div>Canal SMS : <strong>92 % de livraison</strong> sur 47 notifications envoyées ce mois.</div>
+      </div>
+    </div>
+  </div>
+</div>
+
+</main>
+</div><!-- page-wrapper -->
+
+<!-- MODAL DOSSIER -->
+<div class="modal-overlay" id="modal-dossier">
+  <div class="modal-box" style="max-width:760px">
+    <div class="modal-header">
+      <span class="card-title" id="modal-dossier-title">Dossier</span>
+      <button class="modal-close" onclick="closeModal('modal-dossier')">✕</button>
+    </div>
+    <div class="modal-body" id="modal-dossier-body"></div>
+  </div>
+</div>
+
+<!-- MODAL AFFECTATION -->
+<div class="modal-overlay" id="modal-affectation">
+  <div class="modal-box" style="max-width:460px">
+    <div class="modal-header">
+      <span class="card-title">Affecter le dossier</span>
+      <button class="modal-close" onclick="closeModal('modal-affectation')">✕</button>
+    </div>
+    <div class="modal-body">
+      <div class="alert alert-info" style="margin-bottom:18px">
+        <div>Suggestion IA : <strong>Insp. NGUEMO</strong> — Vol simple, charge actuelle = 5 dossiers</div>
+      </div>
+      <div style="font-size:14px;margin-bottom:16px"><strong>Sélectionner un enquêteur :</strong></div>
+      <div id="enqueteur-list"></div>
+    </div>
+  </div>
+</div>
+
+<!-- FOOTER -->
+<footer class="app-footer">
+  <div class="app-footer-inner">
+    <span>PlainteCam &copy; 2026 — Direction Générale de la Sûreté Nationale — République du Cameroun</span>
+    <div class="app-footer-links">
+      <a href="../index.html">Accueil</a>
+      <span>|</span>
+      <a href="../index.html#base-legale">Base légale</a>
+      <span>|</span>
+      <a href="../index.html#contact">Assistance</a>
+      <span>|</span>
+      <a href="#">Mentions légales</a>
+    </div>
+  </div>
+</footer>
+
+<script src="../js/modules/utils.js"></script>
+<script src="../js/modules/data.js"></script>
+<script src="../js/pages/agent.js"></script>
+<script src="../js/pages/commissaire-init.js"></script>
+</body>
+</html>

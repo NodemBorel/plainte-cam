@@ -1,0 +1,200 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>PlainteCam — Connexion Espace Police</title>
+  <link rel="stylesheet" href="../css/style.css">
+</head>
+<body>
+
+<!-- LEFT PANEL -->
+<div class="auth-left auth-left--green">
+  <div class="auth-brand">
+    <div class="auth-seal">DGSN<br>CM</div>
+    <div>
+      <div class="auth-brand-name">PlainteCam</div>
+      <div class="auth-brand-sub">Sûreté Nationale</div>
+    </div>
+  </div>
+  <div class="auth-left-body">
+    <div class="auth-badge">Accès réservé — Personnel DGSN</div>
+    <h2>Tableau de bord des officiers de police</h2>
+    <p>Connectez-vous avec vos identifiants institutionnels pour accéder à la gestion des dossiers de plainte.</p>
+    <ul class="auth-feature-list">
+      <li>Réception et affectation des nouvelles plaintes</li>
+      <li>Validation des procès-verbaux générés automatiquement</li>
+      <li>Émission de convocations et suivi des dossiers</li>
+      <li>Tableau de bord statistique du commissariat</li>
+      <li>Gestion des accès et des rôles agents</li>
+    </ul>
+    <div class="auth-warning">
+      <strong>Accès strictement réservé</strong>
+      Cet espace est destiné exclusivement au personnel habilité de la Direction Générale de la Sûreté Nationale. Toute connexion est journalisée.
+    </div>
+  </div>
+  <div class="auth-left-footer">
+    PlainteCam — République du Cameroun — Ministère de la Sécurité
+  </div>
+</div>
+
+<!-- RIGHT PANEL -->
+<div class="auth-right">
+  <div class="auth-card">
+
+    <a href="../index.html" class="back-link">Retour à l'accueil</a>
+
+    <!-- Step 1 : Rôle -->
+    <div class="auth-step active" id="step-role">
+      <div class="auth-card-title" style="margin-bottom:6px">Connexion</div>
+      <div class="auth-card-sub" style="margin-bottom:28px">Espace Police — Sélectionnez votre rôle</div>
+
+      <div class="role-grid">
+        <button class="role-card" onclick="selectRole('commissaire')">
+          <div class="role-card-icon" style="background:rgba(11,30,69,.08);border-color:rgba(11,30,69,.2)">C</div>
+          <div class="role-card-name">Commissaire</div>
+          <div class="role-card-desc">Vue globale du commissariat, affectation des dossiers, statistiques, gestion des agents</div>
+        </button>
+        <button class="role-card" onclick="selectRole('enqueteur')">
+          <div class="role-card-icon" style="background:rgba(10,48,24,.08);border-color:rgba(10,48,24,.2)">E</div>
+          <div class="role-card-name">Enquêteur</div>
+          <div class="role-card-desc">Mes dossiers affectés, instruction, procès-verbaux à signer, convocations</div>
+        </button>
+      </div>
+    </div>
+
+    <!-- Step 2 : Login -->
+    <div class="auth-step" id="step-login">
+      <button class="back-link" onclick="showStep('step-role')">Changer de rôle</button>
+      <div class="auth-card-title" style="margin-bottom:4px">Connexion</div>
+      <div id="role-label" class="auth-card-sub" style="margin-bottom:24px">Commissaire — Espace de supervision</div>
+
+      <div class="form-group">
+        <label for="matricule">Matricule</label>
+        <div class="field-matricule-wrap">
+          <span class="matricule-prefix">SN–</span>
+          <input class="form-control" type="text" id="matricule"
+            placeholder="2024XXXX" autocomplete="username">
+        </div>
+        <div class="hint">Matricule attribué par la DGSN lors de votre affectation.</div>
+      </div>
+
+      <div class="form-group">
+        <label for="password">
+          Mot de passe
+          <span class="forgot-link" onclick="showStep('step-reset')">Mot de passe oublié ?</span>
+        </label>
+        <div class="field-password">
+          <input class="form-control" type="password" id="password"
+            placeholder="••••••••••" autocomplete="current-password">
+          <button class="toggle-pw" onclick="togglePw('password', this)" tabindex="-1">Afficher</button>
+        </div>
+      </div>
+
+      <div class="form-check">
+        <input type="checkbox" id="remember" name="remember">
+        <label for="remember">Rester connecté sur cet appareil</label>
+      </div>
+
+      <div class="auth-actions">
+        <button class="btn btn-success btn-lg" onclick="handleLogin()">Se connecter</button>
+      </div>
+
+      <div class="security-note">
+        <strong>Session sécurisée.</strong> Votre connexion est chiffrée et toutes les actions sont journalisées. Déconnectez-vous toujours sur un poste partagé.
+      </div>
+    </div>
+
+    <!-- Step 2 : Reset password -->
+    <div class="auth-step" id="step-reset">
+      <button class="back-link" onclick="showStep('step-login')" style="margin-bottom:28px">Retour à la connexion</button>
+      <div class="auth-card-title" style="font-size:20px;margin-bottom:6px">Réinitialisation du mot de passe</div>
+      <div class="auth-card-sub" style="margin-bottom:28px">Contactez votre responsable hiérarchique ou le service informatique de la DGSN pour obtenir un nouveau mot de passe.</div>
+
+      <div class="form-group">
+        <label for="reset-matricule">Matricule</label>
+        <div class="field-matricule-wrap">
+          <span class="matricule-prefix">SN–</span>
+          <input class="form-control" type="text" id="reset-matricule" placeholder="2024XXXX">
+        </div>
+      </div>
+
+      <div class="form-group">
+        <label for="reset-email">Adresse e-mail institutionnelle</label>
+        <input class="form-control" type="email" id="reset-email"
+          placeholder="matricule@police.cm">
+        <div class="hint">L'adresse e-mail enregistrée lors de la création de votre compte par l'administrateur.</div>
+      </div>
+
+      <div class="auth-actions">
+        <button class="btn btn-primary btn-lg" onclick="handleReset()">Envoyer la demande</button>
+      </div>
+
+      <div class="security-note" style="margin-top:18px">
+        Un e-mail de réinitialisation sera transmis à l'adresse institutionnelle associée à ce matricule. Si vous n'avez pas accès à cet e-mail, contactez votre superviseur ou la DSI.
+      </div>
+    </div>
+
+    <!-- Step 3 : Reset confirmation -->
+    <div class="auth-step" id="step-reset-done">
+      <div style="text-align:center;padding:32px 0 8px">
+        <div style="width:56px;height:56px;border-radius:50%;background:rgba(20,94,46,.1);border:2px solid var(--green-lt);display:flex;align-items:center;justify-content:center;margin:0 auto 20px;font-weight:700;font-size:20px;color:var(--green-lt)">OK</div>
+        <div style="font-size:18px;font-weight:700;color:var(--primary);margin-bottom:8px">Demande envoyée</div>
+        <p style="font-size:14px;color:var(--text-light);line-height:1.65;margin-bottom:24px">
+          Un e-mail de réinitialisation a été envoyé à votre adresse institutionnelle. Vérifiez votre boîte de réception.
+        </p>
+        <button class="btn btn-primary" onclick="showStep('step-login')">Retour à la connexion</button>
+      </div>
+    </div>
+
+  </div>
+</div>
+
+<script>
+  function showStep(id) {
+    document.querySelectorAll('.auth-step').forEach(s => s.classList.remove('active'));
+    document.getElementById(id).classList.add('active');
+  }
+
+  function togglePw(id, btn) {
+    const input = document.getElementById(id);
+    const isHidden = input.type === 'password';
+    input.type = isHidden ? 'text' : 'password';
+    btn.textContent = isHidden ? 'Masquer' : 'Afficher';
+  }
+
+  var currentRole = 'commissaire';
+
+  function selectRole(role) {
+    currentRole = role;
+    document.getElementById('role-label').textContent =
+      role === 'commissaire'
+        ? 'Commissaire — Espace de supervision'
+        : 'Enquêteur — Espace d\'instruction';
+    showStep('step-login');
+    document.getElementById('matricule').focus();
+  }
+
+  function handleLogin() {
+    const mat = document.getElementById('matricule').value.trim();
+    const pw = document.getElementById('password').value;
+    if (!mat || !pw) return;
+    window.location.href = currentRole === 'commissaire' ? '../commissaire/index.html' : '../enqueteur/index.html';
+  }
+
+  function handleReset() {
+    const mat = document.getElementById('reset-matricule').value.trim();
+    const email = document.getElementById('reset-email').value.trim();
+    if (!mat || !email) return;
+    showStep('step-reset-done');
+  }
+
+  document.getElementById('matricule').addEventListener('keydown', function(e) {
+    if (e.key === 'Enter') document.getElementById('password').focus();
+  });
+  document.getElementById('password').addEventListener('keydown', function(e) {
+    if (e.key === 'Enter') handleLogin();
+  });
+</script>
+</body>
+</html>
