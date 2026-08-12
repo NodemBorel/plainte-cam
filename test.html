@@ -1,0 +1,92 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Groq API Test</title>
+    <style>
+        body { font-family: sans-serif; max-width: 500px; margin: 40px auto; padding: 20px; }
+        input, button, textarea { width: 100%; margin-bottom: 15px; padding: 10px; box-sizing: border-box; }
+        button { background: #f55036; color: white; border: none; cursor: pointer; font-weight: bold; }
+        button:disabled { background: #ccc; }
+        #output { background: #f1f3f4; padding: 15px; border-left: 5px solid #f55036; white-space: pre-wrap; }
+    </style>
+</head>
+<body>
+
+    <h2>Test Groq API (Free Tier)</h2>
+    
+    <label for="apiKey">Groq API Key (Starts with gsk_):</label>
+    <input type="password" id="apiKey" placeholder="gsk_...">
+
+    <label for="prompt">Prompt:</label>
+    <textarea id="prompt" rows="3">Hello! Say 'Groq API is working' if you can read this.</textarea>
+
+    <button id="sendBtn">Send Request</button>
+
+    <h3>Response:</h3>
+    <div id="output">Click "Send Request" to test your key.</div>
+
+<script>
+    const apiKeyInput = document.getElementById('apiKey');
+    const promptInput = document.getElementById('prompt');
+    const sendBtn = document.getElementById('sendBtn');
+    const outputDiv = document.getElementById('output');
+
+    sendBtn.addEventListener('click', async () => {
+        const apiKey = apiKeyInput.value.trim();
+        const prompt = promptInput.value.trim();
+
+        if (!apiKey) {
+            outputDiv.innerText = "Error: Please enter an API key.";
+            return;
+        }
+
+        if (!apiKey.startsWith("gsk_")) {
+            outputDiv.innerText = "Error: Your key does not start with 'gsk_'. Ensure you copied a Groq API key.";
+            return;
+        }
+
+        sendBtn.disabled = true;
+        outputDiv.innerText = "Connecting to Groq...";
+
+        // Groq API Endpoint
+        const url = 'https://api.groq.com/openai/v1/chat/completions';
+
+        try {
+            const response = await fetch(url, {
+                method: 'POST',
+                headers: {
+                    'Authorization': `Bearer ${apiKey}`,
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({
+                    // Using Llama 3.1 8B, which is incredibly fast and free on Groq
+                    model: 'llama-3.1-8b-instant',
+                    messages: [{
+                        role: 'user',
+                        content: prompt
+                    }]
+                })
+            });
+
+            const data = await response.json();
+
+            if (!response.ok) {
+                throw new Error(data.error?.message || `HTTP error! status: ${response.status}`);
+            }
+
+            // Extract text from OpenAI-style JSON format
+            const textResponse = data.choices[0].message.content;
+            outputDiv.innerText = textResponse;
+
+        } catch (error) {
+            outputDiv.innerText = `API Error:\n${error.message}`;
+        } finally {
+            sendBtn.disabled = false;
+        }
+    });
+</script>
+
+</body>
+</html>

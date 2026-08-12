@@ -16,6 +16,22 @@
   --orange:     #c96a00;
   --red:        #b82c1f;
 
+  /* Variantes assombries des accents, pour du TEXTE sur fond clair.
+     Les accents pleins ci-dessus sont concus pour des aplats : poses en
+     couleur de texte sur blanc ils tombent sous les 4.5:1 exiges au §8.4
+     (--gold n'atteint que 2.9:1). Ces quatre valeurs depassent 6:1. */
+  --gold-txt:   #6b4a00;
+  --orange-txt: #8a4700;
+  --green-txt:  #0f4a24;
+  --red-txt:    #8e2117;
+
+  /* Teintes claires des accents, pour les fonds de badges et d'alertes. */
+  --tint-navy:   #d6d7d9;
+  --tint-green:  #d7ded6;
+  --tint-orange: #ecddcc;
+  --tint-gold:   #eadcbe;
+  --tint-red:    #ead5d0;
+
   /* Neutres */
   --bg:         #f4f4f2;
   --white:      #ffffff;
@@ -45,3 +61,10 @@ body {
 
 a { color: inherit; text-decoration: none; }
 img { max-width: 100%; }
+
+/* Libelle reserve aux lecteurs d'ecran : visuellement masque, restitue a l'oral. */
+.sr-only {
+  position: absolute; width: 1px; height: 1px;
+  padding: 0; margin: -1px; overflow: hidden;
+  clip: rect(0, 0, 0, 0); white-space: nowrap; border: 0;
+}

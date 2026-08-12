@@ -12,6 +12,10 @@
 
 <!-- NAVBAR -->
 <nav class="navbar">
+  <button type="button" class="nav-burger" onclick="basculerTiroir()"
+    aria-label="Ouvrir le menu" aria-expanded="false" aria-controls="sidebar">
+    <svg width="20" height="20" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" aria-hidden="true"><path d="M2.5 4.5h11M2.5 8h11M2.5 11.5h11"/></svg>
+  </button>
   <div class="navbar-brand">
     <a href="../index.html" style="color:#fff;display:flex;align-items:center;gap:8px;text-decoration:none">
       <span style="font-size:16px;font-weight:700">PlainteCam</span>
@@ -37,13 +41,16 @@
 <div class="page-wrapper">
 
 <!-- SIDEBAR -->
-<aside class="sidebar">
+<aside class="sidebar" id="sidebar">
   <div class="sidebar-user-block">
     <div class="sidebar-avatar" style="background:var(--green-lt)">NN</div>
     <div>
       <div class="sidebar-username">Commissaire NGUEMO</div>
       <div class="sidebar-role">Commissaire — Cité Verte</div>
     </div>
+    <button type="button" class="sidebar-fermer" onclick="fermerTiroir()" aria-label="Fermer le menu">
+      <svg width="15" height="15" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" aria-hidden="true"><path d="M4.5 4.5l7 7M11.5 4.5l-7 7"/></svg>
+    </button>
   </div>
   <div class="sidebar-section">Activité</div>
   <div class="sidebar-item active" data-page="page-dashboard" onclick="navAgent(this,'page-dashboard')">
@@ -60,14 +67,14 @@
   <div class="sidebar-item" data-page="page-stats" onclick="navAgent(this,'page-stats')">
     Statistiques
   </div>
-  <div class="sidebar-item" onclick="toast('Gestion des agents','')">
+  <div class="sidebar-item" onclick="toast('Gestion des agents','info')">
     Gestion des agents
   </div>
-  <div class="sidebar-item" onclick="toast('Routage géographique configuré','')">
+  <div class="sidebar-item" onclick="toast('Routage géographique configuré','success')">
     Routage géographique
   </div>
   <div class="sidebar-section">Système</div>
-  <div class="sidebar-item" onclick="toast('Journaux consultés','')">
+  <div class="sidebar-item" onclick="toast('Journaux consultés','info')">
     Journaux d'audit
   </div>
   <div class="sidebar-item" onclick="window.location.href='../enqueteur/index.html'" style="color:var(--green-lt);font-weight:600">
@@ -77,6 +84,8 @@
     <a href="../auth/agent.html" class="sidebar-logout">Se déconnecter</a>
   </div>
 </aside>
+<div class="sidebar-voile" id="sidebar-voile" onclick="fermerTiroir()" aria-hidden="true"></div>
+
 
 <!-- MAIN -->
 <main class="main-content">
@@ -108,7 +117,7 @@
     </div>
   </div>
 
-  <div style="display:grid;grid-template-columns:2fr 1fr;gap:20px">
+  <div class="grid-2-1">
 
     <!-- Plaintes à affecter -->
     <div class="card">
@@ -212,7 +221,7 @@
         <option>Insp. BIYA</option>
       </select>
       <input type="date" class="form-control" style="max-width:160px" value="2026-05-15">
-      <button class="btn btn-outline btn-sm" onclick="toast('Filtre réinitialisé','')">Réinitialiser</button>
+      <button class="btn btn-outline btn-sm" onclick="toast('Filtre réinitialisé','info')">Réinitialiser</button>
     </div>
   </div>
 
@@ -236,7 +245,7 @@
   <div class="page-title">Procès-verbal généré par IA</div>
   <div class="page-subtitle">Document pré-rempli automatiquement — Dossier N° 2026-00451</div>
 
-  <div style="display:grid;grid-template-columns:1fr 2fr;gap:20px">
+  <div class="grid-1-2">
     <div class="card">
       <div class="card-title" style="margin-bottom:14px">Informations du dossier</div>
       <div style="font-size:14px;line-height:2">
@@ -252,7 +261,7 @@
         Ce PV a été pré-rempli automatiquement par le module IA (CamemBERT) à partir de la déclaration du plaignant. Vérifiez et signez avant validation officielle.
       </div>
       <button class="btn btn-primary btn-full" onclick="signPV()">Signer le PV</button>
-      <button class="btn btn-outline btn-full" style="margin-top:8px" onclick="toast('PDF exporté','')">Exporter en PDF</button>
+      <button class="btn btn-outline btn-full" style="margin-top:8px" onclick="toast('PDF exporté','success')">Exporter en PDF</button>
     </div>
 
     <div>
@@ -328,13 +337,14 @@
     </div>
   </div>
 
-  <div style="display:grid;grid-template-columns:1fr 1fr;gap:20px">
+  <div class="grid-2">
     <div class="card">
       <div class="card-title" style="margin-bottom:16px">Répartition par type d'infraction</div>
       <div id="pie-chart" style="padding:10px 0"></div>
     </div>
     <div class="card">
       <div class="card-title" style="margin-bottom:16px">Charge de travail par enquêteur</div>
+      <div class="table-wrap">
       <table style="font-size:13px">
         <thead><tr>
           <th>Enquêteur</th><th>Actifs</th><th>Clôturés</th><th>Délai moy.</th>
@@ -345,6 +355,7 @@
           <tr><td><strong>Insp. BIYA</strong></td><td>2</td><td>3</td><td>5.2j</td></tr>
         </tbody>
       </table>
+      </div>
       <div class="divider"></div>
       <div class="alert alert-info" style="margin-top:0">
         <div>Canal SMS : <strong>92 % de livraison</strong> sur 47 notifications envoyées ce mois.</div>

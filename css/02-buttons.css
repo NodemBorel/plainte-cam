@@ -10,7 +10,9 @@
 .btn-primary:hover { background: var(--primary-lt); }
 .btn-success { background: var(--green); color: #fff; }
 .btn-success:hover { background: var(--green-lt); }
-.btn-gold { background: var(--gold); color: #fff; }
+/* Texte marine et non blanc sur l'or : #fff sur --gold ne donne que 2.9:1,
+   sous le minimum AA de 4.5:1 exige au §8.4. --primary sur --gold donne 7.2:1. */
+.btn-gold { background: var(--gold); color: var(--primary); }
 .btn-gold:hover { background: var(--gold-lt); }
 .btn-outline {
   background: transparent; color: var(--primary);

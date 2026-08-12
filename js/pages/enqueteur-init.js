@@ -66,7 +66,7 @@ function navEnqTo(page) {
 
 function cloturerDossier(id) {
   closeModal('modal-dossier');
-  toast('Dossier ' + id + ' cloture');
+  toast('Dossier ' + id + ' clôturé', 'success');
   mesDossiers = mesDossiers.filter(function(d) { return d.id !== id; });
   renderMesDossiers(mesDossiers);
 }
@@ -81,8 +81,8 @@ function signPV() {
   var badge = document.getElementById('pv-ia-badge');
   if (badge) badge.style.display = '';
   var sb = document.getElementById('sig-box');
-  if (sb) sb.style.background = '#dcfce7';
-  toast('PV signe electroniquement avec horodatage');
+  if (sb) sb.style.background = 'rgba(20,94,46,.08)';
+  toast('PV signé électroniquement avec horodatage','success');
 }
 
 (function initEnqueteurPage() {

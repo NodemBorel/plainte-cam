@@ -24,20 +24,47 @@
   cursor: pointer; color: var(--text-light); line-height: 1;
 }
 
-/* ── TOAST ───────────────────────────────────────────────── */
+/* ── MESSAGES DE VALIDATION ──────────────────────────────────
+   En haut et centres : dans le coin inferieur droit, ils passaient
+   inapercus, surtout sur un formulaire long ou l'attention est en haut de
+   page. La couleur porte le sens (vert, rouge, bleu, orange) et le fond
+   est plein pour rester visible sur n'importe quel contenu.
+   ─────────────────────────────────────────────────────────── */
 #toast-container {
-  position: fixed; bottom: 22px; right: 22px; z-index: 9999;
-  display: flex; flex-direction: column; gap: 8px;
+  position: fixed;
+  top: 14px; left: 50%;
+  transform: translateX(-50%);
+  z-index: 9999;
+  display: flex; flex-direction: column; align-items: center; gap: 8px;
+  width: max-content; max-width: min(92vw, 520px);
+  pointer-events: none;
 }
 .toast {
-  background: var(--primary); color: #fff; padding: 12px 16px;
-  border-radius: var(--radius-sm); font-size: 13px;
-  box-shadow: 0 6px 20px rgba(0,0,0,.25);
-  animation: slide-in .25s ease;
-  display: flex; align-items: center; gap: 10px;
-  max-width: 300px; border-left: 3px solid var(--gold);
+  display: flex; align-items: flex-start; gap: 10px;
+  max-width: 100%;
+  padding: 12px 17px;
+  border-radius: var(--radius);
+  font-size: 13.5px; font-weight: 600; line-height: 1.45;
+  color: var(--white);
+  background: var(--primary);
+  box-shadow: 0 8px 26px rgba(11,30,69,.30);
+  animation: toast-descend .22s ease;
+  pointer-events: auto;
+  transition: opacity .35s ease;
 }
-@keyframes slide-in {
-  from { transform: translateX(100%); opacity: 0; }
-  to   { transform: translateX(0); opacity: 1; }
+.toast-icone { flex-shrink: 0; display: flex; margin-top: 1px; }
+
+/* Le fond est choisi pour porter du blanc a plus de 4.5:1. --orange plein
+   ne donnerait que 3.8:1 : on prend sa variante assombrie. */
+.toast-succes { background: var(--green-lt); }
+.toast-erreur { background: var(--red); }
+.toast-info   { background: var(--primary); }
+.toast-alerte { background: var(--orange-txt); }
+
+@keyframes toast-descend {
+  from { transform: translateY(-14px); opacity: 0; }
+  to   { transform: translateY(0);     opacity: 1; }
+}
+@media (prefers-reduced-motion: reduce) {
+  .toast { animation: none; }
 }

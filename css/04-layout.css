@@ -21,6 +21,35 @@
   border-bottom: 1px solid var(--gray-2);
   background: var(--gray-1);
 }
+
+/* ── TIROIR LATERAL (mobile) ─────────────────────────────────
+   Etats par defaut : sur grand ecran il n'y a ni bouton, ni voile, ni
+   bouton de fermeture. 09-responsive.css les revele sous 860px, ou la
+   barre laterale devient un tiroir coulissant.
+   ─────────────────────────────────────────────────────────── */
+.nav-burger {
+  display: none;
+  align-items: center; justify-content: center;
+  width: 40px; height: 40px; flex-shrink: 0;
+  background: none; border: 1px solid rgba(255,255,255,.28);
+  border-radius: var(--radius-sm);
+  color: #fff; cursor: pointer; padding: 0;
+  transition: var(--transition);
+}
+.nav-burger:hover { background: rgba(255,255,255,.12); }
+
+.sidebar-voile { display: none; }
+
+.sidebar-fermer {
+  display: none;
+  align-items: center; justify-content: center;
+  width: 32px; height: 32px; margin-left: auto; flex-shrink: 0;
+  background: none; border: 1px solid var(--gray-2);
+  border-radius: var(--radius-sm);
+  color: var(--text-light); cursor: pointer; padding: 0;
+  transition: var(--transition);
+}
+.sidebar-fermer:hover { color: var(--primary); border-color: var(--primary); }
 .sidebar-avatar {
   width: 38px; height: 38px; border-radius: 50%;
   background: var(--primary);
@@ -62,7 +91,26 @@
   color: var(--red); border-color: var(--red);
   background: rgba(184,44,31,.04);
 }
-.main-content { flex: 1; padding: 24px 28px; overflow-x: hidden; }
+/* overflow-x: auto et non hidden. En hidden, tout debordement etait tronque
+   sans le moindre indice visuel : le contenu disparaissait purement et
+   simplement au lieu de rester atteignable. */
+.main-content { flex: 1; min-width: 0; padding: 24px 28px; overflow-x: auto; }
+
+/* ── GRILLES DE MISE EN PAGE ─────────────────────────────────
+   Ces classes remplacent les grilles a colonnes fixes ecrites en style
+   inline, qu'aucune regle CSS ne pouvait atteindre : elles restaient a
+   deux ou trois colonnes sur telephone. Elles se replient toutes a une
+   colonne dans 09-responsive.css.
+   ─────────────────────────────────────────────────────────── */
+.grid-2          { display: grid; grid-template-columns: 1fr 1fr;   gap: 20px; align-items: start; }
+.grid-1-2        { display: grid; grid-template-columns: 1fr 2fr;   gap: 20px; align-items: start; }
+.grid-2-1        { display: grid; grid-template-columns: 2fr 1fr;   gap: 20px; align-items: start; }
+.grid-main-aside { display: grid; grid-template-columns: 1fr 280px; gap: 20px; align-items: start; }
+.grid-aside-main { display: grid; grid-template-columns: 300px 1fr; gap: 24px; align-items: start; }
+/* Les enfants de grille doivent pouvoir rétrécir sous leur contenu,
+   sinon un tableau large repousse la colonne au-delà de la fenêtre. */
+.grid-2 > *, .grid-1-2 > *, .grid-2-1 > *,
+.grid-main-aside > *, .grid-aside-main > * { min-width: 0; }
 
 /* ── FOOTER APP (pages internes) ─────────────────────────── */
 .app-footer {

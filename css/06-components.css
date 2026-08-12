@@ -57,12 +57,14 @@ select.form-control { cursor: pointer; }
   font-size: 11px; font-weight: 700;
   text-transform: uppercase; letter-spacing: .04em;
 }
-.badge-blue { background: #dbeafe; color: #1d4ed8; }
-.badge-green { background: #dcfce7; color: #166534; }
-.badge-orange { background: #ffedd5; color: #9a3412; }
-.badge-red { background: #fee2e2; color: #991b1b; }
-.badge-gray { background: var(--gray-2); color: var(--text-light); }
-.badge-purple { background: #ede9fe; color: #5b21b6; }
+/* Teintes derivees des jetons de la charte, sur fond neutre chaud.
+   Contraste verifie >= 4.5:1 (texte 11px gras = texte normal au sens WCAG AA). */
+.badge-blue   { background: var(--tint-navy);   color: var(--primary); }    /* recu     */
+.badge-green  { background: var(--tint-green);  color: var(--green-txt); }  /* cloture  */
+.badge-orange { background: var(--tint-orange); color: var(--orange-txt); } /* en cours */
+.badge-gold   { background: var(--tint-gold);   color: var(--gold-txt); }   /* audition */
+.badge-red    { background: var(--tint-red);    color: var(--red-txt); }    /* urgent   */
+.badge-gray   { background: var(--gray-2);      color: var(--text-light); }
 
 /* ── TABLE ───────────────────────────────────────────────── */
 .table-wrap { overflow-x: auto; }
@@ -159,11 +161,12 @@ tr:last-child td { border-bottom: none; }
   display: inline; padding: 1px 5px; border-radius: 2px;
   font-weight: 600; font-size: .92em;
 }
-.entity-per { background: #dbeafe; color: #1d4ed8; }
-.entity-loc { background: #dcfce7; color: #166534; }
-.entity-date { background: #ffedd5; color: #9a3412; }
-.entity-obj { background: #ede9fe; color: #5b21b6; }
-.entity-money { background: #fef3c7; color: #92400e; }
+/* Surlignage des entites extraites par le NLP — meme famille que les badges */
+.entity-per   { background: var(--tint-navy);   color: var(--primary); }    /* personne */
+.entity-loc   { background: var(--tint-green);  color: var(--green-txt); }  /* lieu     */
+.entity-date  { background: var(--tint-orange); color: var(--orange-txt); } /* date     */
+.entity-obj   { background: var(--gray-2);      color: var(--text); }       /* objet    */
+.entity-money { background: var(--tint-gold);   color: var(--gold-txt); }   /* montant  */
 .entity-legend { display: flex; flex-wrap: wrap; gap: 10px; margin-top: 12px; }
 .legend-item { display: flex; align-items: center; gap: 6px; font-size: 12px; }
 .legend-dot { width: 10px; height: 10px; border-radius: 2px; }
@@ -191,7 +194,12 @@ tr:last-child td { border-bottom: none; }
 }
 .pv-body p { margin-bottom: 10px; text-align: justify; }
 .pv-body .field { font-weight: bold; }
-.pv-signature { margin-top: 28px; display: flex; justify-content: space-between; }
+/* flex-wrap : les deux blocs de signature font 160px et 180px de large et
+   debordaient du document sur mobile. */
+.pv-signature {
+  margin-top: 28px; display: flex; justify-content: space-between;
+  flex-wrap: wrap; gap: 24px;
+}
 
 /* ── ATTESTATION ─────────────────────────────────────────── */
 .attestation {
@@ -202,10 +210,190 @@ tr:last-child td { border-bottom: none; }
   font-size: 24px; font-weight: 700; color: var(--primary);
   letter-spacing: .05em; margin: 12px 0;
 }
-.qr-placeholder {
-  width: 80px; height: 80px; background: var(--gray-2);
-  margin: 12px auto; border-radius: var(--radius-sm);
-  display: grid; grid-template-columns: 1fr 1fr 1fr;
-  gap: 3px; padding: 7px;
+/* Code QR de verification. Remplace .qr-placeholder, qui etait une grille
+   decorative de 9 carres n'encodant rien. */
+.qr-bloc {
+  width: 112px; height: 112px;
+  margin: 14px auto 10px;
+  padding: 3px;
+  background: var(--white);
+  border: 1px solid var(--gray-2);
+  border-radius: var(--radius-sm);
+  display: flex; align-items: center; justify-content: center;
 }
-.qr-placeholder div { background: var(--primary); border-radius: 1px; }
+.qr-bloc svg { display: block; width: 100%; height: 100%; }
+
+/* Precision sous les deux boutons de l'etape 5. */
+.note-choix {
+  font-size: 12px; line-height: 1.6;
+  color: var(--text-light);
+  margin: -4px 0 0;
+}
+
+
+/* ── CARTES DE CONTACT ───────────────────────────────────────
+   Traitement uniforme et volontairement sobre : la distinction entre les
+   trois cartes se fait par l'icone et le contenu, pas par trois couleurs
+   d'accent differentes surmontees d'une barre coloree.
+   Declarees apres .card pour en surcharger le padding a specificite egale.
+   ─────────────────────────────────────────────────────────── */
+.contact-card { padding: 26px 22px; text-align: center; }
+.contact-card-icon {
+  display: inline-flex; align-items: center; justify-content: center;
+  width: 44px; height: 44px; margin-bottom: 16px;
+  border-radius: var(--radius);
+  background: var(--gray-1); border: 1px solid var(--gray-2);
+  color: var(--primary);
+}
+.contact-card h3 {
+  font-size: 15px; font-weight: 700;
+  color: var(--primary); margin-bottom: 8px;
+}
+.contact-card p {
+  font-size: 13px; line-height: 1.7;
+  color: var(--text-light); margin-bottom: 16px;
+}
+.contact-card-val {
+  font-size: 13px; font-weight: 700; color: var(--primary);
+  padding-top: 14px; border-top: 1px solid var(--gray-2);
+}
+
+/* ── ANALYSE EN DIRECT DE LA DECLARATION ─────────────────────
+   Rend visible le score de completude du §7.3 pendant la redaction, avec
+   les seuils du §9.3 : rouge < 50 %, orange 50-80 %, vert > 80 %.
+   ─────────────────────────────────────────────────────────── */
+.analyse-live {
+  background: var(--gray-1);
+  border: 1px solid var(--gray-2);
+  border-radius: var(--radius);
+  padding: 14px 16px;
+  margin-top: 12px;
+}
+.analyse-live-head {
+  display: flex; align-items: baseline; justify-content: space-between;
+  gap: 12px; margin-bottom: 9px;
+}
+.analyse-live-titre {
+  font-size: 11px; font-weight: 700; text-transform: uppercase;
+  letter-spacing: .08em; color: var(--text-light);
+}
+.analyse-live-score {
+  font-size: 15px; font-weight: 700;
+  font-variant-numeric: tabular-nums;
+  color: var(--text-light);
+}
+.jauge {
+  height: 6px; background: var(--gray-2);
+  border-radius: var(--radius-sm); overflow: hidden;
+}
+.jauge-barre {
+  height: 100%; width: 0;
+  background: var(--gray-3);
+  border-radius: var(--radius-sm);
+  transition: width .3s ease, background-color .3s ease;
+}
+/* Seuils §9.3 — la classe est posee par le script. */
+.analyse-live.niv-bas   .jauge-barre { background: var(--red); }
+.analyse-live.niv-bas   .analyse-live-score { color: var(--red-txt); }
+.analyse-live.niv-moyen .jauge-barre { background: var(--orange); }
+.analyse-live.niv-moyen .analyse-live-score { color: var(--orange-txt); }
+.analyse-live.niv-bon   .jauge-barre { background: var(--green-lt); }
+.analyse-live.niv-bon   .analyse-live-score { color: var(--green-txt); }
+
+.analyse-live-chips {
+  display: flex; flex-wrap: wrap; gap: 6px; margin-top: 11px;
+}
+.chip {
+  display: inline-flex; align-items: center; gap: 5px;
+  font-size: 11.5px; font-weight: 600;
+  padding: 3px 9px; border-radius: var(--radius-sm);
+  border: 1px solid transparent;
+}
+.chip-ok {
+  background: var(--tint-green); color: var(--green-txt);
+  border-color: rgba(20,94,46,.20);
+}
+.chip-ko {
+  background: var(--white); color: var(--text-light);
+  border-color: var(--gray-2); border-style: dashed;
+}
+.analyse-live-note {
+  font-size: 12.5px; color: var(--text-light);
+  line-height: 1.55; margin-top: 10px;
+}
+.analyse-live-note:empty { margin-top: 0; }
+
+/* ── PIECES JOINTES ──────────────────────────────────────── */
+.pj-zone {
+  display: flex; flex-direction: column; align-items: center;
+  gap: 5px; text-align: center; cursor: pointer;
+  padding: 20px 18px;
+  border: 1px dashed var(--gray-3);
+  border-radius: var(--radius);
+  background: var(--gray-1);
+  color: var(--primary);
+  transition: var(--transition);
+}
+.pj-zone:hover, .pj-input:focus-visible + .pj-zone {
+  border-color: var(--primary);
+  background: var(--white);
+}
+.pj-zone-titre { font-size: 13.5px; font-weight: 600; color: var(--primary); }
+.pj-zone-sub   { font-size: 12px; color: var(--text-light); font-weight: 400; }
+
+.pj-liste { list-style: none; padding: 0; margin: 10px 0 0; }
+.pj-item {
+  display: flex; align-items: center; gap: 10px;
+  padding: 9px 12px; margin-bottom: 6px;
+  background: var(--white);
+  border: 1px solid var(--gray-2);
+  border-radius: var(--radius-sm);
+  font-size: 13px;
+}
+.pj-item-icone { color: var(--primary); flex-shrink: 0; display: flex; }
+.pj-item-nom {
+  flex: 1; min-width: 0; font-weight: 600; color: var(--text);
+  overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
+}
+.pj-item-taille {
+  font-size: 12px; color: var(--text-light);
+  font-variant-numeric: tabular-nums; flex-shrink: 0;
+}
+.pj-item-retirer {
+  background: none; border: none; cursor: pointer; padding: 3px;
+  color: var(--text-light); display: flex; flex-shrink: 0;
+  border-radius: var(--radius-sm); font-family: inherit;
+}
+.pj-item-retirer:hover { color: var(--red); background: var(--gray-1); }
+
+/* ── LECTURE VOCALE DU RECAPITULATIF ─────────────────────── */
+.ecoute-bloc {
+  display: flex; align-items: center; justify-content: space-between;
+  gap: 16px; flex-wrap: wrap;
+  background: rgba(11,30,69,.04);
+  border: 1px solid rgba(11,30,69,.14);
+  border-left: 3px solid var(--primary);
+  border-radius: var(--radius);
+  padding: 13px 16px; margin-bottom: 18px;
+}
+.ecoute-txt { display: flex; flex-direction: column; gap: 2px; min-width: 200px; flex: 1; }
+.ecoute-txt strong { font-size: 13.5px; color: var(--primary); }
+.ecoute-txt span   { font-size: 12.5px; color: var(--text-light); line-height: 1.5; }
+
+/* ── BROUILLON ───────────────────────────────────────────── */
+.brouillon-bandeau {
+  display: flex; align-items: center; justify-content: space-between;
+  gap: 16px; flex-wrap: wrap;
+  background: var(--tint-gold);
+  border: 1px solid rgba(201,139,0,.30);
+  border-radius: var(--radius);
+  padding: 13px 16px; margin-bottom: 18px;
+}
+.brouillon-txt { display: flex; flex-direction: column; gap: 2px; min-width: 200px; flex: 1; }
+.brouillon-txt strong { font-size: 13.5px; color: var(--gold-txt); }
+.brouillon-txt span   { font-size: 12.5px; color: var(--text-light); }
+.brouillon-actions { display: flex; gap: 8px; flex-wrap: wrap; }
+.brouillon-etat {
+  font-size: 12px; color: var(--text-light);
+  min-height: 16px; margin-bottom: 8px;
+}

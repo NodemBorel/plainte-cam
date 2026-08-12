@@ -12,6 +12,10 @@
 
 <!-- NAVBAR -->
 <nav class="navbar" style="background:var(--green)">
+  <button type="button" class="nav-burger" onclick="basculerTiroir()"
+    aria-label="Ouvrir le menu" aria-expanded="false" aria-controls="sidebar">
+    <svg width="20" height="20" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" aria-hidden="true"><path d="M2.5 4.5h11M2.5 8h11M2.5 11.5h11"/></svg>
+  </button>
   <div class="navbar-brand">
     <a href="../index.html" style="color:#fff;display:flex;align-items:center;gap:8px;text-decoration:none">
       <span style="font-size:16px;font-weight:700">PlainteCam</span>
@@ -36,13 +40,16 @@
 <div class="page-wrapper">
 
 <!-- SIDEBAR -->
-<aside class="sidebar">
+<aside class="sidebar" id="sidebar">
   <div class="sidebar-user-block">
     <div class="sidebar-avatar" style="background:var(--green-lt)">NK</div>
     <div>
       <div class="sidebar-username">Insp. KANA</div>
       <div class="sidebar-role">Enquêteur — Cité Verte</div>
     </div>
+    <button type="button" class="sidebar-fermer" onclick="fermerTiroir()" aria-label="Fermer le menu">
+      <svg width="15" height="15" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" aria-hidden="true"><path d="M4.5 4.5l7 7M11.5 4.5l-7 7"/></svg>
+    </button>
   </div>
   <div class="sidebar-section">Instruction</div>
   <div class="sidebar-item active" data-page="page-dashboard" onclick="navEnq(this,'page-dashboard')">
@@ -64,6 +71,8 @@
     <a href="../auth/agent.html" class="sidebar-logout">Se déconnecter</a>
   </div>
 </aside>
+<div class="sidebar-voile" id="sidebar-voile" onclick="fermerTiroir()" aria-hidden="true"></div>
+
 
 <!-- MAIN -->
 <main class="main-content">
@@ -130,7 +139,7 @@
     <div>1 procès-verbal en attente de signature — Dossier N° 2026-00451</div>
   </div>
 
-  <div style="display:grid;grid-template-columns:1fr 2fr;gap:20px">
+  <div class="grid-1-2">
     <div class="card">
       <div class="card-title" style="margin-bottom:14px">Informations du dossier</div>
       <div style="font-size:14px;line-height:2">
@@ -146,8 +155,8 @@
         PV pré-rempli par le module IA (CamemBERT) à partir de la déclaration. Vérifiez les informations avant signature.
       </div>
       <button class="btn btn-primary btn-full" onclick="signPV()">Signer le PV</button>
-      <button class="btn btn-outline btn-full" style="margin-top:8px" onclick="toast('PDF exporté','')">Exporter en PDF</button>
-      <button class="btn btn-outline btn-full" style="margin-top:8px;color:var(--red);border-color:var(--red)" onclick="toast('PV renvoyé pour correction','')">Demander une correction</button>
+      <button class="btn btn-outline btn-full" style="margin-top:8px" onclick="toast('PDF exporté','success')">Exporter en PDF</button>
+      <button class="btn btn-outline btn-full" style="margin-top:8px;color:var(--red);border-color:var(--red)" onclick="toast('PV renvoyé pour correction','warning')">Demander une correction</button>
     </div>
 
     <div>
@@ -196,7 +205,7 @@
   <div class="page-title">Convocations</div>
   <div class="page-subtitle">Émission et suivi des convocations pour les mis en cause.</div>
 
-  <div style="display:grid;grid-template-columns:1fr 1fr;gap:20px">
+  <div class="grid-2">
 
     <!-- Nouvelle convocation -->
     <div class="card">
@@ -230,8 +239,8 @@
         <textarea class="form-control" rows="3">Audition dans le cadre de l'instruction d'une plainte pour escroquerie déposée le 12/05/2026.</textarea>
       </div>
       <div style="display:flex;gap:10px;margin-top:4px">
-        <button class="btn btn-primary" onclick="toast('Convocation émise et envoyée par SMS','')">Émettre la convocation</button>
-        <button class="btn btn-outline" onclick="toast('Aperçu PDF généré','')">Aperçu PDF</button>
+        <button class="btn btn-primary" onclick="toast('Convocation émise et envoyée par SMS','success')">Émettre la convocation</button>
+        <button class="btn btn-outline" onclick="toast('Aperçu PDF généré','success')">Aperçu PDF</button>
       </div>
     </div>
 
@@ -285,7 +294,7 @@
       <div>
         <div style="font-size:18px;font-weight:700">Inspecteur KANA</div>
         <div style="color:var(--text-light);font-size:13px">Enquêteur — Commissariat Cité Verte</div>
-        <div style="font-size:12px;color:var(--gold);font-weight:600;margin-top:2px">Matricule : SN–2021044</div>
+        <div style="font-size:12px;color:var(--gold-txt);font-weight:600;margin-top:2px">Matricule : SN–2021044</div>
       </div>
     </div>
     <div class="form-row">
@@ -310,7 +319,7 @@
       <label class="form-label">E-mail institutionnel</label>
       <input class="form-control" value="n.kana@police.cm" disabled>
     </div>
-    <button class="btn btn-primary" onclick="toast('Profil mis à jour','')">Enregistrer les modifications</button>
+    <button class="btn btn-primary" onclick="toast('Profil mis à jour','success')">Enregistrer les modifications</button>
     <div class="divider"></div>
     <div class="form-group">
       <label class="form-label">Nouveau mot de passe</label>
@@ -320,7 +329,7 @@
       <label class="form-label">Confirmer le mot de passe</label>
       <input class="form-control" type="password" placeholder="••••••••••">
     </div>
-    <button class="btn btn-outline" onclick="toast('Mot de passe mis à jour','')">Changer le mot de passe</button>
+    <button class="btn btn-outline" onclick="toast('Mot de passe mis à jour','success')">Changer le mot de passe</button>
   </div>
 </div>
 

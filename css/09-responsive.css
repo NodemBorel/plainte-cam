@@ -1,28 +1,184 @@
-/* ── RESPONSIVE ──────────────────────────────────────────── */
+/* ============================================================
+   RESPONSIVE
+   Le §8.4 engage un fonctionnement « mobile des 320px ». Les paliers vont
+   donc jusqu'a 380px, et non 600px comme precedemment.
+
+   Sept regles de l'ancien fichier ciblaient des classes utilisees nulle
+   part (.services-grid, .steps-list, .stats-home, .contact-grid,
+   .header-inner, .top-bar, .hero-banner) : elles ont ete retirees. La page
+   d'accueil porte son propre systeme dans une balise <style>, avec ses
+   propres media queries.
+   ============================================================ */
+
+/* ── ≤ 1024px : on resserre les gouttieres ─────────────────── */
 @media (max-width: 1024px) {
-  .footer-grid { grid-template-columns: 1fr 1fr; }
-  .legal-grid { grid-template-columns: 1fr; }
+  .footer-grid   { grid-template-columns: 1fr 1fr; }
+  .legal-grid    { grid-template-columns: 1fr; }
+  .main-content  { padding: 20px 22px; }
+  .navbar        { padding: 0 20px; }
+  .app-footer    { padding: 14px 22px; }
 }
-@media (max-width: 960px) {
+
+/* ── ≤ 900px : le document et son panneau lateral s'empilent ─ */
+@media (max-width: 900px) {
+  .grid-main-aside,
+  .grid-aside-main { grid-template-columns: 1fr; }
+  /* Sur telephone, le panneau de decision doit venir APRES le document
+     qu'il commente, jamais avant. */
+  .grid-aside-main > :first-child { order: 2; }
+  .grid-aside-main > :last-child  { order: 1; }
   #apercu-pv { font-size: 12px; }
-  [style*="grid-template-columns:1fr 280px"] { grid-template-columns: 1fr !important; }
 }
+
+/* ── ≤ 860px : bascule structurelle ──────────────────────────
+   La barre laterale devient un tiroir. Sans cela elle disparaissait
+   purement et simplement, emportant avec elle des ecrans qui n'existent
+   nulle part ailleurs : l'Assistance du citoyen, le profil de
+   l'enqueteur, les trois ecrans d'administration du commissaire.
+   ─────────────────────────────────────────────────────────── */
 @media (max-width: 860px) {
   .stats-grid { grid-template-columns: 1fr 1fr; }
-  .sidebar { display: none; }
-  .form-row { grid-template-columns: 1fr; }
-  .services-grid { grid-template-columns: 1fr; }
-  .steps-list { grid-template-columns: 1fr; }
-  .stats-home { grid-template-columns: 1fr 1fr; }
-  .contact-grid { grid-template-columns: 1fr; }
-  .header-inner { flex-wrap: wrap; }
-  .nav-inner { padding: 0 20px; overflow-x: auto; }
-  .top-bar { padding: 6px 20px; flex-wrap: wrap; gap: 6px; }
-  .hero-banner { padding: 40px 20px; }
-  .hero-banner h1 { font-size: 26px; }
-  .container { padding: 0 20px; }
+  .nav-inner  { padding: 0 20px; overflow-x: auto; }
+
+  .grid-2, .grid-1-2, .grid-2-1 { grid-template-columns: 1fr; }
+
+  /* Navbar : elle ne peut plus tenir sur une ligne. Les liens laissent la
+     place au tiroir, et le bloc utilisateur se reduit a l'essentiel. */
+  .navbar { height: auto; min-height: 54px; padding: 0 14px; gap: 10px; }
+  .navbar-links { display: none; }
+  .navbar-brand { font-size: 15px; gap: 8px; min-width: 0; }
+  .navbar-user  { gap: 8px; }
+  .navbar-user > div:not(.avatar) { display: none; }
+
+  .nav-burger { display: inline-flex; }
+
+  /* Tiroir lateral */
+  .sidebar {
+    position: fixed;
+    top: 0; bottom: 0; left: 0;
+    width: 268px; max-width: 84vw;
+    height: 100%;
+    z-index: 300;
+    transform: translateX(-100%);
+    transition: transform .22s ease;
+    box-shadow: 4px 0 22px rgba(11,30,69,.22);
+    border-right: 1px solid var(--gray-2);
+  }
+  .sidebar.ouvert { transform: translateX(0); }
+  .sidebar-fermer { display: inline-flex; }
+
+  .sidebar-voile {
+    display: block;
+    position: fixed; inset: 0;
+    background: rgba(11,30,69,.45);
+    z-index: 290;
+    opacity: 0; pointer-events: none;
+    transition: opacity .22s ease;
+  }
+  .sidebar-voile.ouvert { opacity: 1; pointer-events: auto; }
+
+  .page-wrapper { min-height: auto; }
+  .main-content { padding: 18px 16px; }
+
+  /* Le bandeau d'en-tete des cartes porte souvent un filtre a sa droite :
+     sans repli, le titre etait comprime. */
+  .card-header { flex-wrap: wrap; gap: 10px; }
+  .card-header > * { min-width: 0; }
 }
-@media (max-width: 600px) {
-  .footer-grid { grid-template-columns: 1fr; }
-  .stats-home { grid-template-columns: 1fr 1fr; }
+
+/* ── ≤ 720px : blocs de signature et frise ──────────────────── */
+@media (max-width: 720px) {
+  /* Deux enfants de largeur fixe 160px et 180px sans repli : le bloc
+     debordait du document. */
+  .pv-signature { flex-wrap: wrap; gap: 22px; }
+  .pv-signature > div { flex: 1 1 150px; }
+
+  .pv-document { padding: 20px 18px; }
+  .pv-stamp { transform: rotate(-20deg) scale(.85); }
+
+  .kpi-row { gap: 12px; }
+  .kpi { padding: 14px 12px; }
+  .kpi .num { font-size: 26px; }
+  .kpi .lbl { font-size: 11px; }
+}
+
+/* ── ≤ 640px : une seule colonne partout ────────────────────── */
+@media (max-width: 640px) {
+  .form-row { grid-template-columns: 1fr; }
+  .footer-grid, .stats-grid { grid-template-columns: 1fr; }
+
+  .page-title    { font-size: 18px; }
+  .page-subtitle { font-size: 12.5px; }
+  .main-content  { padding: 16px 14px; }
+
+  /* La frise a 5 etapes demandait environ 330px pour 300px disponibles. */
+  .steps { margin-bottom: 20px; }
+  .step-circle { width: 26px; height: 26px; font-size: 12px; }
+  .step-label {
+    font-size: 9px; line-height: 1.25;
+    max-width: 52px; text-align: center; word-break: break-word;
+  }
+  .step-connector { min-width: 6px; }
+
+  /* Cibles tactiles : le §8.4 demande 44x44px minimum. */
+  .btn { padding: 11px 20px; min-height: 44px; }
+  .btn-sm { padding: 9px 14px; min-height: 40px; }
+  .quick-reply { min-height: 40px; padding: 9px 14px; }
+  .modal-close { padding: 10px; margin: -10px -10px -10px 0; }
+  .toggle-pw { padding: 11px; }
+  .form-control { font-size: 15px; }   /* ≥16px evite le zoom auto iOS ; 15px reste lisible */
+
+  .modal-box { max-width: 100% !important; }
+
+  .ecoute-bloc, .brouillon-bandeau { flex-direction: column; align-items: stretch; }
+  .brouillon-actions .btn { flex: 1; justify-content: center; }
+
+  /* Les messages restent en haut, mais prennent la largeur utile. */
+  #toast-container { top: 10px; width: calc(100% - 20px); max-width: none; }
+  .toast { width: 100%; font-size: 13px; padding: 11px 14px; }
+
+  .modal-overlay { padding: 0; align-items: flex-end; }
+  .modal-box {
+    max-height: 92vh;
+    border-radius: var(--radius) var(--radius) 0 0;
+  }
+  .modal-header, .modal-body { padding: 15px 16px; }
+  .modal-header { flex-wrap: wrap; gap: 8px; }
+
+  .recorder-wrap { padding: 18px 14px; }
+  .transcription-box { font-size: 13px; }
+}
+
+/* ── ≤ 480px : les indicateurs passent en pile ───────────────── */
+@media (max-width: 480px) {
+  .kpi-row { grid-template-columns: 1fr; gap: 10px; }
+  .kpi { display: flex; align-items: baseline; gap: 12px; text-align: left; }
+  .kpi .num { font-size: 24px; }
+  .kpi .lbl { margin-top: 0; }
+
+  .analyse-live-chips { gap: 5px; }
+  .chip { font-size: 11px; padding: 3px 7px; }
+
+  .navbar-brand .badge-flag { display: none; }
+  .app-footer-inner { flex-direction: column; align-items: flex-start; gap: 6px; }
+}
+
+/* ── ≤ 380px : dernier palier avant 320px ───────────────────── */
+@media (max-width: 380px) {
+  .main-content { padding: 14px 11px; }
+  .card { padding: 16px 14px; }
+  .step-label { display: none; }   /* on garde les pastilles numerotees seules */
+  .btn { padding: 11px 15px; font-size: 13px; }
+  .pv-document { padding: 16px 13px; }
+}
+
+/* ── Impression ───────────────────────────────────────────────
+   Le document officiel doit sortir sans l'interface autour. */
+@media print {
+  .navbar, .sidebar, .sidebar-voile, .nav-burger,
+  .app-footer, .steps, .brouillon-bandeau, .brouillon-etat,
+  .ecoute-bloc, .analyse-live, #toast-container { display: none !important; }
+  .main-content { padding: 0; overflow: visible; }
+  .page-wrapper { display: block; }
+  .pv-document, .card { border: none; box-shadow: none; }
 }

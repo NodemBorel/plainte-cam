@@ -5,12 +5,11 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>PlainteCam — Connexion Citoyen</title>
   <link rel="stylesheet" href="../css/style.css">
-  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 </head>
 <body>
 <div class="auth-layout">
 
-<!-- LEFT PANEL -->
+<!-- ══════════════ PANNEAU GAUCHE ══════════════ -->
 <div class="auth-left auth-left--primary">
   <div class="auth-brand">
     <div class="auth-seal">DGSN<br>CM</div>
@@ -26,8 +25,7 @@
       <li>Dépôt de plainte par écrit ou par voix, depuis votre téléphone</li>
       <li>Suivi en temps réel de l'avancement de votre dossier</li>
       <li>Attestation officielle de dépôt téléchargeable au format PDF</li>
-      <li>Notifications SMS à chaque étape du traitement</li>
-      <li>Vos données protégées conformément à la législation camerounaise</li>
+      <li>Notifications par e-mail à chaque étape du traitement</li>
     </ul>
   </div>
   <div class="auth-left-footer">
@@ -35,119 +33,162 @@
   </div>
 </div>
 
-<!-- RIGHT PANEL -->
+<!-- ══════════════ PANNEAU DROIT ══════════════ -->
 <div class="auth-right">
-  <div class="auth-card">
+  <div class="auth-card auth-card--compact">
 
-    <a href="../index.html" class="back-link" style="text-decoration:none">Retour à l'accueil</a>
+    <a href="../index.html" class="back-link">Retour à l'accueil</a>
 
     <div class="auth-card-title">Espace Citoyen</div>
     <div class="auth-card-sub">Connectez-vous ou créez votre compte pour accéder à la plateforme.</div>
 
-    <!-- TABS -->
+    <!-- ── ONGLETS ── -->
     <div class="auth-tabs">
-      <button class="auth-tab active" onclick="switchTab('login')">Se connecter</button>
-      <button class="auth-tab" onclick="switchTab('register')">Créer un compte</button>
+      <button type="button" class="auth-tab active" onclick="switchTab('login')">Se connecter</button>
+      <button type="button" class="auth-tab" onclick="switchTab('register')">Créer un compte</button>
     </div>
 
-    <!-- ── CONNEXION ── -->
+    <!-- ═══ CONNEXION ═══ -->
     <div class="auth-panel active" id="panel-login">
 
-      <!-- Step 1 : Téléphone / Email -->
+      <!-- Étape 1 : adresse e-mail -->
       <div class="auth-step active" id="login-step1">
         <div class="form-group">
-          <label for="login-phone">Numéro de téléphone</label>
-          <div class="field-phone">
-            <span class="phone-prefix">+237</span>
-            <input class="form-control" type="tel" id="login-phone"
-              placeholder="6XX XXX XXX" maxlength="9" inputmode="numeric">
-          </div>
-          <div class="hint">Un code de vérification sera envoyé par SMS.</div>
-        </div>
-        <div class="form-divider"></div>
-        <div class="form-group">
-          <label for="login-email">Adresse e-mail <span style="color:var(--text-light);font-weight:400">(optionnel)</span></label>
-          <input class="form-control" type="email" id="login-email" placeholder="votre@email.com">
+          <label for="login-email">Adresse e-mail</label>
+          <input class="form-control" type="email" id="login-email"
+            placeholder="votre@email.com" autocomplete="email">
+          <div class="field-error" id="err-login-email"></div>
+          <div class="hint">Un code de vérification à 6 chiffres vous sera envoyé par e-mail.</div>
         </div>
         <div class="auth-actions">
-          <button class="btn btn-primary btn-lg" onclick="goLoginStep2()">Recevoir le code OTP</button>
+          <button type="button" class="btn btn-primary btn-lg" onclick="goLoginStep2()">Recevoir le code par e-mail</button>
+        </div>
+        <div class="auth-switch">
+          Pas encore de compte ? <a onclick="switchTab('register')" tabindex="0" role="button">Créer un compte</a>
         </div>
       </div>
 
-      <!-- Step 2 : OTP -->
+      <!-- Étape 2 : OTP -->
       <div class="auth-step" id="login-step2">
-        <button class="back-link" onclick="goBack('login')">Modifier le numéro</button>
-        <div class="otp-dest">Code envoyé au <strong id="login-phone-display">+237 6XX XXX XXX</strong></div>
-        <div class="otp-label">Entrez le code à 6 chiffres</div>
-        <div class="otp-inputs" id="login-otp-inputs">
-          <input type="text" class="otp-box" maxlength="1" inputmode="numeric">
-          <input type="text" class="otp-box" maxlength="1" inputmode="numeric">
-          <input type="text" class="otp-box" maxlength="1" inputmode="numeric">
-          <input type="text" class="otp-box" maxlength="1" inputmode="numeric">
-          <input type="text" class="otp-box" maxlength="1" inputmode="numeric">
-          <input type="text" class="otp-box" maxlength="1" inputmode="numeric">
+        <button type="button" class="back-link" onclick="goBack('login')">Modifier l'adresse e-mail</button>
+        <div class="otp-dest">Code envoyé à <strong id="login-email-display">votre@email.com</strong></div>
+        <div class="otp-label" id="lbl-login-otp">Entrez le code à 6 chiffres</div>
+        <div class="otp-inputs" id="login-otp-inputs" role="group" aria-labelledby="lbl-login-otp">
+          <input type="text" class="otp-box" maxlength="1" inputmode="numeric" aria-label="Chiffre 1">
+          <input type="text" class="otp-box" maxlength="1" inputmode="numeric" aria-label="Chiffre 2">
+          <input type="text" class="otp-box" maxlength="1" inputmode="numeric" aria-label="Chiffre 3">
+          <input type="text" class="otp-box" maxlength="1" inputmode="numeric" aria-label="Chiffre 4">
+          <input type="text" class="otp-box" maxlength="1" inputmode="numeric" aria-label="Chiffre 5">
+          <input type="text" class="otp-box" maxlength="1" inputmode="numeric" aria-label="Chiffre 6">
         </div>
-        <div class="otp-resend">Vous n'avez pas reçu le code ? <a onclick="resendOtp('login-otp-inputs')">Renvoyer</a></div>
+        <div class="field-error" id="err-login-otp"></div>
+        <div class="otp-resend">Vous n'avez pas reçu le code ? <a onclick="resendOtp('login-otp-inputs')" tabindex="0" role="button">Renvoyer</a></div>
         <div class="auth-actions">
-          <button class="btn btn-primary btn-lg" onclick="validateOtp('login')">Valider et se connecter</button>
+          <button type="button" class="btn btn-primary btn-lg" onclick="validateOtp('login')">Valider et se connecter</button>
         </div>
       </div>
 
     </div><!-- /panel-login -->
 
-    <!-- ── INSCRIPTION ── -->
+    <!-- ═══ INSCRIPTION ═══ -->
     <div class="auth-panel" id="panel-register">
 
-      <!-- Step 1 : Informations personnelles -->
+      <!-- Étape 1 : informations personnelles -->
       <div class="auth-step active" id="register-step1">
+
         <div class="form-row">
           <div class="form-group">
             <label for="reg-prenom">Prénom</label>
-            <input class="form-control" type="text" id="reg-prenom" placeholder="Jean">
+            <input class="form-control" type="text" id="reg-prenom" placeholder="Jean" autocomplete="given-name">
+            <div class="field-error" id="err-reg-prenom"></div>
           </div>
           <div class="form-group">
             <label for="reg-nom">Nom</label>
-            <input class="form-control" type="text" id="reg-nom" placeholder="Mbarga">
+            <input class="form-control" type="text" id="reg-nom" placeholder="Mbarga" autocomplete="family-name">
+            <div class="field-error" id="err-reg-nom"></div>
           </div>
         </div>
+
         <div class="form-group">
-          <label for="reg-phone">Numéro de téléphone</label>
+          <label for="reg-email">Adresse e-mail</label>
+          <input class="form-control" type="email" id="reg-email" placeholder="votre@email.com" autocomplete="email">
+          <div class="field-error" id="err-reg-email"></div>
+          <div class="hint">Elle vous identifie sur la plateforme et reçoit vos attestations.</div>
+        </div>
+
+        <div class="form-row">
+          <div class="form-group">
+            <label for="reg-pays">Pays</label>
+            <select class="form-control" id="reg-pays" onchange="onPaysChange()">
+              <option value="Cameroun" selected>Cameroun</option>
+              <option value="Tchad">Tchad</option>
+              <option value="République centrafricaine">République centrafricaine</option>
+              <option value="Congo">Congo</option>
+              <option value="Gabon">Gabon</option>
+              <option value="Guinée équatoriale">Guinée équatoriale</option>
+              <option value="Nigéria">Nigéria</option>
+              <option value="France">France</option>
+              <option value="Belgique">Belgique</option>
+              <option value="Canada">Canada</option>
+              <option value="Autre">Autre</option>
+            </select>
+          </div>
+          <div class="form-group">
+            <label for="reg-region">Région</label>
+            <select class="form-control" id="reg-region" onchange="onRegionChange()">
+              <option value="">Sélectionnez…</option>
+            </select>
+            <input class="form-control" type="text" id="reg-region-libre"
+              placeholder="Région ou province" style="display:none">
+            <div class="field-error" id="err-reg-region"></div>
+          </div>
+        </div>
+
+        <div class="form-group">
+          <label for="reg-ville">Ville</label>
+          <select class="form-control" id="reg-ville">
+            <option value="">Choisissez d'abord une région</option>
+          </select>
+          <input class="form-control" type="text" id="reg-ville-libre"
+            placeholder="Ville de résidence" style="display:none">
+          <div class="field-error" id="err-reg-ville"></div>
+        </div>
+
+        <div class="form-group">
+          <label for="reg-phone">Numéro de téléphone <span class="label-optional">(optionnel)</span></label>
           <div class="field-phone">
             <span class="phone-prefix">+237</span>
             <input class="form-control" type="tel" id="reg-phone"
-              placeholder="6XX XXX XXX" maxlength="9" inputmode="numeric">
+              placeholder="6XX XXX XXX" maxlength="9" inputmode="numeric" autocomplete="tel">
           </div>
-          <div class="hint">Ce numéro servira à vous identifier sur la plateforme.</div>
+          <div class="field-error" id="err-reg-phone"></div>
         </div>
-        <div class="form-group">
-          <label for="reg-email">Adresse e-mail</label>
-          <input class="form-control" type="email" id="reg-email" placeholder="votre@email.com">
-          <div class="hint">Pour recevoir vos attestations et notifications.</div>
-        </div>
+
         <div class="auth-actions">
-          <button class="btn btn-primary btn-lg" onclick="goRegisterStep2()">Continuer</button>
+          <button type="button" class="btn btn-primary btn-lg" onclick="goRegisterStep2()">Continuer</button>
         </div>
         <div class="auth-switch">
-          Déjà inscrit ? <a onclick="switchTab('login')">Se connecter</a>
+          Déjà inscrit ? <a onclick="switchTab('login')" tabindex="0" role="button">Se connecter</a>
         </div>
       </div>
 
-      <!-- Step 2 : Vérification OTP -->
+      <!-- Étape 2 : vérification OTP -->
       <div class="auth-step" id="register-step2">
-        <button class="back-link" onclick="goBack('register')">Modifier mes informations</button>
-        <div class="otp-dest">Code envoyé au <strong id="reg-phone-display">+237 6XX XXX XXX</strong></div>
-        <div class="otp-label">Entrez le code à 6 chiffres</div>
-        <div class="otp-inputs" id="register-otp-inputs">
-          <input type="text" class="otp-box" maxlength="1" inputmode="numeric">
-          <input type="text" class="otp-box" maxlength="1" inputmode="numeric">
-          <input type="text" class="otp-box" maxlength="1" inputmode="numeric">
-          <input type="text" class="otp-box" maxlength="1" inputmode="numeric">
-          <input type="text" class="otp-box" maxlength="1" inputmode="numeric">
-          <input type="text" class="otp-box" maxlength="1" inputmode="numeric">
+        <button type="button" class="back-link" onclick="goBack('register')">Modifier mes informations</button>
+        <div class="otp-dest">Code envoyé à <strong id="reg-email-display">votre@email.com</strong></div>
+        <div class="otp-label" id="lbl-reg-otp">Entrez le code à 6 chiffres</div>
+        <div class="otp-inputs" id="register-otp-inputs" role="group" aria-labelledby="lbl-reg-otp">
+          <input type="text" class="otp-box" maxlength="1" inputmode="numeric" aria-label="Chiffre 1">
+          <input type="text" class="otp-box" maxlength="1" inputmode="numeric" aria-label="Chiffre 2">
+          <input type="text" class="otp-box" maxlength="1" inputmode="numeric" aria-label="Chiffre 3">
+          <input type="text" class="otp-box" maxlength="1" inputmode="numeric" aria-label="Chiffre 4">
+          <input type="text" class="otp-box" maxlength="1" inputmode="numeric" aria-label="Chiffre 5">
+          <input type="text" class="otp-box" maxlength="1" inputmode="numeric" aria-label="Chiffre 6">
         </div>
-        <div class="otp-resend">Vous n'avez pas reçu le code ? <a onclick="resendOtp('register-otp-inputs')">Renvoyer</a></div>
+        <div class="field-error" id="err-register-otp"></div>
+        <div class="otp-resend">Vous n'avez pas reçu le code ? <a onclick="resendOtp('register-otp-inputs')" tabindex="0" role="button">Renvoyer</a></div>
         <div class="auth-actions">
-          <button class="btn btn-primary btn-lg" onclick="validateOtp('register')">Créer mon compte</button>
+          <button type="button" class="btn btn-primary btn-lg" onclick="validateOtp('register')">Créer mon compte</button>
         </div>
       </div>
 
@@ -157,69 +198,214 @@
 </div>
 </div><!-- /auth-layout -->
 
+<script src="../js/data/geo.js"></script>
 <script>
-  /* ── Tab switching ─────────────────────────────────── */
+  /* ══════════════════════════════════════════════════════════
+     Authentification citoyen — e-mail + code OTP envoye par mail.
+     Le telephone est facultatif : il ne sert qu'a joindre le plaignant,
+     jamais a l'identifier ni a l'authentifier.
+     ══════════════════════════════════════════════════════════ */
+
+  /* ── Messages d'erreur de champ ─────────────────────────── */
+  function setError(id, msg) {
+    var el = document.getElementById('err-' + id);
+    if (el) el.textContent = msg || '';
+    var champ = document.getElementById(id);
+    if (champ) champ.classList.toggle('is-invalid', !!msg);
+  }
+
+  function clearErrors(ids) {
+    ids.forEach(function(id) { setError(id, ''); });
+  }
+
+  function emailValide(v) {
+    return /^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/.test(v);
+  }
+
+  /* ── Onglets ────────────────────────────────────────────── */
   function switchTab(tab) {
-    document.querySelectorAll('.auth-tab').forEach((t, i) => {
+    document.querySelectorAll('.auth-tab').forEach(function(t, i) {
       t.classList.toggle('active', (tab === 'login' && i === 0) || (tab === 'register' && i === 1));
     });
     document.getElementById('panel-login').classList.toggle('active', tab === 'login');
     document.getElementById('panel-register').classList.toggle('active', tab === 'register');
   }
 
-  /* ── Step navigation ───────────────────────────────── */
+  /* ── Navigation entre etapes ────────────────────────────── */
   function showStep(stepId) {
-    const panel = document.getElementById(stepId).closest('.auth-panel');
-    panel.querySelectorAll('.auth-step').forEach(s => s.classList.remove('active'));
+    var panel = document.getElementById(stepId).closest('.auth-panel');
+    panel.querySelectorAll('.auth-step').forEach(function(s) { s.classList.remove('active'); });
     document.getElementById(stepId).classList.add('active');
   }
 
+  function goBack(panel) { showStep(panel + '-step1'); }
+
+  /* ── Geographie : region et ville alimentees par GEO ────── */
+  function paysEstCameroun() {
+    return document.getElementById('reg-pays').value === 'Cameroun';
+  }
+
+  function remplirRegions() {
+    var sel = document.getElementById('reg-region');
+    sel.innerHTML = '<option value="">Sélectionnez…</option>';
+    Object.keys(GEO).forEach(function(k) {
+      var o = document.createElement('option');
+      o.value = k;
+      o.textContent = GEO[k].label;
+      sel.appendChild(o);
+    });
+  }
+
+  function onRegionChange() {
+    var cle = document.getElementById('reg-region').value;
+    var sel = document.getElementById('reg-ville');
+    if (!cle || !GEO[cle]) {
+      sel.innerHTML = '<option value="">Choisissez d\'abord une région</option>';
+      return;
+    }
+    /* Les arrondissements de la region font office de villes / localites.
+       Dedoublonnage necessaire : geo.js repete certains libelles d'un
+       departement a l'autre (Bangangte apparait deux fois dans l'Ouest). */
+    var vues = {};
+    var villes = [];
+    var depts = GEO[cle].depts;
+    Object.keys(depts).forEach(function(d) {
+      var arr = depts[d].arronds;
+      Object.keys(arr).forEach(function(a) {
+        var v = arr[a];
+        if (!vues[v]) { vues[v] = true; villes.push(v); }
+      });
+    });
+    villes.sort(function(a, b) { return a.localeCompare(b, 'fr'); });
+    sel.innerHTML = '<option value="">Sélectionnez…</option>';
+    villes.forEach(function(v) {
+      var o = document.createElement('option');
+      o.value = v;
+      o.textContent = v;
+      sel.appendChild(o);
+    });
+  }
+
+  /* Hors Cameroun, GEO ne s'applique pas : on bascule sur de la saisie libre. */
+  function onPaysChange() {
+    var cmr = paysEstCameroun();
+    document.getElementById('reg-region').style.display      = cmr ? '' : 'none';
+    document.getElementById('reg-ville').style.display       = cmr ? '' : 'none';
+    document.getElementById('reg-region-libre').style.display = cmr ? 'none' : '';
+    document.getElementById('reg-ville-libre').style.display  = cmr ? 'none' : '';
+    setError('reg-region', '');
+    setError('reg-ville', '');
+  }
+
+  function valeurRegion() {
+    return paysEstCameroun()
+      ? (GEO[document.getElementById('reg-region').value] || {}).label || ''
+      : document.getElementById('reg-region-libre').value.trim();
+  }
+
+  function valeurVille() {
+    return paysEstCameroun()
+      ? document.getElementById('reg-ville').value
+      : document.getElementById('reg-ville-libre').value.trim();
+  }
+
+  /* ── Connexion : etape 1 ────────────────────────────────── */
   function goLoginStep2() {
-    const phone = document.getElementById('login-phone').value.trim();
-    if (!phone) { document.getElementById('login-phone').focus(); return; }
-    document.getElementById('login-phone-display').textContent = '+237 ' + phone;
+    var champ = document.getElementById('login-email');
+    var email = champ.value.trim();
+    clearErrors(['login-email']);
+
+    if (!email) {
+      setError('login-email', 'Veuillez saisir votre adresse e-mail.');
+      champ.focus();
+      return;
+    }
+    if (!emailValide(email)) {
+      setError('login-email', 'Cette adresse e-mail n\'est pas valide.');
+      champ.focus();
+      return;
+    }
+
+    document.getElementById('login-email-display').textContent = email;
     showStep('login-step2');
     document.querySelector('#login-otp-inputs .otp-box').focus();
   }
 
+  /* ── Inscription : etape 1 ──────────────────────────────── */
   function goRegisterStep2() {
-    const phone = document.getElementById('reg-phone').value.trim();
-    const prenom = document.getElementById('reg-prenom').value.trim();
-    if (!prenom || !phone) { return; }
-    document.getElementById('reg-phone-display').textContent = '+237 ' + phone;
+    var prenom = document.getElementById('reg-prenom').value.trim();
+    var nom    = document.getElementById('reg-nom').value.trim();
+    var email  = document.getElementById('reg-email').value.trim();
+    var phone  = document.getElementById('reg-phone').value.trim();
+    var region = valeurRegion();
+    var ville  = valeurVille();
+
+    clearErrors(['reg-prenom', 'reg-nom', 'reg-email', 'reg-region', 'reg-ville', 'reg-phone']);
+    var premier = null;
+
+    if (!prenom) { setError('reg-prenom', 'Prénom obligatoire.'); premier = premier || 'reg-prenom'; }
+    if (!nom)    { setError('reg-nom',    'Nom obligatoire.');    premier = premier || 'reg-nom'; }
+
+    if (!email) {
+      setError('reg-email', 'Adresse e-mail obligatoire.');
+      premier = premier || 'reg-email';
+    } else if (!emailValide(email)) {
+      setError('reg-email', 'Cette adresse e-mail n\'est pas valide.');
+      premier = premier || 'reg-email';
+    }
+
+    if (!region) { setError('reg-region', 'Région obligatoire.'); premier = premier || (paysEstCameroun() ? 'reg-region' : 'reg-region-libre'); }
+    if (!ville)  { setError('reg-ville',  'Ville obligatoire.');  premier = premier || (paysEstCameroun() ? 'reg-ville'  : 'reg-ville-libre'); }
+
+    /* Facultatif, mais s'il est renseigne il doit etre plausible. */
+    if (phone && phone.length !== 9) {
+      setError('reg-phone', 'Le numéro doit comporter 9 chiffres, ou être laissé vide.');
+      premier = premier || 'reg-phone';
+    }
+
+    if (premier) {
+      var f = document.getElementById(premier);
+      if (f) f.focus();
+      return;
+    }
+
+    document.getElementById('reg-email-display').textContent = email;
     showStep('register-step2');
     document.querySelector('#register-otp-inputs .otp-box').focus();
   }
 
-  function goBack(panel) {
-    showStep(panel + '-step1');
-  }
-
+  /* ── Validation du code ─────────────────────────────────── */
   function validateOtp(panel) {
-    const containerId = panel === 'login' ? 'login-otp-inputs' : 'register-otp-inputs';
-    const boxes = document.querySelectorAll('#' + containerId + ' .otp-box');
-    const code = Array.from(boxes).map(b => b.value).join('');
+    var containerId = panel === 'login' ? 'login-otp-inputs' : 'register-otp-inputs';
+    var errId       = panel === 'login' ? 'login-otp' : 'register-otp';
+    var boxes = document.querySelectorAll('#' + containerId + ' .otp-box');
+    var code  = Array.from(boxes).map(function(b) { return b.value; }).join('');
+
+    setError(errId, '');
+
     if (code.length < 6) {
-      boxes[code.length] ? boxes[code.length].focus() : boxes[0].focus();
+      setError(errId, 'Le code comporte 6 chiffres. Il en manque ' + (6 - code.length) + '.');
+      (boxes[code.length] || boxes[0]).focus();
       return;
     }
     window.location.href = '../citoyen/index.html';
   }
 
   function resendOtp(containerId) {
-    const boxes = document.querySelectorAll('#' + containerId + ' .otp-box');
-    boxes.forEach(b => { b.value = ''; b.classList.remove('filled'); });
+    var boxes = document.querySelectorAll('#' + containerId + ' .otp-box');
+    boxes.forEach(function(b) { b.value = ''; b.classList.remove('filled'); });
+    setError(containerId === 'login-otp-inputs' ? 'login-otp' : 'register-otp', '');
     boxes[0].focus();
   }
 
-  /* ── OTP keyboard navigation ───────────────────────── */
+  /* ── Saisie du code : navigation clavier ────────────────── */
   document.addEventListener('input', function(e) {
     if (!e.target.classList.contains('otp-box')) return;
-    const box = e.target;
+    var box = e.target;
     box.value = box.value.replace(/\D/g, '').slice(-1);
     if (box.value) {
       box.classList.add('filled');
-      const next = box.nextElementSibling;
+      var next = box.nextElementSibling;
       if (next && next.classList.contains('otp-box')) next.focus();
     } else {
       box.classList.remove('filled');
@@ -229,7 +415,7 @@
   document.addEventListener('keydown', function(e) {
     if (!e.target.classList.contains('otp-box')) return;
     if (e.key === 'Backspace' && !e.target.value) {
-      const prev = e.target.previousElementSibling;
+      var prev = e.target.previousElementSibling;
       if (prev && prev.classList.contains('otp-box')) {
         prev.value = '';
         prev.classList.remove('filled');
@@ -237,35 +423,52 @@
       }
     }
     if (e.key === 'ArrowLeft') {
-      const prev = e.target.previousElementSibling;
-      if (prev && prev.classList.contains('otp-box')) prev.focus();
+      var p = e.target.previousElementSibling;
+      if (p && p.classList.contains('otp-box')) p.focus();
     }
     if (e.key === 'ArrowRight') {
-      const next = e.target.nextElementSibling;
-      if (next && next.classList.contains('otp-box')) next.focus();
+      var n = e.target.nextElementSibling;
+      if (n && n.classList.contains('otp-box')) n.focus();
     }
   });
 
-  /* Paste support */
   document.addEventListener('paste', function(e) {
     if (!e.target.classList.contains('otp-box')) return;
     e.preventDefault();
-    const text = (e.clipboardData || window.clipboardData).getData('text').replace(/\D/g, '').slice(0, 6);
-    const container = e.target.closest('.otp-inputs');
-    const boxes = container.querySelectorAll('.otp-box');
-    text.split('').forEach((ch, i) => {
+    var text = (e.clipboardData || window.clipboardData).getData('text').replace(/\D/g, '').slice(0, 6);
+    var boxes = e.target.closest('.otp-inputs').querySelectorAll('.otp-box');
+    text.split('').forEach(function(ch, i) {
       if (boxes[i]) { boxes[i].value = ch; boxes[i].classList.add('filled'); }
     });
-    const next = boxes[Math.min(text.length, 5)];
+    var next = boxes[Math.min(text.length, 5)];
     if (next) next.focus();
   });
 
-  /* Phone: digits only */
-  ['login-phone', 'reg-phone'].forEach(id => {
-    document.getElementById(id).addEventListener('input', function() {
-      this.value = this.value.replace(/\D/g, '');
-    });
+  /* ── Validation a la touche Entree ──────────────────────── */
+  document.addEventListener('keydown', function(e) {
+    if (e.key !== 'Enter') return;
+    var etape = e.target.closest('.auth-step');
+    if (!etape) return;
+    var btn = etape.querySelector('.auth-actions .btn');
+    if (btn) { e.preventDefault(); btn.click(); }
   });
+
+  /* ── Telephone : chiffres uniquement ────────────────────── */
+  document.getElementById('reg-phone').addEventListener('input', function() {
+    this.value = this.value.replace(/\D/g, '');
+  });
+
+  /* ── Liens actionnables au clavier ──────────────────────── */
+  document.addEventListener('keydown', function(e) {
+    if (e.target.getAttribute('role') === 'button' && (e.key === 'Enter' || e.key === ' ')) {
+      e.preventDefault();
+      e.target.click();
+    }
+  });
+
+  /* ── Initialisation ─────────────────────────────────────── */
+  remplirRegions();
+  onPaysChange();
 </script>
 </body>
 </html>

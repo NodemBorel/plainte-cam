@@ -3,16 +3,19 @@
    ============================================================ */
 
 var AuthService = {
-  async signInWithOtp(phone) {
+  /* Le citoyen s'authentifie par adresse e-mail et code OTP recu par mail.
+     Le telephone reste un simple moyen de contact, facultatif : il n'entre
+     pas dans le parcours d'authentification. */
+  async signInWithOtp(email) {
     var sb = getSupabase();
     if (!sb) return { error: { message: 'Supabase non initialisé' } };
-    return sb.auth.signInWithOtp({ phone: '+237' + phone });
+    return sb.auth.signInWithOtp({ email: email });
   },
 
-  async verifyOtp(phone, token) {
+  async verifyOtp(email, token) {
     var sb = getSupabase();
     if (!sb) return { error: { message: 'Supabase non initialisé' } };
-    return sb.auth.verifyOtp({ phone: '+237' + phone, token: token, type: 'sms' });
+    return sb.auth.verifyOtp({ email: email, token: token, type: 'email' });
   },
 
   async signInWithPassword(matricule, password) {

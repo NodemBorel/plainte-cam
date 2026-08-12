@@ -134,16 +134,61 @@ let qaIdx = 0;
 let qaSequence = [];
 let qaAnswers = {};
 
+/* Retire les accents et met en minuscules. Deux usages, deux bugs corriges :
+
+   1. Les cles de QA_BANK / QA_SIGNALS sont ecrites sans accents
+      ('Harcelement', 'Degradation de biens'), comme l'enum SQL, alors que le
+      <select> du formulaire envoie les valeurs accentuees. Sans normalisation,
+      ces deux types retombaient en silence sur 'Autre' et posaient des
+      questions hors sujet.
+
+   2. Les motifs de QA_SIGNALS sont eux aussi ecrits sans accents
+      ('telephone', 'temoin', 'apercu'). Compares au texte brut du plaignant,
+      ils ne correspondaient a rien des qu'il ecrivait « telephone » avec ses
+      accents : la detection ne trouvait presque rien. */
+function sansAccents(s) {
+  return (s || '').normalize('NFD').replace(/[̀-ͯ]/g, '').toLowerCase().trim();
+}
+
+/* Index sur forme normalisee : les deux orthographes trouvent la meme entree. */
+const QA_BANK_IDX = {};
+Object.keys(QA_BANK).forEach(k => { QA_BANK_IDX[sansAccents(k)] = QA_BANK[k]; });
+const QA_SIGNALS_IDX = {};
+Object.keys(QA_SIGNALS).forEach(k => { QA_SIGNALS_IDX[sansAccents(k)] = QA_SIGNALS[k]; });
+
+function questionsPour(nature) {
+  return QA_BANK_IDX[sansAccents(nature)] || QA_BANK['Autre'];
+}
+function signauxPour(nature) {
+  return QA_SIGNALS_IDX[sansAccents(nature)] || QA_SIGNALS['Autre'];
+}
+
+/* Analyse un texte et rend le detail signal par signal.
+   Sert a la fois au questionnaire (§7.3) et a la jauge de completude (§9.3). */
+function analyserSignaux(texte, nature) {
+  const txt = sansAccents(texte);
+  const questions = questionsPour(nature);
+  const signals = signauxPour(nature);
+  return signals.map(signal => ({
+    key: signal.key,
+    trouve: signal.patterns.some(p => txt.includes(sansAccents(p))),
+    question: questions[signal.q] || null
+  }));
+}
+
+/* Score de completude sur 100, tel que l'exige le §7.3.
+   C'est la part des signaux attendus effectivement detectes. */
+function scoreCompletude(texte, nature) {
+  const d = analyserSignaux(texte, nature);
+  if (!d.length) return 0;
+  return Math.round(d.filter(s => s.trouve).length / d.length * 100);
+}
+
 function analyseDeclaration(texte, nature) {
-  const txt = texte.toLowerCase();
-  const allQuestions = QA_BANK[nature] || QA_BANK['Autre'];
-  const signals = QA_SIGNALS[nature] || QA_SIGNALS['Autre'];
-  const missing = [];
-  signals.forEach(signal => {
-    const found = signal.patterns.some(p => txt.includes(p));
-    if (!found) missing.push(allQuestions[signal.q]);
-  });
-  return missing.filter(Boolean);
+  return analyserSignaux(texte, nature)
+    .filter(s => !s.trouve)
+    .map(s => s.question)
+    .filter(Boolean);
 }
 
 function startQuestionnaire() {
@@ -160,8 +205,8 @@ function startQuestionnaire() {
   if (missing.length === 0) {
     const done = document.createElement('div');
     done.className = 'chat-bubble';
-    done.innerHTML = `<div class="bubble-msg" style="background:rgba(20,94,46,.08);border-left:3px solid var(--green-lt);color:var(--green)">
-      Votre declaration est suffisamment detaillee. Aucune question complementaire n'est necessaire. Vous pouvez passer a l'etape suivante.
+    done.innerHTML = `<div class="bubble-msg" style="background:rgba(20,94,46,.08);border-left:3px solid var(--green-lt);color:var(--green-txt)">
+      Votre déclaration est suffisamment détaillée. Aucune question complémentaire n'est nécessaire. Vous pouvez passer à l'étape suivante.
     </div>`;
     container.appendChild(done);
     return;
@@ -170,7 +215,7 @@ function startQuestionnaire() {
   const intro = document.createElement('div');
   intro.className = 'chat-bubble';
   intro.innerHTML = `<div class="bubble-msg" style="background:rgba(11,30,69,.05);border-left:3px solid var(--primary)">
-    Votre declaration a ete analysee. Pour completer votre dossier, <strong>${missing.length} information${missing.length > 1 ? 's' : ''} manquante${missing.length > 1 ? 's' : ''}</strong> ont ete detectees. Veuillez repondre aux questions suivantes.
+    Votre déclaration a été analysée. Pour compléter votre dossier, <strong>${missing.length} information${missing.length > 1 ? 's' : ''} manquante${missing.length > 1 ? 's' : ''}</strong> ${missing.length > 1 ? 'ont' : 'a'} été détectée${missing.length > 1 ? 's' : ''}. Veuillez répondre aux questions suivantes.
   </div>`;
   container.appendChild(intro);
   setTimeout(showNextQuestion, 500);
@@ -182,26 +227,33 @@ function showNextQuestion() {
     const done = document.createElement('div');
     done.className = 'chat-bubble';
     done.innerHTML = `<div class="bubble-msg" style="background:rgba(20,94,46,.08);border-left:3px solid var(--green-lt);">
-      <strong style="color:var(--green)">Dossier complete.</strong><br>
-      <span style="color:var(--text-light);font-size:13px">Merci pour vos reponses. Les informations manquantes ont ete ajoutees a votre dossier. Vous pouvez passer a l'etape suivante.</span>
+      <strong style="color:var(--green-txt)">Dossier complété.</strong><br>
+      <span style="color:var(--text-light);font-size:13px">Merci pour vos réponses. Les informations manquantes ont été ajoutées à votre dossier. Vous pouvez passer à l'étape suivante.</span>
     </div>`;
     container.appendChild(done);
     container.scrollTop = container.scrollHeight;
     return;
   }
   const qa = qaSequence[qaIdx];
+  const n  = qaIdx;   /* fige l'index pour cette question */
   const progress = `<span style="font-size:11px;color:var(--text-light);float:right">${qaIdx + 1}/${qaSequence.length}</span>`;
   const iaMsg = document.createElement('div');
   iaMsg.className = 'chat-bubble';
+  /* On passe l'index de l'option, pas son libelle : plus besoin d'echapper les
+     apostrophes dans un attribut onclick (« je l'ai vu clairement »...), ce qui
+     etait la cause de la parenthese manquante et du plantage au clic.
+     L'identifiant du champ libre est unique par question : le precedent etait
+     reutilise, si bien que la 2e reponse relisait la valeur de la 1re. */
   iaMsg.innerHTML = `<div>
     <div class="bubble-msg">${progress}${qa.q}</div>
     ${qa.opts
-      ? `<div class="chat-actions">${qa.opts.map(o =>
-          `<button class="quick-reply" onclick="answerQuestion(this,'${o.replace(/'/g,"\\'")}'">${o}</button>`
+      ? `<div class="chat-actions">${qa.opts.map((o, i) =>
+          `<button type="button" class="quick-reply" onclick="answerQuestion(this,${n},${i})">${o}</button>`
         ).join('')}</div>`
-      : `<div class="chat-actions" style="margin-top:10px;display:flex;gap:8px;align-items:center">
-          <input type="text" class="form-control" id="qa-text-input" placeholder="${qa.placeholder || ''}" style="flex:1;max-width:320px">
-          <button class="btn btn-primary btn-sm" onclick="answerTextQuestion()">Envoyer</button>
+      : `<div class="chat-actions" style="margin-top:10px;display:flex;gap:8px;align-items:center;flex-wrap:wrap">
+          <label class="sr-only" for="qa-text-${n}">${qa.q}</label>
+          <input type="text" class="form-control" id="qa-text-${n}" placeholder="${qa.placeholder || ''}" style="flex:1;min-width:170px;max-width:320px">
+          <button type="button" class="btn btn-primary btn-sm" onclick="answerTextQuestion(${n})">Envoyer</button>
         </div>`
     }
   </div>`;
@@ -209,41 +261,52 @@ function showNextQuestion() {
   container.scrollTop = container.scrollHeight;
 }
 
-function answerQuestion(btn, answer) {
-  const container = document.getElementById('qa-container');
+function answerQuestion(btn, n, optIdx) {
+  const qa = qaSequence[n];
+  if (!qa || !qa.opts) return;
+  const answer = qa.opts[optIdx];
+
   btn.closest('.chat-actions').querySelectorAll('.quick-reply').forEach(b => {
     b.disabled = true;
-    b.style.opacity = b.textContent === answer ? '1' : '0.35';
+    if (b !== btn) b.style.opacity = '.35';
   });
   btn.style.background = 'var(--primary)';
-  btn.style.color = '#fff';
+  btn.style.color = 'var(--white)';
   btn.style.borderColor = 'var(--primary)';
 
-  const userMsg = document.createElement('div');
-  userMsg.className = 'chat-bubble user';
-  userMsg.innerHTML = `<div class="bubble-msg user-bubble">${answer}</div>`;
-  container.appendChild(userMsg);
-
-  qaAnswers['Q' + (qaIdx + 1)] = answer;
-  qaIdx++;
-  container.scrollTop = container.scrollHeight;
-  setTimeout(showNextQuestion, 600);
+  enregistrerReponse(qa.q, answer);
 }
 
-function answerTextQuestion() {
-  const inp = document.getElementById('qa-text-input');
-  if (!inp || !inp.value.trim()) return;
+function answerTextQuestion(n) {
+  const qa  = qaSequence[n];
+  const inp = document.getElementById('qa-text-' + n);
+  if (!qa || !inp || !inp.value.trim()) return;
   const answer = inp.value.trim();
-  inp.disabled = true;
-  inp.nextElementSibling.disabled = true;
 
+  inp.disabled = true;
+  const envoi = inp.parentNode.querySelector('.btn');
+  if (envoi) envoi.disabled = true;
+
+  enregistrerReponse(qa.q, answer);
+}
+
+/* Enregistre la reponse et enchaine.
+   La cle est l'intitule reel de la question, plus 'Q1'/'Q2' : ces cles
+   remontaient telles quelles dans le proces-verbal officiel, qui affichait
+   « Q1 | Oui » au lieu de la question posee.
+   La bulle est remplie via textContent : une reponse libre ne doit pas pouvoir
+   injecter de HTML dans la page (§8.2). */
+function enregistrerReponse(question, answer) {
   const container = document.getElementById('qa-container');
   const userMsg = document.createElement('div');
   userMsg.className = 'chat-bubble user';
-  userMsg.innerHTML = `<div class="bubble-msg user-bubble">${answer}</div>`;
+  const bulle = document.createElement('div');
+  bulle.className = 'bubble-msg user-bubble';
+  bulle.textContent = answer;
+  userMsg.appendChild(bulle);
   container.appendChild(userMsg);
 
-  qaAnswers['Q' + (qaIdx + 1)] = answer;
+  qaAnswers[question] = answer;
   qaIdx++;
   container.scrollTop = container.scrollHeight;
   setTimeout(showNextQuestion, 600);

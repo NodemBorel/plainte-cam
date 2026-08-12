@@ -94,7 +94,7 @@ Fait a Yaounde, le ${d.date}.
                     Signature du plaignant         Signature de l'enqueteur</textarea>
       <div style="display:flex;gap:10px;margin-top:12px">
         <button class="btn btn-success btn-sm" onclick="signPV()">Signer electroniquement le PV</button>
-        <button class="btn btn-outline btn-sm" onclick="toast('PV exporte en PDF')">Exporter PDF</button>
+        <button class="btn btn-outline btn-sm" onclick="toast('PV exporté en PDF','success')">Exporter PDF</button>
       </div>
     </div>
     <div id="tab-2" style="display:none">
@@ -140,11 +140,11 @@ function switchTab(btn, tabId) {
 }
 
 function signPV() {
-  toast('PV signe electroniquement - ' + new Date().toLocaleString('fr-FR'));
+  toast('PV signé électroniquement — ' + new Date().toLocaleString('fr-FR'), 'success');
 }
 
 function sendConvocation() {
-  toast('Convocation envoyee par SMS');
+  toast('Convocation envoyée par SMS','success');
   closeModal('modal-dossier');
 }
 
@@ -154,16 +154,65 @@ function drawMiniChart() {
   const ctx = c.getContext('2d');
   const data = [8, 12, 6, 15, 9, 18, 11, 14, 7, 20, 13, 16, 10, 19];
   const max = Math.max(...data);
-  const W = c.width, H = c.height;
-  const pad = 20, barW = (W - pad * 2) / data.length - 4;
+
+  /* Le canvas etait fige a 800px de large dans un conteneur plus etroit :
+     il etait tout simplement coupe sur mobile. On le redimensionne sur la
+     largeur reellement disponible, et on tient compte de la densite d'ecran
+     pour eviter un trace flou sur les affichages haute resolution. */
+  const dispo = c.parentNode ? c.parentNode.clientWidth : 800;
+  const dpr = window.devicePixelRatio || 1;
+  const W = Math.max(260, dispo);
+  const H = 160;
+  c.style.width = '100%';
+  c.style.height = H + 'px';
+  c.width  = Math.round(W * dpr);
+  c.height = Math.round(H * dpr);
+  ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+
+  /* Couleurs lues sur la charte au lieu d'etre dupliquees en dur. */
+  const styles = getComputedStyle(document.documentElement);
+  const cOr    = (styles.getPropertyValue('--gold') || '#c98b00').trim();
+  const cMarine= (styles.getPropertyValue('--primary') || '#0b1e45').trim();
+  const cGrille= (styles.getPropertyValue('--gray-2') || '#e0ddd8').trim();
+
+  const pad = 20;
+  const espace = W > 480 ? 4 : 2;
+  const barW = Math.max(3, (W - pad * 2) / data.length - espace);
+
   ctx.clearRect(0, 0, W, H);
+
+  /* Ligne de base, pour que les barres reposent sur quelque chose. */
+  ctx.strokeStyle = cGrille;
+  ctx.lineWidth = 1;
+  ctx.beginPath();
+  ctx.moveTo(pad, H - pad + .5);
+  ctx.lineTo(W - pad, H - pad + .5);
+  ctx.stroke();
+
   data.forEach((v, i) => {
-    const x = pad + i * (barW + 4);
-    const bh = ((v / max) * (H - pad * 2));
+    const x = pad + i * (barW + espace);
+    const bh = (v / max) * (H - pad * 2);
     const y = H - pad - bh;
-    ctx.fillStyle = i === data.length - 1 ? '#c98b00' : '#0b1e45';
+    ctx.fillStyle = i === data.length - 1 ? cOr : cMarine;
     ctx.beginPath();
-    ctx.roundRect(x, y, barW, bh, 3);
-    ctx.fill();
+    /* roundRect n'existe pas sur Firefox < 112 ni Safari < 16.4 : sans repli,
+       l'exception laissait le graphique entierement vide, sans message. */
+    if (typeof ctx.roundRect === 'function') {
+      ctx.roundRect(x, y, barW, bh, 3);
+      ctx.fill();
+    } else {
+      ctx.fillRect(x, y, barW, bh);
+    }
   });
 }
+
+/* Le graphique n'etait pas retrace au redimensionnement. */
+(function suivreRedimensionnement() {
+  let t;
+  window.addEventListener('resize', function () {
+    clearTimeout(t);
+    t = setTimeout(function () {
+      if (document.getElementById('chart-plaintes')) drawMiniChart();
+    }, 160);
+  });
+})();

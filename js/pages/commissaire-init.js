@@ -17,7 +17,7 @@ function affecterDossier(id) {
 
 function confirmAffectation(enqueteur) {
   closeModal('modal-affectation');
-  toast('Dossier affecte a ' + enqueteur);
+  toast('Dossier affecté à ' + enqueteur, 'success');
   initDashboard();
 }
 
@@ -29,21 +29,24 @@ function filterDossiers(val) {
 }
 
 function buildPieChart() {
+  /* Palette prise dans 01-tokens.css. Les valeurs precedentes
+     (#0d2a6e, #e67e22, #c0392b, #8e44ad, #7f8c8d) etaient etrangeres a la
+     charte, sur le seul graphique colore de l'application. */
   var data = [
-    { label: 'Vol simple', pct: 38, color: '#0d2a6e' },
-    { label: 'Escroquerie', pct: 24, color: '#e67e22' },
-    { label: 'Agression', pct: 17, color: '#c0392b' },
-    { label: 'Harcelement', pct: 13, color: '#8e44ad' },
-    { label: 'Autre', pct: 8, color: '#7f8c8d' },
+    { label: 'Vol simple',   pct: 38, color: 'var(--primary)' },
+    { label: 'Escroquerie',  pct: 24, color: 'var(--orange)' },
+    { label: 'Agression',    pct: 17, color: 'var(--red)' },
+    { label: 'Harcèlement',  pct: 13, color: 'var(--gold)' },
+    { label: 'Autre',        pct:  8, color: 'var(--gray-3)' },
   ];
   return data.map(function(d) {
     return '<div style="display:flex;align-items:center;gap:10px;margin-bottom:10px">' +
-      '<div style="width:14px;height:14px;border-radius:3px;background:' + d.color + ';flex-shrink:0"></div>' +
+      '<div style="width:12px;height:12px;border-radius:var(--radius-sm);background:' + d.color + ';flex-shrink:0"></div>' +
       '<div style="flex:1;font-size:13px">' + d.label + '</div>' +
-      '<div style="width:120px;background:var(--gray-2);border-radius:20px;height:10px">' +
-        '<div style="width:' + d.pct + '%;height:10px;background:' + d.color + ';border-radius:20px"></div>' +
+      '<div style="width:120px;background:var(--gray-2);border-radius:var(--radius-sm);height:8px;flex-shrink:0">' +
+        '<div style="width:' + d.pct + '%;height:8px;background:' + d.color + ';border-radius:var(--radius-sm)"></div>' +
       '</div>' +
-      '<div style="font-size:13px;font-weight:600;width:32px;text-align:right">' + d.pct + '%</div>' +
+      '<div style="font-size:13px;font-weight:600;width:32px;text-align:right;font-variant-numeric:tabular-nums">' + d.pct + '%</div>' +
     '</div>';
   }).join('');
 }

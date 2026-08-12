@@ -12,6 +12,10 @@
 
 <!-- NAVBAR -->
 <nav class="navbar">
+  <button type="button" class="nav-burger" onclick="basculerTiroir()"
+    aria-label="Ouvrir le menu" aria-expanded="false" aria-controls="sidebar">
+    <svg width="20" height="20" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" aria-hidden="true"><path d="M2.5 4.5h11M2.5 8h11M2.5 11.5h11"/></svg>
+  </button>
   <div class="navbar-brand">
     <a href="../index.html" style="color:#fff;display:flex;align-items:center;gap:8px;text-decoration:none">
       <span style="font-size:16px;font-weight:700">PlainteCam</span>
@@ -37,13 +41,16 @@
 <div class="page-wrapper">
 
 <!-- SIDEBAR -->
-<aside class="sidebar">
+<aside class="sidebar" id="sidebar">
   <div class="sidebar-user-block">
     <div class="sidebar-avatar">JM</div>
     <div>
       <div class="sidebar-username">Jean MBIDA</div>
       <div class="sidebar-role">Citoyen vérifié</div>
     </div>
+    <button type="button" class="sidebar-fermer" onclick="fermerTiroir()" aria-label="Fermer le menu">
+      <svg width="15" height="15" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" aria-hidden="true"><path d="M4.5 4.5l7 7M11.5 4.5l-7 7"/></svg>
+    </button>
   </div>
   <div class="sidebar-section">Mon espace</div>
   <div class="sidebar-item active" data-page="page-depot" onclick="showPage('page-depot')">
@@ -59,13 +66,15 @@
     Mon profil
   </div>
   <div class="sidebar-section">Aide</div>
-  <div class="sidebar-item" onclick="toast('Assistance — support@plaintecam.gov.cm','')">
+  <div class="sidebar-item" data-page="page-assistance" onclick="showPage('page-assistance')">
     Assistance
   </div>
   <div class="sidebar-bottom">
     <a href="../auth/citoyen.html" class="sidebar-logout">Se déconnecter</a>
   </div>
 </aside>
+<div class="sidebar-voile" id="sidebar-voile" onclick="fermerTiroir()" aria-hidden="true"></div>
+
 
 <!-- MAIN -->
 <main class="main-content">
@@ -76,6 +85,19 @@
 <div id="page-depot" class="page">
   <div class="page-title">Déposer une plainte</div>
   <div class="page-subtitle">Remplissez ce formulaire étape par étape ou utilisez la saisie vocale. L'IA vous guidera pour compléter votre dossier.</div>
+
+  <!-- Reprise de brouillon : propose de restaurer une saisie interrompue. -->
+  <div class="brouillon-bandeau" id="brouillon-bandeau" style="display:none">
+    <div class="brouillon-txt">
+      <strong>Vous avez une déclaration en cours</strong>
+      <span id="brouillon-info">Commencée il y a quelques instants.</span>
+    </div>
+    <div class="brouillon-actions">
+      <button type="button" class="btn btn-primary btn-sm" onclick="reprendreBrouillon()">Reprendre</button>
+      <button type="button" class="btn btn-outline btn-sm" onclick="supprimerBrouillon(true)">Recommencer</button>
+    </div>
+  </div>
+  <div class="brouillon-etat" id="brouillon-etat" aria-live="polite"></div>
 
   <!-- Steps indicator -->
   <div class="steps">
@@ -198,12 +220,23 @@
             placeholder="Décrivez en détail ce qui s'est passé : quand, où, comment, qui était présent...">Le 15 mai 2026 vers 14h00, je me trouvais au Marché Mokolo à Yaoundé. Un individu inconnu, jeune homme d'environ 25 ans, vêtu d'un tee-shirt rouge, a arraché mon téléphone Samsung Galaxy de couleur noire de ma main alors que je consultais mes messages. Il a immédiatement pris la fuite en courant en direction de la rue principale. La valeur du téléphone est de 150 000 FCFA. Je n'ai pas pu l'attraper mais un commerçant présent a pu partiellement voir la scène.</textarea>
           <div class="form-hint">Soyez le plus précis possible : dates, heures, description du suspect, témoins, préjudice subi.</div>
         </div>
+
+        <!-- Analyse en direct (§7.3 score de complétude, §9.3 jauge) -->
+        <div class="analyse-live" id="analyse-live" aria-live="polite">
+          <div class="analyse-live-head">
+            <span class="analyse-live-titre">Analyse de votre déclaration</span>
+            <span class="analyse-live-score" id="analyse-score">0 %</span>
+          </div>
+          <div class="jauge"><div class="jauge-barre" id="analyse-barre"></div></div>
+          <div class="analyse-live-chips" id="analyse-chips"></div>
+          <div class="analyse-live-note" id="analyse-note"></div>
+        </div>
       </div>
 
       <!-- Mode vocal -->
       <div id="mode-vocal" style="display:none">
         <div class="recorder-wrap">
-          <button class="mic-btn" id="mic-btn" onclick="toggleRecording()" aria-label="Démarrer l'enregistrement"></button>
+          <button type="button" class="mic-btn" id="mic-btn" onclick="toggleRecording()" aria-label="Démarrer l'enregistrement" aria-pressed="false"><svg width="26" height="26" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="6.25" y="1.75" width="3.5" height="7" rx="1.75"/><path d="M4 7.25v1.25a4 4 0 0 0 8 0V7.25"/><path d="M8 12.5v1.75"/></svg></button>
           <div id="rec-status" style="font-weight:600;margin-bottom:8px">Appuyez sur le microphone pour commencer</div>
           <div id="rec-timer" style="font-size:24px;font-weight:700;color:var(--primary);font-family:monospace">00:00</div>
           <div class="transcription-box" id="transcription-live">
@@ -216,13 +249,50 @@
         </div>
       </div>
 
-      <!-- Upload pièces jointes -->
-      <div class="form-group" style="margin-top:18px">
-        <label class="form-label">Pièces jointes (photos, documents)</label>
-        <div style="border:1px dashed var(--gray-3);border-radius:var(--radius-sm);padding:18px;text-align:center;cursor:pointer;background:var(--gray-1)" onclick="toast('Fichier joint','')">
-          <div style="font-size:13px;color:var(--text-light)">Cliquez pour ajouter des fichiers (JPG, PDF, MP4 — max 20 Mo par fichier)</div>
+      <!-- Préjudice subi (§7.2 — étape 5 du parcours documenté) -->
+      <div class="divider" style="margin:22px 0 18px"></div>
+      <h4 style="font-size:14px;font-weight:700;color:var(--primary);margin-bottom:14px">Préjudice subi</h4>
+      <div class="form-row">
+        <div class="form-group">
+          <label class="form-label" for="prejudice-nature">Nature du préjudice <span>*</span></label>
+          <select class="form-control" id="prejudice-nature" onchange="onPrejudiceChange()">
+            <option value="">Sélectionnez…</option>
+            <option value="Matériel">Matériel — bien volé, perdu ou dégradé</option>
+            <option value="Corporel">Corporel — blessures physiques</option>
+            <option value="Financier">Financier — somme d'argent perdue</option>
+            <option value="Moral">Moral — atteinte psychologique</option>
+            <option value="Multiple">Plusieurs de ces préjudices</option>
+            <option value="Aucun">Aucun préjudice à ce stade</option>
+          </select>
+          <div class="field-error" id="err-prejudice-nature"></div>
         </div>
-        <div style="margin-top:6px;font-size:13px;color:var(--green-lt)">photo_scene_01.jpg — 2,4 Mo (ajoute)</div>
+        <div class="form-group" id="grp-prejudice-montant">
+          <label class="form-label" for="prejudice-montant">Montant estimé (FCFA)</label>
+          <input type="text" class="form-control" id="prejudice-montant"
+            inputmode="numeric" placeholder="Ex : 150 000">
+          <div class="form-hint">Laissez vide si vous ne pouvez pas l'estimer.</div>
+        </div>
+      </div>
+      <div class="form-group">
+        <label class="form-label" for="prejudice-detail">Précisions sur le préjudice</label>
+        <textarea class="form-control" id="prejudice-detail" rows="2"
+          placeholder="Ex : téléphone Samsung Galaxy noir, acheté en janvier 2026 — facture disponible"></textarea>
+      </div>
+
+      <!-- Pièces jointes -->
+      <div class="divider" style="margin:22px 0 18px"></div>
+      <div class="form-group">
+        <label class="form-label" for="pj-input">Pièces jointes</label>
+        <input type="file" id="pj-input" multiple
+          accept=".jpg,.jpeg,.png,.pdf,.mp4,image/jpeg,image/png,application/pdf,video/mp4"
+          class="sr-only" onchange="ajouterPiecesJointes(this.files)">
+        <label for="pj-input" class="pj-zone" id="pj-zone">
+          <svg width="22" height="22" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M8 11.5V3.25"/><path d="M5.25 6 8 3.25 10.75 6"/><path d="M2.75 11v1.75a1 1 0 0 0 1 1h8.5a1 1 0 0 0 1-1V11"/></svg>
+          <span class="pj-zone-titre">Cliquez pour ajouter des fichiers</span>
+          <span class="pj-zone-sub">JPG, PNG, PDF ou MP4 — 20 Mo maximum par fichier</span>
+        </label>
+        <div class="field-error" id="err-pj-input"></div>
+        <ul class="pj-liste" id="pj-liste"></ul>
       </div>
     </div>
 
@@ -266,9 +336,22 @@
     <!-- ÉTAPE 5 — APERÇU & VALIDATION -->
     <div class="depot-section" data-step="5" style="display:none">
       <h3 style="margin-bottom:4px;font-size:17px">Étape 5 — Aperçu de votre déclaration</h3>
-      <p style="font-size:13px;color:var(--text-light);margin-bottom:20px">Lisez attentivement le document généré. Vous pouvez le transmettre ou retourner corriger une étape.</p>
+      <p style="font-size:13px;color:var(--text-light);margin-bottom:14px">Lisez attentivement le document généré. Vous pouvez le transmettre ou retourner corriger une étape.</p>
 
-      <div style="display:grid;grid-template-columns:1fr 280px;gap:20px;align-items:start">
+      <!-- Lecture vocale : un plaignant qui ne sait pas lire doit pouvoir
+           verifier a l'oral ce qu'il valide (compte rendu §3.3). -->
+      <div class="ecoute-bloc" id="ecoute-bloc">
+        <div class="ecoute-txt">
+          <strong>Vous ne savez pas lire, ou vous préférez écouter ?</strong>
+          <span>La plateforme vous lit votre déclaration à voix haute avant que vous ne la validiez.</span>
+        </div>
+        <button type="button" class="btn btn-outline btn-sm" id="btn-ecouter" onclick="basculerLecture()">
+          <svg width="15" height="15" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M8.5 3 5.25 5.75H3v4.5h2.25L8.5 13z"/><path d="M11 5.75a3 3 0 0 1 0 4.5"/><path d="M12.75 4a5.5 5.5 0 0 1 0 8"/></svg>
+          <span id="btn-ecouter-txt">Écouter ma déclaration</span>
+        </button>
+      </div>
+
+      <div class="grid-main-aside">
 
         <!-- Document aperçu -->
         <div class="pv-document" id="apercu-pv">
@@ -299,12 +382,23 @@
           </div>
 
           <div class="alert alert-warning" style="margin:0">
-            <div style="font-size:12px;line-height:1.6">En transmettant ce document, vous attestez sur l'honneur que les informations sont exactes. Toute fausse déclaration est passible de poursuites selon le Code pénal camerounais.</div>
+            <div style="font-size:12px;line-height:1.6">Vous attestez sur l'honneur que les informations sont exactes. Toute fausse déclaration est passible de poursuites selon le Code pénal camerounais.</div>
           </div>
 
-          <button class="btn btn-primary btn-lg" style="justify-content:center" onclick="submitPlainte()">
+          <button class="btn btn-primary btn-lg btn-full" onclick="submitPlainte()">
             Transmettre au commissariat
           </button>
+          <button class="btn btn-outline btn-full" onclick="telechargerPlaintePDF()">
+            Télécharger ma plainte
+          </button>
+          <!-- Le téléchargement seul n'envoie rien : c'est la seule chose qu'il
+               faut dire, et elle porte sur la plateforme, pas sur la procédure
+               du commissariat. -->
+          <p class="note-choix">
+            Télécharger ne transmet pas votre plainte : vous la déposerez vous-même
+            au commissariat. Vous pouvez aussi la transmettre, puis en télécharger
+            une copie.
+          </p>
           <button class="btn btn-outline" style="justify-content:center;color:var(--red);border-color:var(--red)" onclick="rejectAndCorrect()">
             Corriger ma déclaration
           </button>
@@ -368,23 +462,24 @@
       <div class="big-num">N° 2026-00451</div>
       <div style="font-size:13px;color:var(--text-light)">Déposée le 15 mai 2026 à 14h32 — Jean MBIDA</div>
       <div style="font-size:13px;margin:10px 0">Commissariat Cité Verte, Yaoundé</div>
-      <div class="qr-placeholder">
-        <div></div><div style="background:transparent"></div><div></div>
-        <div style="background:transparent"></div><div></div><div style="background:transparent"></div>
-        <div></div><div style="background:transparent"></div><div></div>
+      <!-- Code QR calculé localement, encodant l'URL de vérification -->
+      <div class="qr-bloc" id="qr-attestation"></div>
+      <div style="font-size:11px;color:var(--text-light);line-height:1.6">
+        Scannez pour vérifier l'authenticité de ce document<br>
+        Code de contrôle : <strong id="code-verif" style="font-family:ui-monospace,Consolas,monospace;letter-spacing:.08em;color:var(--primary)">—</strong>
       </div>
-      <div style="font-size:11px;color:var(--text-light)">Code QR de vérification sécurisé</div>
     </div>
 
     <div class="alert alert-info" style="margin-top:20px">
       <div>
-        <strong>Notification SMS envoyée</strong><br>
+        <strong>Notification envoyée par e-mail</strong><br>
         <em>"Votre plainte N°2026-00451 a bien été reçue. Attestation disponible dans votre espace. Commissariat Cité Verte."</em>
       </div>
     </div>
 
     <div style="display:flex;gap:12px;margin-top:20px;flex-wrap:wrap">
-      <button class="btn btn-primary" onclick="toast('Attestation téléchargée','')">Télécharger l'attestation PDF</button>
+      <button class="btn btn-primary" onclick="telechargerAttestationPDF()">Télécharger l'attestation PDF</button>
+      <button class="btn btn-primary" onclick="telechargerPlaintePDF()">Télécharger ma plainte PDF</button>
       <button class="btn btn-outline" onclick="showPage('page-suivi')">Suivre mon dossier</button>
       <button class="btn btn-outline" onclick="resetDepot()">Nouvelle plainte</button>
     </div>
@@ -396,19 +491,29 @@
      ============================== -->
 <div id="page-suivi" class="page" style="display:none">
   <div class="page-title">Suivre mon dossier</div>
-  <div class="page-subtitle">Entrez votre numéro de dossier pour consulter l'avancement en temps réel.</div>
+  <div class="page-subtitle">Consultez l'état d'avancement de votre plainte en temps réel, 24h/24.</div>
 
-  <div class="card" style="max-width:600px;margin-bottom:24px">
-    <div class="form-group">
-      <label class="form-label">Numéro de dossier</label>
-      <div style="display:flex;gap:10px">
-        <input type="text" class="form-control" id="suivi-numero" value="2026-00451" placeholder="Ex: 2026-00451">
-        <button class="btn btn-primary" onclick="initSuivi()">Rechercher</button>
+  <!-- Barre de recherche améliorée -->
+  <div style="background: var(--primary); border-radius: var(--radius); padding: 32px; margin-bottom: 28px; border-bottom: 3px solid var(--gold);">
+    <div style="max-width: 600px; margin: 0 auto; text-align: center;">
+      <div style="font-size: 13px; font-weight: 600; color: rgba(255,255,255,0.65); text-transform: uppercase; letter-spacing: .1em; margin-bottom: 8px;">Numéro de référence</div>
+      <h3 style="color: #fff; font-size: 18px; font-weight: 600; margin-bottom: 20px;">Entrez votre numéro de dossier reçu par e-mail</h3>
+      <div style="display: flex; gap: 10px; align-items: center; flex-wrap: wrap;">
+        <div style="position: relative; flex: 1; min-width: 200px;">
+          <svg style="position: absolute; left: 14px; top: 50%; transform: translateY(-50%); color: var(--gray-3);" width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" aria-hidden="true"><circle cx="7" cy="7" r="4.25"/><path d="M10.2 10.2 14 14"/></svg>
+          <label for="suivi-numero" class="sr-only">Numéro de dossier</label>
+          <input type="text" class="form-control" id="suivi-numero" placeholder="Ex : 2026-00451"
+            style="padding-left: 40px; height: 46px; font-size: 15px; border-radius: var(--radius); border: none;">
+        </div>
+        <button class="btn btn-gold" onclick="initSuivi()" style="height: 46px; padding: 0 26px; border-radius: var(--radius); font-size: 15px; font-weight: 600; white-space: nowrap;">
+          Rechercher
+        </button>
       </div>
-      <div class="form-hint">Numéro reçu par SMS lors du dépôt de votre plainte.</div>
+      <div style="font-size: 12px; color: rgba(255,255,255,0.5); margin-top: 10px;">Ce numéro vous a été envoyé par e-mail lors du dépôt de votre plainte</div>
     </div>
   </div>
 
+  <!-- Résultat dynamique -->
   <div id="suivi-result" style="display:none"></div>
 </div>
 
@@ -450,34 +555,235 @@
      ============================== -->
 <div id="page-profil" class="page" style="display:none">
   <div class="page-title">Mon profil</div>
-  <div class="page-subtitle">Informations personnelles liées à votre compte.</div>
-  <div class="card" style="max-width:600px">
-    <div style="display:flex;align-items:center;gap:20px;margin-bottom:24px">
-      <div style="width:70px;height:70px;border-radius:50%;background:var(--primary);display:flex;align-items:center;justify-content:center;font-size:28px;color:#fff;font-weight:700">JM</div>
-      <div>
-        <div style="font-size:20px;font-weight:700">Jean MBIDA</div>
-        <div style="color:var(--text-light);font-size:14px">Citoyen — Compte vérifié</div>
+  <div class="page-subtitle">Gérez vos informations personnelles et les paramètres de sécurité de votre compte.</div>
+  
+  <div class="grid-aside-main">
+    
+    <!-- Colonne Gauche : Résumé et Avatar -->
+    <div style="display: flex; flex-direction: column; gap: 24px;">
+      <div class="card" style="text-align: center; padding: 32px 20px;">
+        <div style="position: relative; width: 100px; height: 100px; margin: 0 auto 16px;">
+          <div style="width: 100px; height: 100px; border-radius: 50%; background: var(--primary); display: flex; align-items: center; justify-content: center; font-size: 34px; letter-spacing: .04em; color: var(--white); font-weight: 700; box-shadow: var(--shadow);">
+            JM
+          </div>
+          <!-- Bouton modifier photo -->
+          <button type="button" aria-label="Modifier la photo de profil" style="position: absolute; bottom: 0; right: 0; width: 32px; height: 32px; border-radius: 50%; background: var(--white); border: 1px solid var(--gray-2); color: var(--primary); display: flex; align-items: center; justify-content: center; cursor: pointer; box-shadow: var(--shadow);">
+            <svg width="14" height="14" fill="currentColor" viewBox="0 0 16 16"><path d="M10.5 8.5a2.5 2.5 0 1 1-5 0 2.5 2.5 0 0 1 5 0z"/><path d="M2 4a2 2 0 0 0-2 2v6a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V6a2 2 0 0 0-2-2h-1.172a2 2 0 0 1-1.414-.586l-.828-.828A2 2 0 0 0 9.172 2H6.828a2 2 0 0 0-1.414.586l-.828.828A2 2 0 0 1 3.172 4H2zm.5 2a.5.5 0 1 1 0-1 .5.5 0 0 1 0 1zm9 2.5a3.5 3.5 0 1 1-7 0 3.5 3.5 0 0 1 7 0z"/></svg>
+          </button>
+        </div>
+        <h3 style="font-size: 20px; font-weight: 700; color: var(--primary); margin-bottom: 4px;">Jean MBIDA</h3>
+        <div style="font-size: 13px; color: var(--text-light); margin-bottom: 16px;">Citoyen Camerounais</div>
+        
+        <div style="display: inline-flex; align-items: center; gap: 6px; padding: 6px 12px; background: rgba(20,94,46,.08); border: 1px solid rgba(20,94,46,.20); color: var(--green-lt); border-radius: var(--radius-sm); font-size: 12px; font-weight: 600;">
+          <svg width="13" height="13" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="8" cy="8" r="5.75"/><path d="M5.5 8.25 7.25 10l3.25-4"/></svg>
+          Identité vérifiée (CNI)
+        </div>
+      </div>
+      
+      <!-- Résumé Activité -->
+      <div class="card" style="padding: 24px;">
+        <h4 style="font-size: 14px; font-weight: 700; color: var(--primary); margin-bottom: 16px; padding-bottom: 8px; border-bottom: 1px solid var(--gray-2);">Activité du compte</h4>
+        <div style="display: flex; justify-content: space-between; margin-bottom: 12px; font-size: 14px;">
+          <span style="color: var(--text-light);">Plaintes déposées</span>
+          <span style="font-weight: 700; color: var(--primary);">2</span>
+        </div>
+        <div style="display: flex; justify-content: space-between; font-size: 14px;">
+          <span style="color: var(--text-light);">Dossiers clôturés</span>
+          <span style="font-weight: 700; color: var(--primary);">1</span>
+        </div>
       </div>
     </div>
-    <div class="form-row">
+
+    <!-- Colonne Droite : Formulaires -->
+    <div style="display: flex; flex-direction: column; gap: 24px;">
+      
+      <!-- Informations Personnelles -->
+      <div class="card" style="padding: 32px;">
+        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 24px;">
+          <div>
+            <h3 style="font-size: 18px; font-weight: 700; color: var(--primary);">Informations personnelles</h3>
+            <p style="font-size: 13px; color: var(--text-light); margin-top: 4px;">Ces informations sont utilisées pour l'identification officielle sur vos documents.</p>
+          </div>
+        </div>
+        
+        <div class="form-row">
+          <div class="form-group">
+            <label class="form-label">Nom de famille</label>
+            <input class="form-control" value="MBIDA">
+          </div>
+          <div class="form-group">
+            <label class="form-label">Prénom(s)</label>
+            <input class="form-control" value="Jean">
+          </div>
+        </div>
+        
+        <div class="form-row">
+          <div class="form-group">
+            <label class="form-label">Lieu de résidence</label>
+            <input class="form-control" value="Yaoundé, Centre">
+          </div>
+          <div class="form-group">
+            <label class="form-label">Profession (Optionnel)</label>
+            <input class="form-control" value="Ingénieur Informatique" placeholder="Ex: Enseignant, Commerçant...">
+          </div>
+        </div>
+        
+        <div style="display: flex; justify-content: flex-end; margin-top: 16px;">
+          <button class="btn btn-primary" onclick="toast('Informations personnelles mises à jour avec succès', 'success')">Enregistrer les modifications</button>
+        </div>
+      </div>
+      
+      <!-- Coordonnées et Identité -->
+      <div class="card" style="padding: 32px;">
+        <h3 style="font-size: 18px; font-weight: 700; color: var(--primary); margin-bottom: 4px;">Coordonnées & Identification</h3>
+        <p style="font-size: 13px; color: var(--text-light); margin-bottom: 24px;">Données sécurisées, vérifiées par le système national.</p>
+        
+        <div class="form-row">
+          <div class="form-group">
+            <label class="form-label">Numéro de téléphone principal <span style="color:var(--green-lt); margin-left:4px; display:inline-flex; vertical-align:-2px;"><svg width="13" height="13" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="8" cy="8" r="5.75"/><path d="M5.5 8.25 7.25 10l3.25-4"/></svg><span class="sr-only">Vérifié</span></span></label>
+            <div style="display: flex; align-items: center; gap: 8px;">
+              <input class="form-control" value="+237 677 000 000" disabled style="background-color: var(--gray-1); cursor: not-allowed; flex: 1;">
+              <button class="btn btn-outline btn-sm" style="height: 42px;" onclick="toast('Un code OTP sera envoyé pour changer de numéro', 'info')">Modifier</button>
+            </div>
+          </div>
+          <div class="form-group">
+            <label class="form-label">Adresse Email (Optionnelle)</label>
+            <input class="form-control" value="jean.mbida@email.com">
+          </div>
+        </div>
+
+        <div class="form-group">
+          <label class="form-label">Numéro de Carte Nationale d'Identité (CNI) <span style="color:var(--green-lt); margin-left:4px; display:inline-flex; vertical-align:-2px;"><svg width="13" height="13" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="8" cy="8" r="5.75"/><path d="M5.5 8.25 7.25 10l3.25-4"/></svg><span class="sr-only">Vérifié</span></span></label>
+          <input class="form-control" value="XXXXXXXXXXXXXXX" disabled style="background-color: var(--gray-1); cursor: not-allowed;">
+          <div class="form-hint" style="color: var(--gold-txt); margin-top: 8px; display: flex; gap: 6px; align-items: center;">
+            <svg width="12" height="12" fill="currentColor" viewBox="0 0 16 16"><path d="M8 15A7 7 0 1 1 8 1a7 7 0 0 1 0 14zm0 1A8 8 0 1 0 8 0a8 8 0 0 0 0 16z"/><path d="M7.002 11a1 1 0 1 1 2 0 1 1 0 0 1-2 0zM7.1 4.995a.905.905 0 1 1 1.8 0l-.35 3.507a.552.552 0 0 1-1.1 0L7.1 4.995z"/></svg>
+            Le numéro de CNI ne peut être modifié. En cas d'erreur, veuillez contacter l'assistance.
+          </div>
+        </div>
+      </div>
+
+    </div>
+  </div>
+</div>
+
+<!-- ==============================
+     PAGE : ASSISTANCE
+     ============================== -->
+<div id="page-assistance" class="page" style="display:none">
+  <div class="page-title">Centre d'Assistance</div>
+  <div class="page-subtitle">Notre équipe est disponible pour vous aider dans toutes vos démarches sur PlainteCam.</div>
+
+  <!-- Cartes de contact rapide -->
+  <!-- auto-fit : les cartes passent seules en 1 colonne sur mobile -->
+  <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); gap: 20px; margin-bottom: 32px;">
+    <div class="card contact-card">
+      <span class="contact-card-icon">
+        <svg width="19" height="19" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5.5 2.5H3.75a1.25 1.25 0 0 0-1.25 1.3c.2 4.6 4.1 8.5 8.7 8.7a1.25 1.25 0 0 0 1.3-1.25V9.5l-2.75-1-1.25 1.5A9.5 9.5 0 0 1 5 6.5L6.5 5.25z"/></svg>
+      </span>
+      <h3>Numéro vert</h3>
+      <p>Disponible 24h/24 — 7j/7<br>Appel gratuit depuis tout réseau</p>
+      <div class="contact-card-val" style="font-size: 24px; letter-spacing: .06em;">1515</div>
+    </div>
+    <div class="card contact-card">
+      <span class="contact-card-icon">
+        <svg width="19" height="19" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="1.75" y="3.5" width="12.5" height="9" rx="1"/><path d="m2.25 4.25 5.75 4 5.75-4"/></svg>
+      </span>
+      <h3>Email officiel</h3>
+      <p>Pour toute question sur la plateforme<br>Joignez vos documents si nécessaire</p>
+      <div class="contact-card-val">support@plaintecam.gov.cm</div>
+    </div>
+    <div class="card contact-card">
+      <span class="contact-card-icon">
+        <svg width="19" height="19" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M8 14s4.75-4.1 4.75-7.5a4.75 4.75 0 0 0-9.5 0C3.25 9.9 8 14 8 14z"/><circle cx="8" cy="6.4" r="1.75"/></svg>
+      </span>
+      <h3>Visite physique</h3>
+      <p>DGSN — Yaoundé Centre<br>Lun – Ven : 7h30 – 15h30</p>
+      <div class="contact-card-val">Avenue Monseigneur Vogt</div>
+    </div>
+  </div>
+
+  <div class="grid-2">
+    <!-- Formulaire de contact -->
+    <div class="card" style="padding: 32px;">
+      <h3 style="font-size: 17px; font-weight: 700; color: var(--primary); margin-bottom: 4px;">Envoyer un message</h3>
+      <p style="font-size: 13px; color: var(--text-light); margin-bottom: 24px;">Décrivez votre problème, nous vous répondrons rapidement.</p>
       <div class="form-group">
-        <label class="form-label">Nom</label>
-        <input class="form-control" value="MBIDA">
+        <label class="form-label">Objet de la demande</label>
+        <select class="form-control" id="assist-objet">
+          <option value="">-- Sélectionnez --</option>
+          <option>Problème avec mon dossier</option>
+          <option>Oubli de mon numéro de dossier</option>
+          <option>Plainte non reçue par le commissariat</option>
+          <option>Problème technique sur la plateforme</option>
+          <option>Question sur la procédure</option>
+          <option>Autre demande</option>
+        </select>
       </div>
       <div class="form-group">
-        <label class="form-label">Prénom</label>
-        <input class="form-control" value="Jean">
+        <label class="form-label">Votre numéro de dossier <span style="color:var(--text-light);font-weight:400">(si applicable)</span></label>
+        <input class="form-control" id="assist-dossier" placeholder="Ex: 2026-00451">
       </div>
       <div class="form-group">
-        <label class="form-label">Téléphone</label>
-        <input class="form-control" value="+237 677 000 000">
+        <label class="form-label">Votre message</label>
+        <textarea class="form-control" id="assist-message" rows="5" placeholder="Décrivez votre situation en détail..."></textarea>
       </div>
-      <div class="form-group">
-        <label class="form-label">N° CNI</label>
-        <input class="form-control" value="XXXXXXXXXXXXXXX">
+      <button class="btn btn-primary" style="width: 100%;" onclick="envoyerMessageAssistance()">
+        Envoyer le message
+      </button>
+    </div>
+
+    <!-- FAQ -->
+    <div class="card" style="padding: 32px;">
+      <h3 style="font-size: 17px; font-weight: 700; color: var(--primary); margin-bottom: 4px;">Questions fréquentes</h3>
+      <p style="font-size: 13px; color: var(--text-light); margin-bottom: 24px;">Trouvez rapidement une réponse à votre question.</p>
+      <div style="display: flex; flex-direction: column; gap: 0;">
+        <div class="faq-item" onclick="toggleFaq(this)" style="border-bottom: 1px solid var(--gray-2); padding: 16px 0; cursor: pointer;">
+          <div style="display: flex; justify-content: space-between; align-items: center;">
+            <span style="font-size: 14px; font-weight: 600; color: var(--primary);">Comment retrouver mon numéro de dossier ?</span>
+            <span class="faq-icon" style="font-size: 18px; color: var(--primary); transition: transform .2s;">+</span>
+          </div>
+          <div class="faq-answer" style="display:none; font-size: 13px; color: var(--text-light); margin-top: 10px; line-height: 1.7;">
+            Votre numéro de dossier vous a été envoyé par e-mail à l'adresse déclarée lors de votre inscription, immédiatement après la validation de votre plainte. Pensez à vérifier votre dossier de courriers indésirables. Si vous ne le trouvez pas, contactez le 1515.
+          </div>
+        </div>
+        <div class="faq-item" onclick="toggleFaq(this)" style="border-bottom: 1px solid var(--gray-2); padding: 16px 0; cursor: pointer;">
+          <div style="display: flex; justify-content: space-between; align-items: center;">
+            <span style="font-size: 14px; font-weight: 600; color: var(--primary);">Combien de temps pour traiter ma plainte ?</span>
+            <span class="faq-icon" style="font-size: 18px; color: var(--primary); transition: transform .2s;">+</span>
+          </div>
+          <div class="faq-answer" style="display:none; font-size: 13px; color: var(--text-light); margin-top: 10px; line-height: 1.7;">
+            Votre plainte est transmise au commissariat territorialement compétent dès sa validation. Un officier de police judiciaire y est ensuite désigné pour instruire le dossier, et vous contactera pour organiser votre audition. Le rythme de la procédure relève du commissariat : suivez votre dossier depuis « Suivre un dossier », vous êtes notifié à chaque étape.
+          </div>
+        </div>
+        <div class="faq-item" onclick="toggleFaq(this)" style="border-bottom: 1px solid var(--gray-2); padding: 16px 0; cursor: pointer;">
+          <div style="display: flex; justify-content: space-between; align-items: center;">
+            <span style="font-size: 14px; font-weight: 600; color: var(--primary);">Puis-je modifier une plainte déjà soumise ?</span>
+            <span class="faq-icon" style="font-size: 18px; color: var(--primary); transition: transform .2s;">+</span>
+          </div>
+          <div class="faq-answer" style="display:none; font-size: 13px; color: var(--text-light); margin-top: 10px; line-height: 1.7;">
+            Non. Une fois soumise et validée, la plainte est transmise et ne peut plus être modifiée en ligne. Pour apporter un complément d'information, vous devez contacter directement le commissariat en charge ou appeler le 1515.
+          </div>
+        </div>
+        <div class="faq-item" onclick="toggleFaq(this)" style="border-bottom: 1px solid var(--gray-2); padding: 16px 0; cursor: pointer;">
+          <div style="display: flex; justify-content: space-between; align-items: center;">
+            <span style="font-size: 14px; font-weight: 600; color: var(--primary);">Mon attestation PDF est-elle un document officiel ?</span>
+            <span class="faq-icon" style="font-size: 18px; color: var(--primary); transition: transform .2s;">+</span>
+          </div>
+          <div class="faq-answer" style="display:none; font-size: 13px; color: var(--text-light); margin-top: 10px; line-height: 1.7;">
+            Oui. L'attestation PDF fait foi de la date certaine du dépôt de votre plainte et de son enregistrement officiel. Elle est acceptée comme preuve de démarche dans les procédures administratives et judiciaires.
+          </div>
+        </div>
+        <div class="faq-item" onclick="toggleFaq(this)" style="padding: 16px 0; cursor: pointer;">
+          <div style="display: flex; justify-content: space-between; align-items: center;">
+            <span style="font-size: 14px; font-weight: 600; color: var(--primary);">La plateforme est-elle sécurisée ?</span>
+            <span class="faq-icon" style="font-size: 18px; color: var(--primary); transition: transform .2s;">+</span>
+          </div>
+          <div class="faq-answer" style="display:none; font-size: 13px; color: var(--text-light); margin-top: 10px; line-height: 1.7;">
+            Oui. PlainteCam est hébergée sur une infrastructure sécurisée de l'État camerounais. Toutes les données sont chiffrées et accessibles uniquement aux agents habilités de la DGSN. Aucune donnée n'est partagée à des tiers.
+          </div>
+        </div>
       </div>
     </div>
-    <button class="btn btn-primary" onclick="toast('Profil mis à jour','')">Enregistrer les modifications</button>
   </div>
 </div>
 
@@ -507,6 +813,7 @@
 <script src="../js/modules/utils.js"></script>
 <script src="../js/modules/data.js"></script>
 <script src="../js/modules/questionnaire.js"></script>
+<script src="../js/modules/qrcode.js"></script>
 <script src="../js/data/geo.js"></script>
 <script src="../js/pages/citoyen.js"></script>
 <script src="../js/pages/citoyen-geo.js"></script>
@@ -520,6 +827,289 @@
     i.addEventListener('click', () => showPage(i.dataset.page));
   });
   if (location.hash === '#suivi') showPage('page-suivi');
+
+  function toggleFaq(item) {
+    const answer = item.querySelector('.faq-answer');
+    const icon   = item.querySelector('.faq-icon');
+    const isOpen = answer.style.display !== 'none';
+    // Fermer toutes les autres FAQ
+    document.querySelectorAll('.faq-item').forEach(el => {
+      el.querySelector('.faq-answer').style.display = 'none';
+      el.querySelector('.faq-icon').textContent = '+';
+      el.querySelector('.faq-icon').style.transform = 'rotate(0deg)';
+    });
+    if (!isOpen) {
+      answer.style.display = 'block';
+      icon.textContent = '×';
+      icon.style.transform = 'rotate(0deg)';
+    }
+  }
+
+  function envoyerMessageAssistance() {
+    const objet   = document.getElementById('assist-objet').value;
+    const message = document.getElementById('assist-message').value.trim();
+    if (!objet)   { toast('Veuillez sélectionner un objet', 'error'); return; }
+    if (!message) { toast('Veuillez rédiger votre message', 'error'); return; }
+    // Simuler l'envoi
+    document.getElementById('assist-message').value = '';
+    document.getElementById('assist-dossier').value = '';
+    document.getElementById('assist-objet').value   = '';
+    toast('Message transmis au service d\'assistance', 'success');
+  }
+
+  /* ══════════════════════════════════════════════════════════
+     DOCUMENTS OFFICIELS TÉLÉCHARGEABLES
+
+     Deux documents distincts, tous deux imprimables en PDF par
+     l'impression native du navigateur :
+
+       • l'attestation de dépôt — preuve que la plainte a été reçue ;
+       • la déclaration de plainte — le contenu même de la plainte.
+
+     L'en-tête bilingue, le bloc de vérification et la mécanique
+     d'impression sont partagés : les deux documents ne peuvent pas
+     dériver l'un de l'autre.
+     ══════════════════════════════════════════════════════════ */
+
+  const MOIS = ['janvier','février','mars','avril','mai','juin',
+                'juillet','août','septembre','octobre','novembre','décembre'];
+
+  /* « 15/05/2026 » ou « 2026-05-15 » -> « 15 mai 2026 » */
+  function dateEnClair(v) {
+    if (!v) return '';
+    let j, m, a;
+    if (v.indexOf('/') !== -1)      { [j, m, a] = v.split('/'); }
+    else if (v.indexOf('-') !== -1) { [a, m, j] = v.split('-'); }
+    else return v;
+    const mi = parseInt(m, 10) - 1;
+    return parseInt(j, 10) + ' ' + (MOIS[mi] || m) + ' ' + a;
+  }
+
+  function enteteOfficielle() {
+    return `
+      <table style="width:100%;text-align:center;font-size:14px;font-weight:bold;margin-bottom:40px;border-collapse:collapse">
+        <tr>
+          <td style="width:45%;vertical-align:top;line-height:1.4">
+            RÉPUBLIQUE DU CAMEROUN<br>
+            <span style="font-weight:normal;font-style:italic">Paix - Travail - Patrie</span><br>
+            ---------<br>
+            DIRECTION GÉNÉRALE DE LA SÛRETÉ NATIONALE
+          </td>
+          <td style="width:10%;vertical-align:top">
+            <div style="width:80px;height:80px;border:2px solid #000;border-radius:50%;margin:0 auto;display:flex;align-items:center;justify-content:center;font-size:13px;font-weight:bold;text-align:center">DGSN</div>
+          </td>
+          <td style="width:45%;vertical-align:top;line-height:1.4">
+            REPUBLIC OF CAMEROON<br>
+            <span style="font-weight:normal;font-style:italic">Peace - Work - Fatherland</span><br>
+            ---------<br>
+            GENERAL DELEGATION FOR NATIONAL SECURITY
+          </td>
+        </tr>
+      </table>`;
+  }
+
+  function titreDocument(titre, numero) {
+    return `
+      <div style="text-align:center;margin-bottom:40px">
+        <h1 style="margin:0;font-size:26px;text-transform:uppercase;text-decoration:underline;letter-spacing:1px">${titre}</h1>
+        <p style="margin:14px 0 0;font-size:19px">Dossier N° <strong>${numero}</strong></p>
+      </div>`;
+  }
+
+  /* Bloc de vérification : QR calculé localement + code de contrôle et URL
+     en clair, pour que le document reste vérifiable sans lecteur de QR. */
+  function blocVerification(numero, mentionDroite) {
+    return `
+      <table style="width:100%;font-size:15px;margin-top:20px">
+        <tr>
+          <td style="width:50%;vertical-align:top;text-align:left;padding-left:10px">
+            <div style="font-weight:bold;margin-bottom:8px;width:150px;text-align:center">Vérification Électronique</div>
+            <div style="width:116px;height:116px;border:2px solid #000;margin-left:18px;display:flex;align-items:center;justify-content:center;padding:4px">
+              ${QR.svg(urlVerification(numero), { taille: 106, couleur: '#000000', alt: 'Code QR de vérification' })}
+            </div>
+            <div style="font-size:11px;margin-top:6px;width:240px;line-height:1.5">
+              Code de contrôle : <strong>${codeVerification(numero)}</strong><br>
+              <span style="font-size:10px">${urlVerification(numero)}</span>
+            </div>
+          </td>
+          <td style="width:50%;vertical-align:bottom;text-align:right;padding-right:10px">
+            ${mentionDroite}
+          </td>
+        </tr>
+      </table>`;
+  }
+
+  /* Mécanique d'impression, commune aux deux documents. */
+  function imprimerDocument(html) {
+    const zone = document.createElement('div');
+    zone.id = 'print-doc-area';
+    zone.style.width = '100%';
+    zone.style.fontFamily = '"Times New Roman", Times, serif';
+    zone.style.color = '#000';
+    zone.style.background = '#fff';
+    zone.style.padding = '20px';
+    zone.innerHTML = html;
+
+    const style = document.createElement('style');
+    style.innerHTML = `
+      @media print {
+        body * { visibility: hidden; }
+        #print-doc-area, #print-doc-area * { visibility: visible; }
+        #print-doc-area { position: absolute; left: 0; top: 0; width: 100%; }
+      }`;
+
+    document.head.appendChild(style);
+    document.body.appendChild(zone);
+    /* Le QR est calculé localement : aucun chargement réseau à attendre. */
+    window.print();
+    setTimeout(() => {
+      if (zone.parentNode)  document.body.removeChild(zone);
+      if (style.parentNode) document.head.removeChild(style);
+    }, 800);
+  }
+
+  /* ── Source des données ──────────────────────────────────────
+     Depuis le suivi, le dossier vient de DOSSIERS. Juste après un dépôt,
+     il vient du formulaire encore rempli. On ne fabrique rien : si une
+     information est absente, elle est signalée comme telle. */
+  function donneesDossier(numero) {
+    const d = (typeof DOSSIERS !== 'undefined')
+      ? DOSSIERS.find(x => x.id === numero) : null;
+    if (d) {
+      return {
+        numero: d.id, plaignant: d.plaignant, type: d.type,
+        date: d.date, heure: d.heure || '',
+        lieu: d.lieu || '', declaration: d.declaration || '',
+        misEnCause: d.misEnCause || '', prejudice: d.prejudice || null,
+        commissariat: d.commissariat || 'Commissariat compétent',
+        statut: (typeof STATUT_LABELS !== 'undefined' && STATUT_LABELS[d.statut])
+                ? STATUT_LABELS[d.statut][1] : d.statut,
+        enqueteur: d.enqueteur || null
+      };
+    }
+
+    /* Repli : le formulaire de dépôt de la session en cours. */
+    const val = id => { const e = document.getElementById(id); return e ? e.value.trim() : ''; };
+    const dateEl = document.querySelector('[data-step="1"] input[type="date"]');
+    const mecNom = document.querySelector('[data-step="3"] input[placeholder="Nom du mis en cause"]');
+    const mecDesc = document.querySelector('[data-step="3"] textarea');
+    const infoComm = document.getElementById('commissariat-info-text');
+    return {
+      numero: numero,
+      plaignant: 'Jean MBIDA',
+      type: val('nature-infraction'),
+      date: dateEl ? dateEl.value : '', heure: '',
+      lieu: val('lieu-faits'),
+      declaration: val('declaration-text'),
+      misEnCause: (mecNom && mecNom.value.trim())
+        ? mecNom.value.trim() + (mecDesc && mecDesc.value.trim() ? ' — ' + mecDesc.value.trim() : '')
+        : (mecDesc ? mecDesc.value.trim() : ''),
+      prejudice: val('prejudice-nature') ? {
+        nature: val('prejudice-nature'),
+        montant: val('prejudice-montant'),
+        detail: val('prejudice-detail')
+      } : null,
+      commissariat: infoComm ? infoComm.textContent.trim() : 'Commissariat compétent',
+      statut: 'Transmis pour instruction',
+      enqueteur: null
+    };
+  }
+
+  function numeroCourant() {
+    const el = document.querySelector('#page-confirmation .big-num');
+    return (el ? el.textContent : 'N° 2026-00451').replace(/^\s*N°\s*/, '').trim();
+  }
+
+  function ligne(intitule, valeur) {
+    return `<tr>
+      <td style="padding:11px 14px;border:1px solid #000;width:38%;font-weight:bold">${intitule}</td>
+      <td style="padding:11px 14px;border:1px solid #000">${valeur || '<em>non renseigné</em>'}</td>
+    </tr>`;
+  }
+
+  /* ══════════ ATTESTATION DE DÉPÔT ══════════ */
+  function telechargerAttestationPDF(numero) {
+    const n = numero || numeroCourant();
+    const d = donneesDossier(n);
+
+    imprimerDocument(
+      enteteOfficielle() +
+      titreDocument('Attestation de Dépôt de Plainte', d.numero) + `
+      <div style="font-size:17px;line-height:1.8;text-align:justify;margin-bottom:30px">
+        <p>Il est certifié par la présente que la déclaration de plainte enregistrée sur la plateforme nationale <strong>PlainteCam</strong> a été formellement reçue et consignée dans nos systèmes sécurisés.</p>
+      </div>
+      <table style="width:100%;border-collapse:collapse;font-size:15px;margin-bottom:34px">
+        <tbody>
+          ${ligne("Date d'enregistrement", dateEnClair(d.date) + (d.heure ? ' à ' + d.heure : ''))}
+          ${ligne('Identité du plaignant', '<strong>' + d.plaignant + '</strong>')}
+          ${ligne("Nature de l'infraction", d.type)}
+          ${ligne('Commissariat en charge', d.commissariat)}
+          ${ligne('Statut actuel', '<strong>' + d.statut + '</strong>')}
+        </tbody>
+      </table>
+      <div style="font-size:14px;line-height:1.6;text-align:justify;margin-bottom:44px;border-left:4px solid #000;padding-left:18px;font-style:italic">
+        <strong>Note importante :</strong> ce document numérique est généré automatiquement par le système central PlainteCam. Il fait foi de la date certaine du dépôt de votre plainte. L'officier de police judiciaire en charge du dossier vous contactera pour la suite de la procédure et l'audition. Toute fausse déclaration expose son auteur aux sanctions prévues par le Code pénal.
+      </div>` +
+      blocVerification(d.numero, `
+        <div style="margin-bottom:26px">Fait à Yaoundé, le ${dateEnClair(d.date)}</div>
+        <div style="font-weight:bold;margin-bottom:12px">Pour la Délégation Générale,<br>Le Système Central PlainteCam</div>
+        <div style="font-size:13px;margin-bottom:34px">(Signature électronique et cachet numérique)</div>
+        <div style="display:inline-block;border-bottom:1px solid #000;width:220px"></div>`)
+    );
+  }
+
+  /* ══════════ DÉCLARATION DE PLAINTE ══════════ */
+  function telechargerPlaintePDF(numero) {
+    const n = numero || numeroCourant();
+    const d = donneesDossier(n);
+
+    const prej = d.prejudice ? `
+      <p style="font-weight:bold;margin:26px 0 8px">III. PRÉJUDICE SUBI</p>
+      <table style="width:100%;border-collapse:collapse;font-size:15px">
+        <tbody>
+          ${ligne('Nature du préjudice', d.prejudice.nature)}
+          ${d.prejudice.montant ? ligne('Montant estimé', d.prejudice.montant + ' FCFA') : ''}
+          ${d.prejudice.detail  ? ligne('Précisions', d.prejudice.detail) : ''}
+        </tbody>
+      </table>` : '';
+
+    imprimerDocument(
+      enteteOfficielle() +
+      titreDocument('Déclaration de Plainte', d.numero) + `
+      <p style="font-weight:bold;margin:0 0 8px">I. IDENTITÉ ET OBJET</p>
+      <table style="width:100%;border-collapse:collapse;font-size:15px">
+        <tbody>
+          ${ligne('Plaignant', '<strong>' + d.plaignant + '</strong>')}
+          ${ligne("Nature de l'infraction", d.type)}
+          ${ligne('Date des faits', dateEnClair(d.date))}
+          ${ligne('Lieu des faits', d.lieu)}
+          ${ligne('Commissariat compétent', d.commissariat)}
+          ${d.enqueteur ? ligne('Enquêteur désigné', d.enqueteur) : ''}
+        </tbody>
+      </table>
+
+      <p style="font-weight:bold;margin:26px 0 8px">II. EXPOSÉ DES FAITS</p>
+      <div style="font-size:15px;line-height:1.85;text-align:justify;border:1px solid #000;padding:16px 18px">
+        ${d.declaration
+          ? '« ' + d.declaration + ' »'
+          : '<em>Aucune déclaration enregistrée pour ce dossier.</em>'}
+      </div>
+      ${prej}
+
+      <p style="font-weight:bold;margin:26px 0 8px">IV. MIS EN CAUSE</p>
+      <div style="font-size:15px;line-height:1.7;border:1px solid #000;padding:14px 18px">
+        ${d.misEnCause || '<em>Mis en cause inconnu du plaignant à la date de la déclaration.</em>'}
+      </div>
+
+      <div style="font-size:14px;line-height:1.6;text-align:justify;margin:30px 0 36px;border-left:4px solid #000;padding-left:18px;font-style:italic">
+        <strong>Mention légale :</strong> la présente déclaration reproduit les informations saisies par le plaignant sur la plateforme PlainteCam. Elle ne constitue pas un procès-verbal d'audition : celui-ci est établi par l'officier de police judiciaire lors de l'audition. Toute fausse déclaration expose son auteur aux sanctions prévues par le Code pénal camerounais.
+      </div>` +
+      blocVerification(d.numero, `
+        <div style="margin-bottom:26px">Déclaration établie le ${dateEnClair(d.date)}${d.heure ? ' à ' + d.heure : ''}</div>
+        <div style="font-weight:bold;margin-bottom:44px">Signature du déclarant<br><span style="font-weight:normal;font-size:14px">${d.plaignant}</span></div>
+        <div style="display:inline-block;border-bottom:1px solid #000;width:220px"></div>`)
+    );
+  }
 </script>
 </body>
 </html>

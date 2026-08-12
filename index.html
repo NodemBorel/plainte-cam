@@ -426,6 +426,47 @@
       .lp-footer { padding: 40px 20px 0; }
       .lp-nav-inner { padding: 0 20px; }
     }
+
+    /* ── ≤ 640px ────────────────────────────────────────────────
+       Sous ce seuil, la barre de navigation ne tenait plus sur une
+       ligne : les liens sont bien masques a 860px, mais il restait le
+       sceau, « Direction Generale de la Surete Nationale » et deux
+       boutons en white-space:nowrap. Debordement horizontal sur la
+       toute premiere page que voit le visiteur. */
+    @media (max-width: 640px) {
+      .lp-nav-inner {
+        height: auto; min-height: 60px;
+        flex-wrap: wrap; gap: 10px;
+        padding: 10px 16px;
+      }
+      .lp-brand { gap: 9px; min-width: 0; }
+      .lp-brand-sub { display: none; }
+      .lp-nav-actions { gap: 8px; margin-left: auto; }
+      .lp-nav-actions .btn { padding: 9px 13px; font-size: 12.5px; min-height: 40px; }
+
+      .lp-hero { padding: 40px 16px; }
+      .lp-hero h1 { font-size: 24px; }
+      .lp-hero-ctas { flex-direction: column; align-items: stretch; }
+      .lp-hero-ctas .btn { justify-content: center; }
+
+      .lp-section, .lp-cta { padding: 36px 16px; }
+      .lp-heading { font-size: 20px; }
+      .lp-inner { padding: 0; }
+      .lp-step { gap: 12px; }
+
+      /* Cibles tactiles : 44px minimum (§8.4). */
+      .lp-faq-q { padding: 14px 0; min-height: 44px; }
+      .lp-nav-links a { padding: 11px 14px; }
+    }
+
+    /* ── ≤ 400px ─────────────────────────────────────────────── */
+    @media (max-width: 400px) {
+      .lp-nav-actions { width: 100%; margin-left: 0; }
+      .lp-nav-actions .btn { flex: 1; justify-content: center; }
+      .lp-hero h1 { font-size: 21px; }
+      .lp-section, .lp-cta, .lp-hero { padding: 30px 13px; }
+      .lp-seal { width: 34px; height: 34px; }
+    }
   </style>
 </head>
 <body>
@@ -482,7 +523,7 @@
       <div class="lp-step">
         <div class="lp-step-num">1</div>
         <h4>Création de compte</h4>
-        <p>Inscrivez-vous avec votre numéro de téléphone et votre numéro CNI. Un code OTP est envoyé par SMS pour vérifier votre identité.</p>
+        <p>Inscrivez-vous avec votre adresse e-mail, votre nom et votre lieu de résidence. Un code de vérification est envoyé par e-mail pour confirmer votre identité.</p>
       </div>
       <div class="lp-step">
         <div class="lp-step-num">2</div>
@@ -502,7 +543,7 @@
       <div class="lp-step">
         <div class="lp-step-num">5</div>
         <h4>Attestation de dépôt</h4>
-        <p>Vous recevez immédiatement votre attestation officielle par SMS. Conservez votre numéro de dossier.</p>
+        <p>Vous recevez immédiatement votre attestation officielle par e-mail. Conservez votre numéro de dossier.</p>
       </div>
       <div class="lp-step">
         <div class="lp-step-num">6</div>
@@ -642,7 +683,7 @@
             <span class="lp-faq-icon">+</span>
           </button>
           <div class="lp-faq-a">
-            Connectez-vous à votre espace citoyen et consultez la section "Suivre mon dossier". Vous recevez également des notifications SMS automatiques à chaque changement de statut : réception, affectation, instruction en cours, clôture.
+            Connectez-vous à votre espace citoyen et consultez la section "Suivre mon dossier". Vous recevez également des notifications automatiques par e-mail à chaque changement de statut : réception, affectation, instruction en cours, clôture.
           </div>
         </div>
       </div>
@@ -676,11 +717,11 @@
         </div>
         <div class="lp-faq-item">
           <button class="lp-faq-q" onclick="toggleFaq(this)">
-            Dans quel délai mon dossier sera-t-il traité après transmission ?
+            Qui traite mon dossier après sa transmission ?
             <span class="lp-faq-icon">+</span>
           </button>
           <div class="lp-faq-a">
-            Le commissariat accuse réception dans les 24 heures ouvrables suivant la transmission. Le délai d'instruction dépend de la nature de l'infraction et de la charge du service. Vous êtes notifié à chaque étape via SMS.
+            La plateforme transmet votre plainte dès sa validation et vous en délivre aussitôt l'attestation. La suite — réception, affectation à un enquêteur, audition, décision — relève du commissariat compétent, qui apprécie le rythme de la procédure selon la nature de l'infraction. PlainteCam ne s'y substitue pas : elle vous notifie par e-mail à chaque étape franchie, pour que vous n'ayez plus à vous déplacer pour le savoir.
           </div>
         </div>
       </div>
@@ -750,7 +791,7 @@
         <div class="lp-cf-success" id="cf-success" style="display:none">
           <div class="lp-cf-success-icon">&#10003;</div>
           <div class="lp-cf-success-title">Message envoyé</div>
-          <p>Votre demande a bien été transmise. Nous vous répondrons dans un délai de 48 heures ouvrables.</p>
+          <p>Votre demande a bien été transmise au service d'assistance. Une réponse vous sera adressée à l'adresse e-mail indiquée.</p>
           <button class="btn btn-outline" onclick="resetContact()">Envoyer un autre message</button>
         </div>
       </div>
