@@ -149,7 +149,11 @@ function donneesDossier(numero) {
   const infoComm = document.getElementById('commissariat-info-text');
   return {
     numero: numero,
-    plaignant: 'Jean MBIDA',
+    /* Le plaignant d'une plainte en cours de saisie est le compte
+       connecté : son nom était écrit ici, ce qui faisait signer Jean
+       MBIDA sur le document de n'importe quel utilisateur. */
+    plaignant: (typeof citoyenCourant === 'function')
+      ? nomCitoyen(citoyenCourant()) : '',
     type: val('nature-infraction'),
     date: dateEl ? dateEl.value : '', heure: '',
     lieu: val('lieu-faits'),

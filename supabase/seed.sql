@@ -47,7 +47,15 @@ INSERT INTO profils (id, role, nom, prenom, telephone, email, cni) VALUES
   ('b1000000-0000-0000-0000-000000000019', 'citoyen', 'MEKA',    'Rachel', '+237677100010','r.meka@gmail.com',     'CM0012345687'),
   ('b1000000-0000-0000-0000-00000000001a', 'citoyen', 'TALLA',   'Hervé',  '+237677100011','h.talla@gmail.com',    'CM0012345688'),
   ('b1000000-0000-0000-0000-00000000001b', 'citoyen', 'MANGA',   'Brigitte','+237677100012','b.manga@gmail.com',   'CM0012345689'),
-  ('b1000000-0000-0000-0000-00000000001c', 'citoyen', 'EYENGA',  'Serge',  '+237677100013','s.eyenga@gmail.com',   'CM0012345690');
+  ('b1000000-0000-0000-0000-00000000001c', 'citoyen', 'EYENGA',  'Serge',  '+237677100013','s.eyenga@gmail.com',   'CM0012345690'),
+  ('b1000000-0000-0000-0000-00000000001d', 'citoyen', 'ABANDA', 'Léonie', '+237677100014', 'l.abanda@gmail.com', 'CM0012345691'),
+  ('b1000000-0000-0000-0000-00000000001e', 'citoyen', 'KAMGA', 'Théodore', '+237677100015', 't.kamga@gmail.com', 'CM0012345692'),
+  ('b1000000-0000-0000-0000-00000000001f', 'citoyen', 'NGO BASSONG', 'Adèle', '+237677100016', 'a.ngobassong@gmail.com', 'CM0012345693'),
+  ('b1000000-0000-0000-0000-000000000020', 'citoyen', 'OWONA', 'Vincent', '+237677100017', 'v.owona@gmail.com', 'CM0012345694'),
+  ('b1000000-0000-0000-0000-000000000021', 'citoyen', 'DJOUMESSI', 'Nadège', '+237677100018', 'n.djoumessi@gmail.com', 'CM0012345695'),
+  ('b1000000-0000-0000-0000-000000000022', 'citoyen', 'ETOUNDI', 'Blaise', '+237677100019', 'b.etoundi@gmail.com', 'CM0012345696'),
+  ('b1000000-0000-0000-0000-000000000023', 'citoyen', 'MBALLA', 'Solange', '+237677100020', 's.mballa@gmail.com', 'CM0012345697'),
+  ('b1000000-0000-0000-0000-000000000024', 'citoyen', 'NDJOMO', 'Aristide', '+237677100021', 'a.ndjomo@gmail.com', 'CM0012345698');
 
 -- ── PLAINTES ─────────────────────────────────────────────────
 
@@ -243,6 +251,118 @@ INSERT INTO plaintes (
     'NDONGO Alphonse, connu du plaignant, domicilié au quartier Nkoldongo.',
     '{"Q1": "Téléphone et recette, 310 000 FCFA", "Q2": "Nuit (22h-6h)", "Q3": "Oui, je le connais de vue", "Q4": "Oui, certificat médical"}',
     '2026-05-02 08:00:00+00', '2026-04-30 22:30:00+00'
+  ),
+
+  -- Deuxieme trimestre : le reste de l'activite du commissariat.
+(
+    'c1000000-0000-0000-0000-00000000000f', '2026-00476',
+    'b1000000-0000-0000-0000-00000000001d',
+    'a1000000-0000-0000-0000-000000000001', NULL,
+    'Vol simple', 'RECU', 'NORMALE', 62,
+    '2026-06-09', 'Centre', 'Mfoundi', 'Yaoundé 2ème', 'Marché Mokolo', NULL,
+    'Ce matin au marché Mokolo, pendant que je servais des clients, ma sacoche posée derrière le comptoir a disparu avec la recette de la matinée, environ 75 000 FCFA. Personne n''a rien vu.',
+    NULL,
+    '{}',
+    NULL, '2026-06-09 13:20:00+00'
+  ),
+  (
+    'c1000000-0000-0000-0000-000000000010', '2026-00475',
+    'b1000000-0000-0000-0000-00000000001e',
+    'a1000000-0000-0000-0000-000000000001', NULL,
+    'Accident de la route', 'RECU', 'HAUTE', 70,
+    '2026-06-09', 'Centre', 'Mfoundi', 'Yaoundé 3ème', 'Carrefour Nsam', NULL,
+    'Un camion a reculé sur ma camionnette stationnée au carrefour Nsam, endommageant l''essieu avant et la cabine. Le chauffeur a reconnu les faits sur place mais son employeur refuse toute prise en charge.',
+    'SIMO Bertrand, chauffeur du camion immatriculé CE 902 KL.',
+    '{}',
+    NULL, '2026-06-09 06:40:00+00'
+  ),
+  (
+    'c1000000-0000-0000-0000-000000000011', '2026-00474',
+    'b1000000-0000-0000-0000-00000000001f',
+    'a1000000-0000-0000-0000-000000000001', NULL,
+    'Harcelement', 'RECU', 'NORMALE', 54,
+    '2026-06-08', 'Centre', 'Mfoundi', 'Yaoundé 5ème', 'Nkomo', NULL,
+    'Un collègue de service tient depuis deux mois des propos menaçants à mon encontre devant les patients. Ma hiérarchie a été informée par écrit et n''a pris aucune mesure.',
+    'Collègue de service, nommé dans le courrier joint.',
+    '{}',
+    NULL, '2026-06-08 19:05:00+00'
+  ),
+  (
+    'c1000000-0000-0000-0000-000000000012', '2026-00466',
+    'b1000000-0000-0000-0000-000000000020',
+    'a1000000-0000-0000-0000-000000000001', 'b1000000-0000-0000-0000-000000000002',
+    'Escroquerie / Fraude', 'AUDITION', 'NORMALE', 74,
+    '2026-05-31', 'Centre', 'Mfoundi', 'Yaoundé 3ème', 'Efoulan', NULL,
+    'J''ai versé un acompte de 260 000 FCFA pour un lot de câbles et de disjoncteurs. Le fournisseur a encaissé, m''a donné trois rendez-vous auxquels il ne s''est pas présenté, puis a fermé sa boutique.',
+    'TAGNE Fabrice, gérant d''un magasin de matériel électrique à Efoulan.',
+    '{}',
+    '2026-05-31 08:00:00+00', '2026-05-31 15:30:00+00'
+  ),
+  (
+    'c1000000-0000-0000-0000-000000000013', '2026-00461',
+    'b1000000-0000-0000-0000-000000000021',
+    'a1000000-0000-0000-0000-000000000001', 'b1000000-0000-0000-0000-000000000003',
+    'Degradation de biens', 'AUDITION', 'NORMALE', 66,
+    '2026-05-28', 'Centre', 'Mfoundi', 'Yaoundé 4ème', 'Mvog-Mbi', NULL,
+    'En ouvrant mon atelier, j''ai trouvé la machine à coudre industrielle renversée et des tissus de commande tachés de peinture. La serrure n''a pas été forcée : quelqu''un possède une clé.',
+    NULL,
+    '{}',
+    '2026-05-28 08:00:00+00', '2026-05-28 08:15:00+00'
+  ),
+  (
+    'c1000000-0000-0000-0000-000000000014', '2026-00452',
+    'b1000000-0000-0000-0000-000000000022',
+    'a1000000-0000-0000-0000-000000000001', 'b1000000-0000-0000-0000-000000000003',
+    'Vol avec violence', 'EN_INSTRUCTION', 'HAUTE', 81,
+    '2026-05-21', 'Centre', 'Mfoundi', 'Yaoundé 2ème', 'Etoa-Meki', NULL,
+    'En ouvrant la boulangerie avant l''aube, deux individus m''ont poussé à l''intérieur et pris la recette de la veille, 420 000 FCFA. Je me suis foulé le poignet en tombant. L''un d''eux portait un blouson que je reconnaîtrais.',
+    'Deux individus, dont un reconnaissable à son blouson.',
+    '{}',
+    '2026-05-21 08:00:00+00', '2026-05-21 04:50:00+00'
+  ),
+  (
+    'c1000000-0000-0000-0000-000000000015', '2026-00448',
+    'b1000000-0000-0000-0000-000000000023',
+    'a1000000-0000-0000-0000-000000000001', 'b1000000-0000-0000-0000-000000000002',
+    'Escroquerie / Fraude', 'EN_INSTRUCTION', 'NORMALE', 77,
+    '2026-05-18', 'Centre', 'Mfoundi', 'Yaoundé 1er', 'Tsinga', NULL,
+    'Un grossiste m''a fait virer 540 000 FCFA pour un conteneur de marchandises. Les documents de transport qu''il m''a transmis sont des faux — le transporteur cité n''a jamais reçu cette commande.',
+    'NKOUE Guy-Bertrand, se présentant comme grossiste importateur.',
+    '{}',
+    '2026-05-18 08:00:00+00', '2026-05-18 10:05:00+00'
+  ),
+  (
+    'c1000000-0000-0000-0000-000000000016', '2026-00431',
+    'b1000000-0000-0000-0000-000000000024',
+    'a1000000-0000-0000-0000-000000000001', 'b1000000-0000-0000-0000-000000000004',
+    'Vol simple', 'CLOTURE', 'NORMALE', 72,
+    '2026-05-11', 'Centre', 'Mfoundi', 'Yaoundé 4ème', 'Odza', NULL,
+    'Ma caisse à outils et mon petit compresseur ont disparu de l''atelier pendant la pause. Un apprenti a vu partir un homme avec un sac de ce format.',
+    'ESSOMBA Rodrigue, ancien apprenti de l''atelier.',
+    '{}',
+    '2026-05-11 08:00:00+00', '2026-05-11 17:40:00+00'
+  ),
+  (
+    'c1000000-0000-0000-0000-000000000017', '2026-00420',
+    'b1000000-0000-0000-0000-00000000001d',
+    'a1000000-0000-0000-0000-000000000001', 'b1000000-0000-0000-0000-000000000004',
+    'Agression physique', 'CLOTURE', 'NORMALE', 68,
+    '2026-05-04', 'Centre', 'Mfoundi', 'Yaoundé 2ème', 'Mokolo', NULL,
+    'Une dispute au sujet d''un emplacement de vente a dégénéré : une commerçante voisine m''a frappée au bras avec un tabouret. J''ai huit jours d''arrêt de travail.',
+    'NGONO Pauline, commerçante voisine au marché Mokolo.',
+    '{}',
+    '2026-05-04 08:00:00+00', '2026-05-04 20:55:00+00'
+  ),
+  (
+    'c1000000-0000-0000-0000-000000000018', '2026-00402',
+    'b1000000-0000-0000-0000-00000000001e',
+    'a1000000-0000-0000-0000-000000000001', 'b1000000-0000-0000-0000-000000000003',
+    'Escroquerie / Fraude', 'DECISION', 'NORMALE', 79,
+    '2026-05-05', 'Centre', 'Mfoundi', 'Yaoundé 3ème', 'Nsam', NULL,
+    'J''ai souscrit et payé 300 000 FCFA une assurance pour ma camionnette auprès d''un démarcheur. À la première vérification routière, l''attestation s''est révélée fausse : la compagnie citée ne l''a jamais émise.',
+    'MEKONGO Jules, démarcheur en assurances, interpellé le 22 mai.',
+    '{}',
+    '2026-05-05 08:00:00+00', '2026-05-05 09:30:00+00'
   );
 
 -- ── PROCES-VERBAUX ───────────────────────────────────────────

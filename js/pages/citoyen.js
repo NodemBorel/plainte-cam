@@ -89,7 +89,9 @@ function buildRecap() {
         <tr><td style="padding:6px 10px;border:1px solid #ddd;font-weight:600;background:#f8f8f8">Date des faits</td><td style="padding:6px 10px;border:1px solid #ddd">${dateFait || 'Non precisee'}</td></tr>
         <tr><td style="padding:6px 10px;border:1px solid #ddd;font-weight:600;background:#f8f8f8">Lieu des faits</td><td style="padding:6px 10px;border:1px solid #ddd">${lieu}</td></tr>
         <tr><td style="padding:6px 10px;border:1px solid #ddd;font-weight:600;background:#f8f8f8">Commissariat competent</td><td style="padding:6px 10px;border:1px solid #ddd">Commissariat de ${lieu.split(',')[1] || lieu}</td></tr>
-        <tr><td style="padding:6px 10px;border:1px solid #ddd;font-weight:600;background:#f8f8f8">Plaignant</td><td style="padding:6px 10px;border:1px solid #ddd">Jean MBIDA</td></tr>
+        <tr><td style="padding:6px 10px;border:1px solid #ddd;font-weight:600;background:#f8f8f8">Plaignant</td><td style="padding:6px 10px;border:1px solid #ddd">${
+          typeof citoyenCourant === 'function' ? nomCitoyen(citoyenCourant()) : ''
+        }</td></tr>
       </table>
 
       <p style="font-weight:600;font-size:13px;margin-bottom:6px">Déclaration du plaignant :</p>
@@ -887,4 +889,59 @@ function supprimerBrouillon(reinit) {
   onPrejudiceChange();
   majAnalyseLive();
   verifierBrouillon();
+})();
+
+/* ============================================================
+   LE COMPTE CONNECTÉ
+
+   « Jean MBIDA » était écrit en dur à six endroits de la page — en-tête,
+   barre latérale, profil, signature du document — plus ses initiales, sa
+   profession, son lieu de résidence, et deux compteurs d'activité posés
+   à la main. Rien ne garantissait que ces mentions concordent, et
+   présenter la plateforme sous une autre identité demandait d'éditer le
+   HTML. Tout se lit maintenant du registre des citoyens.
+   ============================================================ */
+function majCompteCitoyen() {
+  if (typeof citoyenCourant !== 'function') return;
+  var c = citoyenCourant();
+  if (!c) return;
+
+  var nom = nomCitoyen(c);
+  var poser = function (id, valeur) {
+    var el = document.getElementById(id);
+    if (!el) return;
+    if ('value' in el && el.tagName === 'INPUT') el.value = valeur;
+    else el.textContent = valeur;
+  };
+
+  poser('moi-nom-barre', nom);
+  poser('moi-nom-lateral', nom);
+  poser('moi-nom-profil', nom);
+  poser('moi-signature', nom);
+  poser('moi-nom-famille', c.nom);
+  poser('moi-prenom', c.prenom);
+  poser('moi-residence', c.ville + ', ' + c.region);
+  poser('moi-profession', c.profession);
+  /* Initiales : première lettre du prénom et du patronyme. */
+  poser('moi-initiales', (c.prenom.charAt(0) + c.nom.charAt(0)).toUpperCase());
+
+  /* Les deux compteurs annonçaient « 2 » et « 1 » quel que soit le
+     compte : ils se comptent. */
+  var miens = (typeof mesDossiers === 'function') ? mesDossiers(c.id) : [];
+  poser('moi-nb-plaintes', String(miens.length));
+  poser('moi-nb-closes', String(miens.filter(function (d) {
+    return d.statut === 'CLOTURE' || d.statut === 'TRANSMIS';
+  }).length));
+
+  /* Le résumé de dépôt citait une date figée. Il porte celle du dossier
+     le plus récent du compte. */
+  var dernier = miens[0];
+  poser('moi-depot-resume', dernier
+    ? 'Déposée le ' + dernier.date + ' à ' + (dernier.heure || '—') + ' — ' + nom
+    : 'Aucune plainte déposée pour l\'instant.');
+}
+
+(function initCompteCitoyen() {
+  if (!document.getElementById('moi-nom-lateral')) return;
+  majCompteCitoyen();
 })();

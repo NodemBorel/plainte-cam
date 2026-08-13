@@ -31,7 +31,7 @@
   <div class="navbar-user">
     <div class="avatar">JM</div>
     <div style="display:flex;flex-direction:column;line-height:1.2">
-      <span style="color:#fff;font-size:13px;font-weight:600">Jean MBIDA</span>
+      <span style="color:#fff;font-size:13px;font-weight:600" id="moi-nom-barre"></span>
       <span style="color:rgba(255,255,255,.5);font-size:11px">Citoyen vérifié</span>
     </div>
     <a href="../auth/citoyen.html" class="btn-deconnexion" title="Se déconnecter">Déconnexion</a>
@@ -45,7 +45,7 @@
   <div class="sidebar-user-block">
     <div class="sidebar-avatar">JM</div>
     <div>
-      <div class="sidebar-username">Jean MBIDA</div>
+      <div class="sidebar-username" id="moi-nom-lateral"></div>
       <div class="sidebar-role">Citoyen vérifié</div>
     </div>
     <button type="button" class="sidebar-fermer" onclick="fermerTiroir()" aria-label="Fermer le menu">
@@ -381,7 +381,7 @@
           </div>
           <div class="pv-signature" style="margin-top:32px">
             <div style="text-align:center">
-              <div style="border-top:1px solid #999;width:160px;padding-top:6px;font-size:12px;color:#666">Signature du déclarant<br>Jean MBIDA</div>
+              <div style="border-top:1px solid #999;width:160px;padding-top:6px;font-size:12px;color:#666">Signature du déclarant<br><span id="moi-signature"></span></div>
             </div>
             <div style="text-align:center">
               <div style="border-top:1px solid #ccc;width:180px;padding-top:6px;font-size:12px;color:#aaa;font-style:italic">Cachet du commissariat<br>(après réception)</div>
@@ -475,7 +475,7 @@
     <div class="attestation card">
       <div style="font-size:11px;color:var(--text-light);text-transform:uppercase;letter-spacing:.08em;font-weight:700">Attestation de dépôt de plainte</div>
       <div class="big-num">N° 2026-00451</div>
-      <div style="font-size:13px;color:var(--text-light)">Déposée le 15 mai 2026 à 14h32 — Jean MBIDA</div>
+      <div style="font-size:13px;color:var(--text-light)" id="moi-depot-resume"></div>
       <div style="font-size:13px;margin:10px 0">Commissariat Cité Verte, Yaoundé</div>
       <!-- Code QR calculé localement, encodant l'URL de vérification -->
       <div class="qr-bloc" id="qr-attestation"></div>
@@ -578,15 +578,14 @@
     <div style="display: flex; flex-direction: column; gap: 24px;">
       <div class="card" style="text-align: center; padding: 32px 20px;">
         <div style="position: relative; width: 100px; height: 100px; margin: 0 auto 16px;">
-          <div style="width: 100px; height: 100px; border-radius: 50%; background: var(--primary); display: flex; align-items: center; justify-content: center; font-size: 34px; letter-spacing: .04em; color: var(--white); font-weight: 700; box-shadow: var(--shadow);">
-            JM
+          <div style="width: 100px; height: 100px; border-radius: 50%; background: var(--primary); display: flex; align-items: center; justify-content: center; font-size: 34px; letter-spacing: .04em; color: var(--white); font-weight: 700; box-shadow: var(--shadow);" id="moi-initiales">
           </div>
           <!-- Bouton modifier photo -->
           <button type="button" aria-label="Modifier la photo de profil" style="position: absolute; bottom: 0; right: 0; width: 32px; height: 32px; border-radius: 50%; background: var(--white); border: 1px solid var(--gray-2); color: var(--primary); display: flex; align-items: center; justify-content: center; cursor: pointer; box-shadow: var(--shadow);">
             <svg width="14" height="14" fill="currentColor" viewBox="0 0 16 16"><path d="M10.5 8.5a2.5 2.5 0 1 1-5 0 2.5 2.5 0 0 1 5 0z"/><path d="M2 4a2 2 0 0 0-2 2v6a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V6a2 2 0 0 0-2-2h-1.172a2 2 0 0 1-1.414-.586l-.828-.828A2 2 0 0 0 9.172 2H6.828a2 2 0 0 0-1.414.586l-.828.828A2 2 0 0 1 3.172 4H2zm.5 2a.5.5 0 1 1 0-1 .5.5 0 0 1 0 1zm9 2.5a3.5 3.5 0 1 1-7 0 3.5 3.5 0 0 1 7 0z"/></svg>
           </button>
         </div>
-        <h3 style="font-size: 20px; font-weight: 700; color: var(--primary);">Jean MBIDA</h3>
+        <h3 style="font-size: 20px; font-weight: 700; color: var(--primary);" id="moi-nom-profil"></h3>
       </div>
       
       <!-- Résumé Activité -->
@@ -594,11 +593,11 @@
         <h4 style="font-size: 14px; font-weight: 700; color: var(--primary); margin-bottom: 16px; padding-bottom: 8px; border-bottom: 1px solid var(--gray-2);">Activité du compte</h4>
         <div style="display: flex; justify-content: space-between; margin-bottom: 12px; font-size: 14px;">
           <span style="color: var(--text-light);">Plaintes déposées</span>
-          <span style="font-weight: 700; color: var(--primary);">2</span>
+          <span style="font-weight: 700; color: var(--primary);" id="moi-nb-plaintes"></span>
         </div>
         <div style="display: flex; justify-content: space-between; font-size: 14px;">
           <span style="color: var(--text-light);">Dossiers clôturés</span>
-          <span style="font-weight: 700; color: var(--primary);">1</span>
+          <span style="font-weight: 700; color: var(--primary);" id="moi-nb-closes"></span>
         </div>
       </div>
     </div>
@@ -618,22 +617,22 @@
         <div class="form-row">
           <div class="form-group">
             <label class="form-label">Nom de famille</label>
-            <input class="form-control" value="MBIDA">
+            <input class="form-control" id="moi-nom-famille">
           </div>
           <div class="form-group">
             <label class="form-label">Prénom(s)</label>
-            <input class="form-control" value="Jean">
+            <input class="form-control" id="moi-prenom">
           </div>
         </div>
         
         <div class="form-row">
           <div class="form-group">
             <label class="form-label">Lieu de résidence</label>
-            <input class="form-control" value="Yaoundé, Centre">
+            <input class="form-control" id="moi-residence">
           </div>
           <div class="form-group">
             <label class="form-label">Profession (Optionnel)</label>
-            <input class="form-control" value="Ingénieur Informatique" placeholder="Ex: Enseignant, Commerçant...">
+            <input class="form-control" id="moi-profession" placeholder="Ex: Enseignant, Commerçant...">
           </div>
         </div>
         
