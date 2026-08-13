@@ -475,12 +475,12 @@ button.fil-piece:focus-visible { outline: 2px solid var(--primary); outline-offs
   background: var(--green-lt); color: var(--white);
 }
 
-/* Commentaires posés sur un acte : toujours visibles, en retrait sous lui. */
+/* Commentaires posés sur un acte, sous lui, dans son dépliant. */
 .acte-notes {
-  list-style: none; padding: 0;
-  margin: 11px 0 0 30px;
+  list-style: none; padding: 0; margin: 0;
   display: flex; flex-direction: column; gap: 8px;
 }
+.acte-traces + .acte-notes { margin-top: 10px; }
 .acte-note {
   padding: 9px 11px;
   background: rgba(201, 139, 0, .06);
@@ -531,9 +531,6 @@ button.fil-piece:focus-visible { outline: 2px solid var(--primary); outline-offs
   text-transform: uppercase; letter-spacing: .06em;
   color: var(--text-light);
 }
-
-/* Les actes suivent le récit de l'étape : un peu d'air les en détache. */
-.fil-etape > .actes:not(:first-child) { margin-top: 12px; }
 
 .acte-form {
   margin-top: 12px; padding: 14px;
@@ -709,37 +706,39 @@ summary.etape-tete:focus-visible {
 /* Le panneau s'aligne sous le libellé, pas sous la pastille : 22px de
    pastille plus 12px de gouttiere. */
 .etape-panneau { padding: 6px 0 18px 34px; }
-/* Journal brut de l'étape : consultable, mais replié — les actes disent
-   déjà l'essentiel, et le déplier d'office les redisait. */
-.etape-detail { margin-top: 12px; }
-.etape-detail > summary {
-  display: flex; align-items: center; gap: 8px;
-  list-style: none; cursor: pointer;
-  font-size: 11px; font-weight: 700;
-  text-transform: uppercase; letter-spacing: .06em;
-  color: var(--text-light);
-  padding: 7px 0;
-}
-.etape-detail > summary::-webkit-details-marker { display: none; }
-.etape-detail > summary:hover { color: var(--primary); }
-.etape-detail > summary:focus-visible {
-  outline: 2px solid var(--primary); outline-offset: 3px;
+/* Chaque acte se déplie sur ce qui le concerne : les faits qui l'attestent
+   et les commentaires qu'on y a laissés. Un journal commun en bas d'étape
+   mélangeait tout et obligeait à chercher de quoi il parlait. */
+.acte-bloc > summary { cursor: pointer; list-style: none; }
+.acte-bloc > summary::-webkit-details-marker { display: none; }
+.acte-bloc > summary:focus-visible {
+  outline: 2px solid var(--primary); outline-offset: 4px;
   border-radius: var(--radius-sm);
 }
-.etape-detail-n {
-  font-size: 10.5px;
-  background: var(--gray-2); color: var(--text-light);
-  border-radius: 999px; padding: 2px 8px;
-}
-.etape-detail > summary .etape-chevron { margin-left: auto; }
-.etape-detail[open] > summary .etape-chevron {
+.acte-bloc > summary .etape-chevron { flex-shrink: 0; margin-left: 2px; }
+.acte-bloc[open] > summary .etape-chevron {
   transform: rotate(-135deg); margin-top: 2px;
 }
-.etape-detail > .fil-etape {
-  padding: 4px 0 6px 2px;
-  border-left: 2px solid var(--gray-2);
+
+.acte-detail {
+  margin: 11px 0 0 30px;
   padding-left: 12px;
+  border-left: 2px solid var(--gray-2);
 }
+
+/* Faits datés rattachés à l'acte. */
+.acte-traces { list-style: none; padding: 0; margin: 0; }
+.acte-trace {
+  display: flex; justify-content: space-between; gap: 12px;
+  padding: 6px 0; font-size: 12.5px;
+  border-bottom: 1px solid var(--gray-2);
+}
+.acte-trace:last-child { border-bottom: none; }
+.acte-trace em {
+  display: block; font-style: normal;
+  font-size: 12px; color: var(--text-light); margin-top: 2px;
+}
+.acte-trace > time { color: var(--text-light); white-space: nowrap; }
 
 /* Acte auquel un écrit se rapporte — dans la fenêtre au moment de le
    rédiger, puis dans le fil pour le relire en contexte. */
@@ -756,7 +755,6 @@ summary.etape-tete:focus-visible {
   color: var(--text-light);
 }
 .ecrit-apropos > strong { font-size: 13px; color: var(--primary); }
-.fil-etape { font-size: 13px; }
 .fil-vide {
   font-size: 12.5px; color: var(--text-light);
   font-style: italic; margin: 0;
