@@ -532,6 +532,30 @@ button.fil-piece:focus-visible { outline: 2px solid var(--primary); outline-offs
   color: var(--text-light);
 }
 
+/* Dictée de la déposition : le micro se signale sans crier, et l'état dit
+   toujours où l'on en est — en écoute, arrêté, ou empêché. */
+.dictee { margin-top: 14px; }
+.dictee-tete {
+  display: flex; align-items: center; justify-content: space-between;
+  gap: 12px; margin-bottom: 7px;
+}
+.dictee-tete .btn { display: inline-flex; align-items: center; }
+.dictee-tete .btn.enregistre {
+  color: var(--red); border-color: var(--red);
+  background: rgba(178, 40, 28, .06);
+}
+.dictee-tete .btn.enregistre svg { animation: pulse-micro 1.4s ease-in-out infinite; }
+@keyframes pulse-micro { 50% { opacity: .35; } }
+@media (prefers-reduced-motion: reduce) {
+  .dictee-tete .btn.enregistre svg { animation: none; }
+}
+.dictee-etat {
+  font-size: 12px; line-height: 1.5;
+  color: var(--text-light); margin-top: 6px;
+}
+.dictee-etat.actif  { color: var(--red); font-weight: 600; }
+.dictee-etat.erreur { color: var(--red); }
+
 .acte-form {
   margin-top: 12px; padding: 14px;
   background: var(--gray-1);

@@ -1,15 +1,115 @@
 /* ============================================================
    Données fictives partagées entre les espaces
 
-   Les champs lieu, declaration, misEnCause et commissariat sont reprisd
+   Les champs lieu, declaration, misEnCause et commissariat sont repris
    de supabase/seed.sql, afin que le document de plainte téléchargeable
    depuis le suivi porte le contenu réel du dossier et non un texte
    générique.
    ============================================================ */
 
+/* ── Citoyens ───────────────────────────────────────────────
+   L'espace citoyen écrivait « Jean MBIDA » en dur à huit endroits :
+   l'en-tête, la barre latérale, le profil, la signature du document.
+   Changer de compte pour une démonstration obligeait à éditer le HTML,
+   et rien ne garantissait que ces huit mentions concordent. Le compte
+   connecté se lit désormais ici, et les dossiers y renvoient.
+   ─────────────────────────────────────────────────────────── */
+const CITOYENS = [
+  { id: 'CIT-001', nom: 'MBIDA',    prenom: 'Jean',    sexe: 'M',
+    cni: 'CM0012345678', naissance: '12/03/1988', lieuNaissance: 'Yaoundé',
+    profession: 'Commerçant', adresse: 'Mvog-Ada, Yaoundé 4ème',
+    email: 'j.mbida@gmail.com',    telephone: '+237 677 100 001',
+    pays: 'Cameroun', region: 'Centre', ville: 'Yaoundé' },
+  { id: 'CIT-002', nom: 'ESSOMBA',  prenom: 'Marie',   sexe: 'F',
+    cni: 'CM0012345679', naissance: '04/09/1992', lieuNaissance: 'Douala',
+    profession: 'Coiffeuse', adresse: 'Biyem-Assi, Yaoundé 6ème',
+    email: 'm.essomba@gmail.com',  telephone: '+237 677 100 002',
+    pays: 'Cameroun', region: 'Centre', ville: 'Yaoundé' },
+  { id: 'CIT-003', nom: 'ATANGANA', prenom: 'Paul',    sexe: 'M',
+    cni: 'CM0012345680', naissance: '27/01/1979', lieuNaissance: 'Ebolowa',
+    profession: 'Enseignant', adresse: 'Nlongkak, Yaoundé 1er',
+    email: 'p.atangana@gmail.com', telephone: '+237 677 100 003',
+    pays: 'Cameroun', region: 'Centre', ville: 'Yaoundé' },
+  { id: 'CIT-004', nom: 'BELLO',    prenom: 'Fatima',  sexe: 'F',
+    cni: 'CM0012345681', naissance: '15/06/1995', lieuNaissance: 'Garoua',
+    profession: 'Secrétaire', adresse: 'Mendong, Yaoundé 6ème',
+    email: 'f.bello@gmail.com',    telephone: '+237 677 100 004',
+    pays: 'Cameroun', region: 'Centre', ville: 'Yaoundé' },
+  { id: 'CIT-005', nom: 'FOKO',     prenom: 'Alain',   sexe: 'M',
+    cni: 'CM0012345682', naissance: '08/11/1984', lieuNaissance: 'Bafoussam',
+    profession: 'Mototaximan', adresse: 'Obili, Yaoundé 1er',
+    email: 'a.foko@gmail.com',     telephone: '+237 677 100 005',
+    pays: 'Cameroun', region: 'Centre', ville: 'Yaoundé' },
+  { id: 'CIT-006', nom: 'NANA',     prenom: 'Sylvie',  sexe: 'F',
+    cni: 'CM0012345683', naissance: '21/04/1990', lieuNaissance: 'Yaoundé',
+    profession: 'Revendeuse', adresse: 'Nkolbisson, Yaoundé 7ème',
+    email: 's.nana@gmail.com',     telephone: '+237 677 100 006',
+    pays: 'Cameroun', region: 'Centre', ville: 'Yaoundé' },
+  { id: 'CIT-007', nom: 'TCHOUMI',  prenom: 'Georges', sexe: 'M',
+    cni: 'CM0012345684', naissance: '30/07/1981', lieuNaissance: 'Dschang',
+    profession: 'Comptable', adresse: 'Essos, Yaoundé 4ème',
+    email: 'g.tchoumi@gmail.com',  telephone: '+237 677 100 007',
+    pays: 'Cameroun', region: 'Centre', ville: 'Yaoundé' },
+  { id: 'CIT-008', nom: 'ONANA',    prenom: 'Clarisse', sexe: 'F',
+    cni: 'CM0012345685', naissance: '02/02/1998', lieuNaissance: 'Mbalmayo',
+    profession: 'Étudiante', adresse: 'Ngoa-Ekelle, Yaoundé 3ème',
+    email: 'c.onana@gmail.com',    telephone: '+237 677 100 008',
+    pays: 'Cameroun', region: 'Centre', ville: 'Yaoundé' },
+  { id: 'CIT-009', nom: 'NJOYA',    prenom: 'Emmanuel', sexe: 'M',
+    cni: 'CM0012345686', naissance: '19/12/1976', lieuNaissance: 'Foumban',
+    profession: 'Chauffeur', adresse: 'Mvan, Yaoundé 3ème',
+    email: 'e.njoya@gmail.com',    telephone: '+237 677 100 009',
+    pays: 'Cameroun', region: 'Centre', ville: 'Yaoundé' },
+  { id: 'CIT-010', nom: 'MEKA',     prenom: 'Rachel',  sexe: 'F',
+    cni: 'CM0012345687', naissance: '11/05/1993', lieuNaissance: 'Yaoundé',
+    profession: 'Infirmière', adresse: 'Emana, Yaoundé 1er',
+    email: 'r.meka@gmail.com',     telephone: '+237 677 100 010',
+    pays: 'Cameroun', region: 'Centre', ville: 'Yaoundé' },
+  { id: 'CIT-011', nom: 'TALLA',    prenom: 'Hervé',   sexe: 'M',
+    cni: 'CM0012345688', naissance: '23/08/1986', lieuNaissance: 'Bafang',
+    profession: 'Menuisier', adresse: 'Etoudi, Yaoundé 1er',
+    email: 'h.talla@gmail.com',    telephone: '+237 677 100 011',
+    pays: 'Cameroun', region: 'Centre', ville: 'Yaoundé' },
+  { id: 'CIT-012', nom: 'MANGA',    prenom: 'Brigitte', sexe: 'F',
+    cni: 'CM0012345689', naissance: '06/10/1989', lieuNaissance: 'Kribi',
+    profession: 'Caissière', adresse: 'Mimboman, Yaoundé 4ème',
+    email: 'b.manga@gmail.com',    telephone: '+237 677 100 012',
+    pays: 'Cameroun', region: 'Centre', ville: 'Yaoundé' },
+  { id: 'CIT-013', nom: 'EYENGA',   prenom: 'Serge',   sexe: 'M',
+    cni: 'CM0012345690', naissance: '14/02/1983', lieuNaissance: 'Sangmélima',
+    profession: 'Vigile', adresse: 'Nkoldongo, Yaoundé 4ème',
+    email: 's.eyenga@gmail.com',   telephone: '+237 677 100 013',
+    pays: 'Cameroun', region: 'Centre', ville: 'Yaoundé' }
+];
+
+/* Compte ouvert dans l'espace citoyen. Une seule ligne à changer pour
+   présenter la plateforme sous une autre identité. */
+const CITOYEN_CONNECTE = 'CIT-001';
+
+function citoyen(idCitoyen) {
+  return CITOYENS.find(c => c.id === idCitoyen) || null;
+}
+function citoyenCourant() { return citoyen(CITOYEN_CONNECTE); }
+function nomCitoyen(c) { return c ? c.prenom + ' ' + c.nom : ''; }
+
+/* Dossiers du compte connecté, du plus récent au plus ancien. */
+function mesDossiers(idCitoyen) {
+  const cible = idCitoyen || CITOYEN_CONNECTE;
+  return DOSSIERS.filter(d => d.citoyen === cible)
+    .slice()
+    .sort((a, b) => horodatage(b) - horodatage(a));
+}
+
+/* « 15/05/2026 » + « 14h32 » vers un instant comparable. */
+function horodatage(d) {
+  const [j, m, a] = String(d.date || '01/01/2026').split('/').map(Number);
+  const [h, mi] = String(d.heure || '00h00').split('h').map(Number);
+  return new Date(a, (m || 1) - 1, j || 1, h || 0, mi || 0).getTime();
+}
+
 const DOSSIERS = [
   {
-    id: '2026-00451', type: 'Vol simple', plaignant: 'Jean MBIDA',
+    id: '2026-00451', citoyen: 'CIT-001', type: 'Vol simple', plaignant: 'Jean MBIDA',
     date: '15/05/2026', heure: '14h32', statut: 'EN_INSTRUCTION', score: 82,
     enqueteur: 'Insp. KANA', priorite: 'HAUTE',
     commissariat: 'Commissariat Cité Verte, Yaoundé',
@@ -23,7 +123,7 @@ const DOSSIERS = [
     misEnCause: "Jeune homme, environ 25 ans, taille moyenne, tee-shirt rouge, jean bleu."
   },
   {
-    id: '2026-00438', type: 'Escroquerie', plaignant: 'Marie ESSOMBA',
+    id: '2026-00438', citoyen: 'CIT-002', type: 'Escroquerie', plaignant: 'Marie ESSOMBA',
     date: '12/05/2026', heure: '09h15', statut: 'AUDITION', score: 67,
     enqueteur: 'Insp. KANA', priorite: 'NORMALE',
     commissariat: 'Commissariat Cité Verte, Yaoundé',
@@ -39,7 +139,7 @@ const DOSSIERS = [
               { nom: 'captures-conversation.pdf',   taille: '2,1 Mo' }]
   },
   {
-    id: '2026-00412', type: 'Agression', plaignant: 'Paul ATANGANA',
+    id: '2026-00412', citoyen: 'CIT-003', type: 'Agression', plaignant: 'Paul ATANGANA',
     date: '08/05/2026', heure: '11h20', statut: 'DECISION', score: 91,
     enqueteur: 'Insp. BIYA', priorite: 'URGENTE',
     commissariat: 'Commissariat Cité Verte, Yaoundé',
@@ -54,7 +154,7 @@ const DOSSIERS = [
     misEnCause: "FOUDA Ernest, voisin direct, 40 ans environ."
   },
   {
-    id: '2026-00398', type: 'Harcèlement', plaignant: 'Fatima BELLO',
+    id: '2026-00398', citoyen: 'CIT-004', type: 'Harcèlement', plaignant: 'Fatima BELLO',
     date: '04/05/2026', heure: '16h45', statut: 'RECU', score: 45,
     enqueteur: null, priorite: 'NORMALE',
     commissariat: 'Commissariat Cité Verte, Yaoundé',
@@ -67,7 +167,7 @@ const DOSSIERS = [
     misEnCause: null
   },
   {
-    id: '2026-00377', type: 'Dégradation', plaignant: 'Alain FOKO',
+    id: '2026-00377', citoyen: 'CIT-005', type: 'Dégradation', plaignant: 'Alain FOKO',
     date: '28/04/2026', heure: '07h00', statut: 'CLOTURE', score: 88,
     enqueteur: 'Insp. KANA', priorite: 'NORMALE',
     commissariat: 'Commissariat Cité Verte, Yaoundé',
@@ -85,7 +185,7 @@ const DOSSIERS = [
      chaine complete — convocation, audition tenue, proces-verbal — sans
      rien avoir a preparer. */
   {
-    id: '2026-00462', type: 'Escroquerie', plaignant: 'Sylvie NANA',
+    id: '2026-00462', citoyen: 'CIT-006', type: 'Escroquerie', plaignant: 'Sylvie NANA',
     date: '02/06/2026', heure: '10h15', statut: 'RECU', score: 79,
     enqueteur: 'Insp. KANA', priorite: 'NORMALE',
     commissariat: 'Commissariat Cité Verte, Yaoundé',
@@ -103,7 +203,7 @@ const DOSSIERS = [
   /* Instruction menee a son terme : c'est le seul etat ou la cloture est
      proposee, et le seul dossier de KANA a l'atteindre. */
   {
-    id: '2026-00429', type: 'Vol avec violence', plaignant: 'Georges TCHOUMI',
+    id: '2026-00429', citoyen: 'CIT-007', type: 'Vol avec violence', plaignant: 'Georges TCHOUMI',
     date: '10/05/2026', heure: '19h30', statut: 'DECISION', score: 85,
     enqueteur: 'Insp. KANA', priorite: 'URGENTE',
     commissariat: 'Commissariat Cité Verte, Yaoundé',
@@ -115,6 +215,111 @@ const DOSSIERS = [
     pieces: [{ nom: 'certificat-medical-bras.pdf', taille: '212 Ko' },
               { nom: 'plan-des-lieux.jpg',         taille: '1,4 Mo' }],
     misEnCause: "ONANA Serge, interpellé le 21 mai, reconnu par le plaignant."
+  },
+
+  /* ── Dossiers d'un commissariat en activité ──────────────────
+     Quatre plaintes attendent une affectation, deux enquêteurs se
+     partagent le reste, et tous les statuts sont représentés — y compris
+     la transmission au parquet, qu'aucun dossier n'illustrait.
+     ─────────────────────────────────────────────────────────── */
+  {
+    id: '2026-00473', citoyen: 'CIT-001', type: 'Escroquerie / Fraude', plaignant: 'Jean MBIDA',
+    date: '08/06/2026', heure: '08h50', statut: 'RECU', score: 71,
+    enqueteur: null, priorite: 'NORMALE',
+    commissariat: 'Commissariat Cité Verte, Yaoundé',
+    lieu: 'Mvog-Ada, Yaoundé 4ème, Mfoundi, Centre',
+    prejudice: { nature: 'Financier', montant: '95 000', detail: 'Achat en ligne d\'un téléphone jamais livré' },
+    declaration: "J'ai commandé un téléphone sur une page de vente en ligne et versé 95 000 FCFA par Mobile Money à un vendeur qui s'est engagé à livrer sous deux jours. La livraison n'a jamais eu lieu et le vendeur a bloqué mon numéro.",
+    contact: { email: 'j.mbida@gmail.com', telephone: '+237 677 100 001' },
+    contactMisEnCause: null,
+    pieces: [{ nom: 'capture-annonce-vente.jpg', taille: '610 Ko' },
+              { nom: 'recu-mobile-money.pdf',     taille: '84 Ko' }],
+    misEnCause: "Vendeur en ligne se présentant sous le nom « Tech Deals 237 »."
+  },
+  {
+    id: '2026-00470', citoyen: 'CIT-008', type: 'Vol avec violence', plaignant: 'Clarisse ONANA',
+    date: '03/06/2026', heure: '21h10', statut: 'RECU', score: 88,
+    enqueteur: null, priorite: 'URGENTE',
+    commissariat: 'Commissariat Cité Verte, Yaoundé',
+    lieu: 'Ngoa-Ekelle, Yaoundé 3ème, Mfoundi, Centre',
+    prejudice: { nature: 'Matériel et corporel', montant: '240 000', detail: 'Sac à dos, ordinateur portable — éraflures au poignet' },
+    declaration: "Le 3 juin vers 21h00, en rentrant du campus, deux individus m'ont bousculée à hauteur du carrefour Ngoa-Ekelle et arraché mon sac à dos contenant mon ordinateur portable. J'ai été tirée au sol et me suis blessée au poignet.",
+    contact: { email: 'c.onana@gmail.com', telephone: '+237 677 100 008' },
+    contactMisEnCause: null,
+    pieces: [{ nom: 'certificat-medical-poignet.pdf', taille: '198 Ko' },
+              { nom: 'facture-ordinateur.pdf',        taille: '145 Ko' }],
+    misEnCause: "Deux individus à pied, non identifiés."
+  },
+  {
+    id: '2026-00468', citoyen: 'CIT-009', type: 'Accident de la route', plaignant: 'Emmanuel NJOYA',
+    date: '01/06/2026', heure: '07h25', statut: 'RECU', score: 64,
+    enqueteur: null, priorite: 'NORMALE',
+    commissariat: 'Commissariat Cité Verte, Yaoundé',
+    lieu: 'Carrefour Mvan, Yaoundé 3ème, Mfoundi, Centre',
+    prejudice: { nature: 'Matériel', montant: '380 000', detail: 'Aile avant et portière gauche du véhicule' },
+    declaration: "Le 1er juin au matin, un véhicule a grillé le feu au carrefour Mvan et heurté l'avant gauche du mien. Le conducteur a refusé le constat amiable et a quitté les lieux. J'ai relevé sa plaque d'immatriculation.",
+    contact: { email: 'e.njoya@gmail.com', telephone: '+237 677 100 009' },
+    contactMisEnCause: null,
+    pieces: [{ nom: 'photos-degats-vehicule.jpg', taille: '2,9 Mo' },
+              { nom: 'constat-non-signe.pdf',     taille: '112 Ko' }],
+    misEnCause: "Conducteur d'un véhicule immatriculé LT 745 AB, non identifié à ce jour."
+  },
+  {
+    id: '2026-00455', citoyen: 'CIT-010', type: 'Escroquerie / Fraude', plaignant: 'Rachel MEKA',
+    date: '20/05/2026', heure: '11h40', statut: 'EN_INSTRUCTION', score: 76,
+    enqueteur: 'Insp. BIYA', priorite: 'NORMALE',
+    commissariat: 'Commissariat Cité Verte, Yaoundé',
+    lieu: 'Emana, Yaoundé 1er, Mfoundi, Centre',
+    prejudice: { nature: 'Financier', montant: '450 000', detail: 'Frais versés pour un emploi fictif' },
+    declaration: "Une personne se présentant comme agent de recrutement d'un hôpital privé m'a réclamé 450 000 FCFA de frais de dossier pour un poste d'infirmière. Après le versement, elle a cessé de répondre et l'établissement m'a confirmé qu'aucun recrutement n'était ouvert.",
+    contact: { email: 'r.meka@gmail.com', telephone: '+237 677 100 010' },
+    contactMisEnCause: { email: 'recrut.sante@yahoo.fr', telephone: '+237 691 208 334' },
+    pieces: [{ nom: 'recu-versement-frais.pdf',  taille: '96 Ko' },
+              { nom: 'echanges-sms.pdf',          taille: '540 Ko' }],
+    misEnCause: "AYISSI Léon, se présentant comme agent de recrutement."
+  },
+  {
+    id: '2026-00441', citoyen: 'CIT-011', type: 'Dégradation de biens', plaignant: 'Hervé TALLA',
+    date: '13/05/2026', heure: '06h40', statut: 'AUDITION', score: 69,
+    enqueteur: 'Insp. BIYA', priorite: 'NORMALE',
+    commissariat: 'Commissariat Cité Verte, Yaoundé',
+    lieu: 'Etoudi, Yaoundé 1er, Mfoundi, Centre',
+    prejudice: { nature: 'Matériel', montant: '620 000', detail: 'Atelier de menuiserie — machines et stock de bois' },
+    declaration: "Dans la nuit du 12 au 13 mai, la porte de mon atelier de menuiserie a été forcée et deux machines ont été détériorées. Du bois de commande a été répandu et rendu inutilisable. Un différend m'oppose depuis des mois à un voisin au sujet de la mitoyenneté.",
+    contact: { email: 'h.talla@gmail.com', telephone: '+237 677 100 011' },
+    contactMisEnCause: { email: null, telephone: '+237 678 445 190' },
+    pieces: [{ nom: 'photos-atelier.jpg',        taille: '3,1 Mo' },
+              { nom: 'devis-reparation.pdf',     taille: '132 Ko' },
+              { nom: 'facture-bois-commande.pdf', taille: '78 Ko' }],
+    misEnCause: "MBALLA Didier, voisin mitoyen de l'atelier."
+  },
+  {
+    id: '2026-00405', citoyen: 'CIT-012', type: 'Harcèlement', plaignant: 'Brigitte MANGA',
+    date: '06/05/2026', heure: '17h55', statut: 'CLOTURE', score: 58,
+    enqueteur: 'Insp. BIYA', priorite: 'NORMALE',
+    commissariat: 'Commissariat Cité Verte, Yaoundé',
+    lieu: 'Mimboman, Yaoundé 4ème, Mfoundi, Centre',
+    prejudice: { nature: 'Moral', montant: '', detail: 'Appels et messages répétés, jour et nuit' },
+    declaration: "Depuis mars, je reçois des appels et des messages répétés d'un ancien collègue, parfois en pleine nuit. Il se présente devant mon domicile et attend mon retour. J'ai changé de numéro sans que cela cesse.",
+    contact: { email: 'b.manga@gmail.com', telephone: '+237 677 100 012' },
+    contactMisEnCause: { email: null, telephone: '+237 696 331 025' },
+    pieces: [{ nom: 'releve-appels.pdf',      taille: '224 Ko' },
+              { nom: 'captures-messages.pdf', taille: '1,1 Mo' }],
+    misEnCause: "ABEGA Cyrille, ancien collègue de la plaignante."
+  },
+  {
+    id: '2026-00389', citoyen: 'CIT-013', type: 'Vol avec violence', plaignant: 'Serge EYENGA',
+    date: '30/04/2026', heure: '22h30', statut: 'TRANSMIS', score: 84,
+    enqueteur: 'Insp. KANA', priorite: 'HAUTE',
+    commissariat: 'Commissariat Cité Verte, Yaoundé',
+    lieu: 'Nkoldongo, Yaoundé 4ème, Mfoundi, Centre',
+    prejudice: { nature: 'Matériel et corporel', montant: '310 000', detail: 'Téléphone et recette de la journée — coup porté à la tête' },
+    declaration: "En quittant mon poste de garde le 30 avril vers 22h30, un individu que je connais de vue m'a menacé puis frappé à la tête avant d'emporter mon téléphone et la recette de la journée. J'ai été soigné à l'hôpital de district.",
+    contact: { email: 's.eyenga@gmail.com', telephone: '+237 677 100 013' },
+    contactMisEnCause: { email: null, telephone: '+237 699 512 806' },
+    pieces: [{ nom: 'certificat-medical-tete.pdf', taille: '256 Ko' },
+              { nom: 'attestation-employeur.pdf',  taille: '88 Ko' }],
+    misEnCause: "NDONGO Alphonse, connu du plaignant, domicilié au quartier Nkoldongo."
   }
 ];
 
@@ -163,6 +368,8 @@ const HISTORIQUE = {
     { etape: 'RECU', type: 'affectation', date: '16/05/2026', heure: '09h00', libelle: 'Dossier affecté',                  detail: 'Insp. KANA désigné' },
 
     { etape: 'AUDITION', type: 'convocation', date: '16/05/2026', heure: '11h00', libelle: 'Convocation à votre audition', detail: 'Audition fixée au 17/05/2026 à 10h00' },
+    { etape: 'AUDITION', type: 'statut',      date: '16/05/2026', heure: '11h10', libelle: 'Audition programmée',
+      detail: 'Convocation du plaignant émise' },
     { etape: 'AUDITION', type: 'audition',    date: '17/05/2026', heure: '10h00', libelle: 'Votre audition',               detail: 'Déclarations recueillies' },
     { etape: 'AUDITION', type: 'pv',          date: '17/05/2026', heure: '11h20', libelle: 'Procès-verbal établi',         detail: "PV d'audition signé" },
     { etape: 'AUDITION', type: 'message', date: '17/05/2026', heure: '11h35', auteur: 'Insp. KANA',
@@ -201,8 +408,12 @@ const HISTORIQUE = {
     { etape: 'RECU', type: 'depot',       date: '08/05/2026', heure: '11h20', libelle: 'Plainte déposée en ligne',         detail: 'Enregistrée sur PlainteCam' },
     { etape: 'RECU', type: 'attestation', date: '08/05/2026', heure: '11h21', libelle: 'Attestation envoyée par e-mail',   detail: 'Numéro de dossier transmis' },
     { etape: 'RECU', type: 'reception',   date: '08/05/2026', heure: '11h25', libelle: 'Reçue au Commissariat Cité Verte', detail: 'Prise en charge officielle' },
-    { etape: 'RECU', type: 'affectation', date: '09/05/2026', heure: '08h00', libelle: 'Dossier affecté',                  detail: 'Insp. BIYA désigné' },
+    { etape: 'RECU', type: 'affectation', date: '09/05/2026', heure: '08h00', libelle: 'Dossier affecté',                  detail: 'Insp. BIYA désigné — priorité urgente' },
 
+    { etape: 'AUDITION', type: 'convocation', date: '09/05/2026', heure: '08h30', libelle: 'Convocation du plaignant',
+      detail: 'Audition fixée au 10/05/2026 à 10h00 — par SMS au +237 677 100 003' },
+    { etape: 'AUDITION', type: 'statut',      date: '09/05/2026', heure: '08h40', libelle: 'Audition programmée',
+      detail: 'Convocation du plaignant émise' },
     { etape: 'AUDITION', type: 'audition', date: '10/05/2026', heure: '10h00', libelle: 'Votre audition',                       detail: 'Déclarations recueillies' },
     { etape: 'AUDITION', type: 'pv',       date: '10/05/2026', heure: '14h00', libelle: 'Procès-verbal établi',                detail: "PV d'audition signé" },
     { etape: 'AUDITION', type: 'audition', date: '13/05/2026', heure: '09h30', libelle: 'Audition de la personne mise en cause', detail: 'Comparution enregistrée' },
@@ -229,8 +440,12 @@ const HISTORIQUE = {
     { etape: 'RECU', type: 'depot',       date: '28/04/2026', heure: '07h00', libelle: 'Plainte déposée en ligne',         detail: 'Enregistrée sur PlainteCam' },
     { etape: 'RECU', type: 'attestation', date: '28/04/2026', heure: '07h01', libelle: 'Attestation envoyée par e-mail',   detail: 'Numéro de dossier transmis' },
     { etape: 'RECU', type: 'reception',   date: '28/04/2026', heure: '07h05', libelle: 'Reçue au Commissariat Cité Verte', detail: 'Prise en charge officielle' },
-    { etape: 'RECU', type: 'affectation', date: '29/04/2026', heure: '07h30', libelle: 'Dossier affecté',                  detail: 'Insp. KANA désigné' },
+    { etape: 'RECU', type: 'affectation', date: '29/04/2026', heure: '07h30', libelle: 'Dossier affecté',                  detail: 'Insp. KANA désigné — priorité normale' },
 
+    { etape: 'AUDITION', type: 'convocation', date: '29/04/2026', heure: '08h00', libelle: 'Convocation du plaignant',
+      detail: 'Audition fixée au 02/05/2026 à 09h00 — par e-mail à a.foko@gmail.com' },
+    { etape: 'AUDITION', type: 'statut',      date: '29/04/2026', heure: '08h10', libelle: 'Audition programmée',
+      detail: 'Convocation du plaignant émise' },
     { etape: 'AUDITION', type: 'audition', date: '02/05/2026', heure: '09h00', libelle: 'Votre audition',        detail: 'Déclarations recueillies' },
     { etape: 'AUDITION', type: 'pv',       date: '02/05/2026', heure: '10h15', libelle: 'Procès-verbal établi',  detail: "PV d'audition signé" },
     { etape: 'AUDITION', type: 'message', date: '02/05/2026', heure: '10h30', auteur: 'Insp. KANA',
@@ -260,6 +475,8 @@ const HISTORIQUE = {
 
     { etape: 'AUDITION', type: 'convocation', date: '11/05/2026', heure: '09h00', libelle: 'Convocation du plaignant',
       detail: 'Audition fixée au 14/05/2026 à 09h00 — par e-mail à g.tchoumi@gmail.com' },
+    { etape: 'AUDITION', type: 'statut',      date: '11/05/2026', heure: '09h10', libelle: 'Audition programmée',
+      detail: 'Convocation du plaignant émise' },
     { etape: 'AUDITION', type: 'audition',    date: '14/05/2026', heure: '09h00', libelle: 'Votre audition',
       detail: 'Déclarations recueillies — procès-verbal établi' },
     /* Commentaires rattachés à un acte : ils s'affichent sous lui. */
@@ -293,6 +510,140 @@ const HISTORIQUE = {
       apropos: 'Clôturer le dossier',
       texte: "Votre dossier est complet. Une décision vous sera notifiée prochainement ; vous n'avez aucune démarche à effectuer d'ici là.",
       pieces: [] }
+  ],
+
+  /* ── Nouveaux dossiers ────────────────────────────────────── */
+
+  /* Déposée l'avant-veille, pas encore vue par le commissaire. */
+  '2026-00473': [
+    { etape: 'RECU', type: 'depot',       date: '08/06/2026', heure: '08h50', libelle: 'Plainte déposée en ligne',         detail: 'Enregistrée sur PlainteCam' },
+    { etape: 'RECU', type: 'attestation', date: '08/06/2026', heure: '08h51', libelle: 'Attestation envoyée par e-mail',   detail: 'Numéro de dossier transmis' },
+    { etape: 'RECU', type: 'reception',   date: '08/06/2026', heure: '09h30', libelle: 'Reçue au Commissariat Cité Verte', detail: "En attente d'affectation à un enquêteur" }
+  ],
+
+  '2026-00470': [
+    { etape: 'RECU', type: 'depot',       date: '03/06/2026', heure: '21h10', libelle: 'Plainte déposée en ligne',         detail: 'Enregistrée sur PlainteCam' },
+    { etape: 'RECU', type: 'attestation', date: '03/06/2026', heure: '21h11', libelle: 'Attestation envoyée par e-mail',   detail: 'Numéro de dossier transmis' },
+    { etape: 'RECU', type: 'reception',   date: '03/06/2026', heure: '22h05', libelle: 'Reçue au Commissariat Cité Verte', detail: 'Signalée en urgence — atteinte aux personnes' }
+  ],
+
+  '2026-00468': [
+    { etape: 'RECU', type: 'depot',       date: '01/06/2026', heure: '07h25', libelle: 'Plainte déposée en ligne',         detail: 'Enregistrée sur PlainteCam' },
+    { etape: 'RECU', type: 'attestation', date: '01/06/2026', heure: '07h26', libelle: 'Attestation envoyée par e-mail',   detail: 'Numéro de dossier transmis' },
+    { etape: 'RECU', type: 'reception',   date: '01/06/2026', heure: '08h15', libelle: 'Reçue au Commissariat Cité Verte', detail: "En attente d'affectation à un enquêteur" }
+  ],
+
+  /* Enquête en cours : le mis en cause a comparu, les vérifications
+     bancaires sont engagées. */
+  '2026-00455': [
+    { etape: 'RECU', type: 'depot',       date: '20/05/2026', heure: '11h40', libelle: 'Plainte déposée en ligne',         detail: 'Enregistrée sur PlainteCam' },
+    { etape: 'RECU', type: 'attestation', date: '20/05/2026', heure: '11h41', libelle: 'Attestation envoyée par e-mail',   detail: 'Numéro de dossier transmis' },
+    { etape: 'RECU', type: 'reception',   date: '20/05/2026', heure: '12h20', libelle: 'Reçue au Commissariat Cité Verte', detail: 'Prise en charge officielle' },
+    { etape: 'RECU', type: 'affectation', date: '21/05/2026', heure: '08h00', libelle: 'Dossier affecté',                  detail: 'Insp. BIYA désigné — priorité normale' },
+
+    { etape: 'AUDITION', type: 'convocation', date: '21/05/2026', heure: '09h10', libelle: 'Convocation du plaignant',
+      detail: 'Audition fixée au 23/05/2026 à 10h00 — par e-mail à r.meka@gmail.com' },
+    { etape: 'AUDITION', type: 'statut',      date: '21/05/2026', heure: '09h20', libelle: 'Audition programmée',
+      detail: 'Convocation du plaignant émise' },
+    { etape: 'AUDITION', type: 'audition',    date: '23/05/2026', heure: '10h00', libelle: 'Votre audition',
+      detail: 'Déclarations recueillies — procès-verbal établi' },
+    { etape: 'AUDITION', type: 'pv',          date: '23/05/2026', heure: '11h45', libelle: 'Procès-verbal établi',
+      detail: "PV d'audition signé" },
+    { etape: 'AUDITION', type: 'convocation', date: '24/05/2026', heure: '15h00', libelle: 'Convocation du mis en cause',
+      detail: 'AYISSI Léon convoqué pour le 27/05/2026 à 09h00' },
+
+    { etape: 'EN_INSTRUCTION', type: 'statut',  date: '28/05/2026', heure: '08h30', libelle: 'Enquête ouverte',
+      detail: 'Vérifications engagées auprès de l\'opérateur Mobile Money' },
+    { etape: 'EN_INSTRUCTION', type: 'note',    date: '29/05/2026', heure: '10h20', libelle: 'Observation interne',
+      detail: 'Le numéro ayant reçu les fonds est rattaché à une pièce d\'identité différente de celle déclarée.' },
+    { etape: 'EN_INSTRUCTION', type: 'message', date: '30/05/2026', heure: '09h00', auteur: 'Insp. BIYA',
+      texte: "La personne mise en cause s'est présentée et a été entendue. Une demande de relevé a été adressée à l'opérateur de transfert d'argent ; le dossier suit son cours.",
+      pieces: [] }
+  ],
+
+  /* Audition en cours : le PV du plaignant reste à signer. */
+  '2026-00441': [
+    { etape: 'RECU', type: 'depot',       date: '13/05/2026', heure: '06h40', libelle: 'Plainte déposée en ligne',         detail: 'Enregistrée sur PlainteCam' },
+    { etape: 'RECU', type: 'attestation', date: '13/05/2026', heure: '06h41', libelle: 'Attestation envoyée par e-mail',   detail: 'Numéro de dossier transmis' },
+    { etape: 'RECU', type: 'reception',   date: '13/05/2026', heure: '07h30', libelle: 'Reçue au Commissariat Cité Verte', detail: 'Prise en charge officielle' },
+    { etape: 'RECU', type: 'affectation', date: '14/05/2026', heure: '08h10', libelle: 'Dossier affecté',                  detail: 'Insp. BIYA désigné — priorité normale' },
+
+    { etape: 'AUDITION', type: 'convocation', date: '14/05/2026', heure: '09h00', libelle: 'Convocation du plaignant',
+      detail: 'Audition fixée au 18/05/2026 à 08h30 — par SMS au +237 677 100 011' },
+    { etape: 'AUDITION', type: 'statut',      date: '14/05/2026', heure: '09h10', libelle: 'Audition programmée',
+      detail: 'Convocation du plaignant émise' },
+    { etape: 'AUDITION', type: 'audition',    date: '18/05/2026', heure: '08h30', libelle: 'Votre audition',
+      detail: 'Déclarations recueillies — procès-verbal en cours de relecture' },
+    { etape: 'AUDITION', type: 'message', date: '18/05/2026', heure: '09h50', auteur: 'Insp. BIYA',
+      texte: "Merci de nous faire parvenir le devis de réparation des machines ainsi que la facture du bois de commande, afin de chiffrer précisément le préjudice.",
+      pieces: [] }
+  ],
+
+  /* Clôturé après conciliation : le compte rendu d'entretien décrit ce
+     dénouement comme fréquent pour les différends de voisinage. */
+  '2026-00405': [
+    { etape: 'RECU', type: 'depot',       date: '06/05/2026', heure: '17h55', libelle: 'Plainte déposée en ligne',         detail: 'Enregistrée sur PlainteCam' },
+    { etape: 'RECU', type: 'attestation', date: '06/05/2026', heure: '17h56', libelle: 'Attestation envoyée par e-mail',   detail: 'Numéro de dossier transmis' },
+    { etape: 'RECU', type: 'reception',   date: '06/05/2026', heure: '18h30', libelle: 'Reçue au Commissariat Cité Verte', detail: 'Prise en charge officielle' },
+    { etape: 'RECU', type: 'affectation', date: '07/05/2026', heure: '08h00', libelle: 'Dossier affecté',                  detail: 'Insp. BIYA désigné — priorité normale' },
+
+    { etape: 'AUDITION', type: 'convocation', date: '07/05/2026', heure: '09h00', libelle: 'Convocation du plaignant',
+      detail: 'Audition fixée au 11/05/2026 à 09h00 — par e-mail à b.manga@gmail.com' },
+    { etape: 'AUDITION', type: 'statut',      date: '07/05/2026', heure: '09h10', libelle: 'Audition programmée',
+      detail: 'Convocation du plaignant émise' },
+    { etape: 'AUDITION', type: 'audition',    date: '11/05/2026', heure: '09h00', libelle: 'Votre audition',
+      detail: 'Déclarations recueillies — procès-verbal établi' },
+    { etape: 'AUDITION', type: 'pv',          date: '11/05/2026', heure: '10h30', libelle: 'Procès-verbal établi',
+      detail: "PV d'audition signé" },
+    { etape: 'AUDITION', type: 'convocation', date: '12/05/2026', heure: '14h00', libelle: 'Convocation du mis en cause',
+      detail: 'ABEGA Cyrille convoqué pour le 15/05/2026 à 09h00' },
+
+    { etape: 'EN_INSTRUCTION', type: 'statut',  date: '18/05/2026', heure: '08h00', libelle: 'Enquête ouverte',
+      detail: 'Relevé d\'appels versé au dossier' },
+    { etape: 'EN_INSTRUCTION', type: 'message', date: '20/05/2026', heure: '11h00', auteur: 'Insp. BIYA',
+      texte: "La personne mise en cause a été entendue et avertie. Elle s'est engagée par écrit à cesser tout contact. Nous vous invitons à signaler immédiatement toute reprise des faits.",
+      pieces: [{ nom: 'engagement-ecrit.pdf', taille: '64 Ko' }] },
+
+    { etape: 'DECISION', type: 'statut', date: '26/05/2026', heure: '09h00', libelle: 'Dossier en délibération',
+      detail: 'Analyse des éléments recueillis' },
+    { etape: 'DECISION', type: 'statut', date: '02/06/2026', heure: '10h00', libelle: 'Dossier clôturé',
+      detail: 'Classé après engagement écrit et cessation des faits' },
+
+    { etape: 'CLOTURE', type: 'message', date: '02/06/2026', heure: '10h10', auteur: 'Insp. BIYA',
+      texte: "Votre dossier est clôturé. En cas de reprise du harcèlement, présentez-vous au commissariat avec votre numéro de dossier : la procédure sera rouverte sans nouvelle plainte.",
+      pieces: [{ nom: 'notification-cloture.pdf', taille: '58 Ko' }] }
+  ],
+
+  /* Transmis au parquet : trois convocations restées sans effet. */
+  '2026-00389': [
+    { etape: 'RECU', type: 'depot',       date: '30/04/2026', heure: '22h30', libelle: 'Plainte déposée en ligne',         detail: 'Enregistrée sur PlainteCam' },
+    { etape: 'RECU', type: 'attestation', date: '30/04/2026', heure: '22h31', libelle: 'Attestation envoyée par e-mail',   detail: 'Numéro de dossier transmis' },
+    { etape: 'RECU', type: 'reception',   date: '30/04/2026', heure: '23h15', libelle: 'Reçue au Commissariat Cité Verte', detail: 'Prise en charge officielle' },
+    { etape: 'RECU', type: 'affectation', date: '02/05/2026', heure: '08h00', libelle: 'Dossier affecté',                  detail: 'Insp. KANA désigné — priorité haute' },
+
+    { etape: 'AUDITION', type: 'convocation', date: '02/05/2026', heure: '09h00', libelle: 'Convocation du plaignant',
+      detail: 'Audition fixée au 05/05/2026 à 09h00 — par SMS au +237 677 100 013' },
+    { etape: 'AUDITION', type: 'statut',      date: '02/05/2026', heure: '09h10', libelle: 'Audition programmée',
+      detail: 'Convocation du plaignant émise' },
+    { etape: 'AUDITION', type: 'audition',    date: '05/05/2026', heure: '09h00', libelle: 'Votre audition',
+      detail: 'Déclarations recueillies — procès-verbal établi' },
+    { etape: 'AUDITION', type: 'pv',          date: '05/05/2026', heure: '11h00', libelle: 'Procès-verbal établi',
+      detail: "PV d'audition signé" },
+    { etape: 'AUDITION', type: 'convocation', date: '06/05/2026', heure: '10h00', libelle: 'Convocation du mis en cause',
+      detail: 'NDONGO Alphonse convoqué pour le 11/05/2026 à 09h00' },
+
+    { etape: 'EN_INSTRUCTION', type: 'statut',  date: '13/05/2026', heure: '08h00', libelle: 'Enquête ouverte',
+      detail: 'Recherches engagées au domicile du mis en cause' },
+    { etape: 'EN_INSTRUCTION', type: 'note',    date: '19/05/2026', heure: '16h30', libelle: 'Observation interne',
+      detail: 'Deuxième absence constatée. Le mis en cause aurait quitté le quartier.' },
+    { etape: 'EN_INSTRUCTION', type: 'message', date: '26/05/2026', heure: '09h30', auteur: 'Insp. KANA',
+      texte: "La personne mise en cause ne s'est présentée à aucune des trois convocations qui lui ont été adressées. Le dossier va être transmis au procureur de la République, qui décidera des suites.",
+      pieces: [] },
+
+    { etape: 'DECISION', type: 'statut', date: '28/05/2026', heure: '09h00', libelle: 'Dossier en délibération',
+      detail: 'Trois absences constatées — saisine du parquet envisagée' },
+    { etape: 'DECISION', type: 'statut', date: '01/06/2026', heure: '11h00', libelle: 'Dossier transmis au procureur',
+      detail: 'Trois absences injustifiées du mis en cause' }
   ],
 
   /* Affecte, rien de plus : l'enqueteur reprend le dossier a son debut. */
@@ -339,6 +690,24 @@ const CONVOCATIONS = {
   '2026-00429': [
     { ordre: 1, nom: 'ONANA Serge', date: '22/05/2026', heure: '10h00', statut: 'COMPARU',
       motif: "Audition dans le cadre de l'instruction d'une plainte pour vol avec violence." }
+  ],
+  '2026-00455': [
+    { ordre: 1, nom: 'AYISSI Léon', date: '27/05/2026', heure: '09h00', statut: 'COMPARU',
+      motif: "Audition dans le cadre de l'instruction d'une plainte pour escroquerie." }
+  ],
+  '2026-00405': [
+    { ordre: 1, nom: 'ABEGA Cyrille', date: '15/05/2026', heure: '09h00', statut: 'COMPARU',
+      motif: "Audition dans le cadre de l'instruction d'une plainte pour harcèlement." }
+  ],
+  /* Trois absences constatees : c'est ce qui a fonde la saisine du
+     parquet, conformement au compte rendu d'entretien. */
+  '2026-00389': [
+    { ordre: 1, nom: 'NDONGO Alphonse', date: '11/05/2026', heure: '09h00', statut: 'ABSENT',
+      motif: "Audition dans le cadre de l'instruction d'une plainte pour vol avec violence." },
+    { ordre: 2, nom: 'NDONGO Alphonse', date: '19/05/2026', heure: '09h00', statut: 'ABSENT',
+      motif: 'Seconde convocation — absence non justifiée à la première.' },
+    { ordre: 3, nom: 'NDONGO Alphonse', date: '27/05/2026', heure: '09h00', statut: 'ABSENT',
+      motif: 'Troisième et dernière convocation avant transmission au procureur.' }
   ]
 };
 

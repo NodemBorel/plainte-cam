@@ -736,10 +736,28 @@ function confirmerAudition(id) {
 }
 
 /* Consigner qu'une audition s'est tenue : c'est ce qui rend le PV
-   etablissable. Rien ne le permettait jusqu'ici. */
+   etablissable. Rien ne le permettait jusqu'ici.
+
+   La deposition se dicte : le compte rendu decrit une audition prise a la
+   main puis ressaisie, double travail qui eloigne le proces-verbal des
+   mots du comparant. Ce qui est transcrit devient le corps du PV, sans
+   ressaisie. La dictee n'etant pas offerte par tous les navigateurs, la
+   frappe au clavier reste possible et le bouton dit pourquoi le cas
+   echeant, plutot que d'echouer en silence. */
+var sonAudition = null;   /* enregistrement capte pendant la deposition */
+
 function enregistrerAudition(id, cle) {
   var zone = document.getElementById('acte-form-' + (cle || 'AUDITION'));
   if (!zone) return;
+  sonAudition = null;
+
+  var dictable = (typeof Dictee !== 'undefined') && Dictee.transcriptionPossible();
+  /* Module absent : la saisie reste possible, mais l'agent doit savoir
+     pourquoi le micro n'est pas proposé plutôt que face à un champ nu. */
+  var raison = (typeof Dictee !== 'undefined')
+    ? Dictee.empechement()
+    : 'Dictée indisponible : saisissez la déposition au clavier.';
+
   zone.innerHTML =
     '<div class="acte-form">' +
       '<div class="form-row">' +
@@ -753,27 +771,144 @@ function enregistrerAudition(id, cle) {
         '</div>' +
       '</div>' +
       '<div class="field-error" id="err-tenue-date"></div>' +
-      '<button class="btn btn-primary btn-sm" onclick="confirmerAuditionTenue(\'' + id + '\')">Enregistrer l\'audition</button>' +
+
+      '<div class="dictee">' +
+        '<div class="dictee-tete">' +
+          '<label class="form-label" for="tenue-texte" style="margin:0">Déposition recueillie</label>' +
+          (dictable
+            ? '<button type="button" class="btn btn-ghost btn-sm" id="dictee-bouton" ' +
+                'onclick="basculerDictee()">' + iconeMicro() + 'Dicter</button>'
+            : '') +
+        '</div>' +
+        '<textarea class="form-control" id="tenue-texte" rows="5" ' +
+          'placeholder="Dictez ou saisissez les déclarations du comparant, à la première personne."></textarea>' +
+        '<div class="dictee-etat" id="dictee-etat">' +
+          (dictable
+            ? 'La transcription alimente le procès-verbal ; elle reste modifiable.'
+            : ech(raison)) +
+        '</div>' +
+      '</div>' +
+
+      '<button class="btn btn-primary btn-sm" onclick="confirmerAuditionTenue(\'' + id + '\')">' +
+        'Enregistrer l\'audition</button>' +
     '</div>';
+
   var champ = document.getElementById('tenue-date');
   if (champ) champ.focus();
+}
+
+function iconeMicro() {
+  return '<svg width="13" height="13" viewBox="0 0 16 16" fill="none" stroke="currentColor" ' +
+    'stroke-width="1.5" stroke-linecap="round" aria-hidden="true" style="margin-right:5px">' +
+    '<rect x="5.75" y="1.75" width="4.5" height="8" rx="2.25"/>' +
+    '<path d="M3.25 7.25v.75a4.75 4.75 0 0 0 9.5 0v-.75M8 12.75v1.5"/></svg>';
+}
+
+/* Un seul bouton pour les deux sens : deux boutons dont un seul sert a la
+   fois laissent toujours l'agent devant le mauvais. */
+function basculerDictee() {
+  if (typeof Dictee === 'undefined') return;
+  if (Dictee.enCours()) { arreterDictee(); return; }
+
+  var champ = document.getElementById('tenue-texte');
+  var etat = document.getElementById('dictee-etat');
+  var bouton = document.getElementById('dictee-bouton');
+  if (!champ) return;
+
+  /* Ce qui est deja saisi n'est pas efface : on dicte a la suite. */
+  var socle = champ.value ? champ.value.replace(/\s*$/, ' ') : '';
+
+  var lance = Dictee.demarrer({
+    surTexte: function (acquis, encours) {
+      if (acquis) socle += acquis;
+      champ.value = socle + encours;
+      champ.scrollTop = champ.scrollHeight;
+    },
+    surErreur: function (m) {
+      if (etat) { etat.textContent = m; etat.className = 'dictee-etat erreur'; }
+    },
+    surFin: function () { majBoutonDictee(false); }
+  });
+
+  if (!lance) return;
+  majBoutonDictee(true);
+  if (etat) {
+    etat.textContent = 'Dictée en cours — parlez normalement.';
+    etat.className = 'dictee-etat actif';
+  }
+  if (bouton) bouton.classList.add('enregistre');
+
+  /* Le son est un complement : son refus n'interrompt pas la dictee. */
+  if (Dictee.captureSonPossible()) {
+    Dictee.capturerSon().catch(function () { sonAudition = null; });
+  }
+}
+
+function arreterDictee() {
+  if (typeof Dictee === 'undefined') return;
+  Dictee.arreter();
+  majBoutonDictee(false);
+
+  var etat = document.getElementById('dictee-etat');
+  if (etat) {
+    etat.textContent = 'Dictée arrêtée. Relisez et corrigez avant d\'enregistrer.';
+    etat.className = 'dictee-etat';
+  }
+
+  if (Dictee.captureSonPossible()) {
+    Dictee.arreterCapture().then(function (son) { sonAudition = son; });
+  }
+}
+
+function majBoutonDictee(enCours) {
+  var b = document.getElementById('dictee-bouton');
+  if (!b) return;
+  b.innerHTML = iconeMicro() + (enCours ? 'Arrêter' : 'Dicter');
+  b.classList.toggle('enregistre', !!enCours);
 }
 
 function confirmerAuditionTenue(id) {
   var date = (document.getElementById('tenue-date') || {}).value || '';
   var heure = (document.getElementById('tenue-heure') || {}).value || '09:00';
+  var texte = ((document.getElementById('tenue-texte') || {}).value || '').trim();
   var err = document.getElementById('err-tenue-date');
   if (!date) { if (err) err.textContent = 'Indiquez la date de l\'audition.'; return; }
 
+  /* Une dictee laissee ouverte continuerait a ecouter apres coup. */
+  if (typeof Dictee !== 'undefined' && Dictee.enCours()) Dictee.arreter();
+
+  var d = mesDossiersActifs().find(function (x) { return x.id === id; });
   var p = date.split('-');
+  var pieces = sonAudition
+    ? [{ nom: 'audition-' + id + '.webm',
+         taille: tailleFichier(sonAudition.octets),
+         url: sonAudition.url }]
+    : [];
+
   HISTORIQUE[id].push({
     etape: 'AUDITION', type: 'audition',
     date: p[2] + '/' + p[1] + '/' + p[0], heure: heure.replace(':', 'h'),
     libelle: 'Votre audition',
-    detail: 'Déclarations recueillies — procès-verbal en cours de relecture'
+    detail: texte
+      ? 'Déclarations recueillies — procès-verbal établi à partir de la déposition'
+      : 'Déclarations recueillies — procès-verbal en cours de relecture',
+    pieces: pieces
   });
 
-  toast('Audition enregistrée — le procès-verbal peut être établi', 'success');
+  /* Le proces-verbal se remplit de la deposition : c'est ce qui a ete dit
+     a l'audition qui doit y figurer, non le texte du formulaire en ligne.
+     La substitution passe par corrigerPV, donc elle est horodatee et
+     signee comme toute autre reecriture. */
+  var etabli = false;
+  if (texte && d) {
+    etabli = corrigerPV(id, 'plaignant', '« ' + texte + ' »',
+                        ENQUETEUR_COURANT, declarationOriginale(d, 'plaignant'));
+  }
+
+  sonAudition = null;
+  toast(etabli
+    ? 'Audition enregistrée — procès-verbal établi à partir de la déposition'
+    : 'Audition enregistrée — le procès-verbal peut être établi', 'success');
   majKPI();
   rendreDossier();
 }
@@ -1616,9 +1751,17 @@ function emettreConvocation(id) {
 function transmettreProcureur(id) {
   var d = mesDossiersActifs().find(function (x) { return x.id === id; });
   if (!d) return;
+
+  /* L'evenement se rattache a l'etape ou etait le dossier — la decision —
+     et le statut ne change qu'apres. Fixer TRANSMIS d'abord datait
+     l'evenement d'une etape que la frise n'affiche pas : il devenait
+     introuvable. La cloture procedait deja dans le bon ordre. */
+  var motif = (typeof absencesConstatees === 'function' && absencesConstatees(id) >= 3)
+    ? 'Trois absences injustifiées du mis en cause'
+    : 'Les faits relèvent de la compétence du parquet';
+  ajouterEvenementStatut(id, 'Dossier transmis au procureur', motif);
   d.statut = 'TRANSMIS';
-  ajouterEvenementStatut(id, 'Dossier transmis au procureur',
-    'Trois absences injustifiées du mis en cause');
+
   toast('Dossier ' + id + ' transmis au procureur', 'success');
   renderMesDossiers();
   majKPI();
