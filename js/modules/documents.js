@@ -402,7 +402,10 @@ function htmlConvocation(d, conv, destinataire) {
   return enteteOfficielle() +
     titreDocument('Convocation', d.id) + `
     <p style="text-align:right;font-size:14px;margin:0 0 26px">
-      ${d.commissariat || 'Commissariat compétent'}, le ${dateEnClair(conv.date)}
+      ${/* Une convocation est datée du jour où elle est écrite, non du jour
+           où l'on comparaît : l'en-tête reprenait la date de comparution,
+           si bien que le document semblait rédigé le jour même. */
+         d.commissariat || 'Commissariat compétent'}, le ${dateEnClair(conv.emise || conv.date)}
     </p>
 
     <p style="font-size:16px;line-height:1.9;text-align:justify">

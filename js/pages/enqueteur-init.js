@@ -418,7 +418,11 @@ function actesDeLEtape(d, cle) {
       'Émet la convocation et fait passer le dossier à l\'étape Audition.',
       'programmerAudition(\'' + id + '\', \'RECU\')', convPlaign || aAudition,
       false,
-      traces(function (e) { return e.etape === 'RECU'; })));
+      traces(function (e) { return e.etape === 'RECU'; }),
+      [doc('Déclaration de plainte', 'Telle que déposée en ligne',
+           'lirePlainte(\'' + id + '\')'),
+       doc('Attestation de dépôt', 'Remise au plaignant',
+           'lireAttestation(\'' + id + '\')')]));
   }
 
   /* L'étape Audition mène deux fils : celui du plaignant — on l'entend,
@@ -436,13 +440,24 @@ function actesDeLEtape(d, cle) {
           (e.type === 'audition' ||
            (e.type === 'convocation' && /plaignant/i.test(e.libelle || '')) ||
            (e.type === 'statut' && /audition/i.test(e.libelle || '')));
-      })));
+      }),
+      convPlaign
+        ? [doc('Convocation du plaignant', 'Document remis ou adressé',
+               'ouvrirConvocationActe(\'' + id + '\', \'plaignant\')')]
+        : []));
 
     actes.push(acte('Relire et signer le procès-verbal',
-      aAudition ? 'Onglet Plainte, document Procès-verbal.'
+      aAudition ? 'Le document s\'ouvre ci-dessous ; la signature se pose depuis l\'onglet Plainte.'
                 : 'Après l\'enregistrement de l\'audition.',
       'allerAuPV()', aPV, !aAudition,
-      traces(function (e) { return e.type === 'pv'; })));
+      traces(function (e) { return e.type === 'pv'; }),
+      /* Le PV n'existe qu'une fois l'audition tenue : le proposer avant
+         ouvrirait un document vide. */
+      aAudition
+        ? [doc('Procès-verbal d\'audition du plaignant',
+               pvEstSigne(id) ? 'Signé — lecture seule' : 'Établi, en attente de signature',
+               'ouvrirPVActe(\'' + id + '\', \'plaignant\')')]
+        : []));
 
     actes.push(acte(misEnCauseIdentifie(d)
         ? 'Convoquer la personne mise en cause'
@@ -453,7 +468,17 @@ function actesDeLEtape(d, cle) {
       'changerOngletDossier(\'convocations\')', convMEC, false,
       traces(function (e) {
         return e.type === 'convocation' && /mis en cause/i.test(e.libelle || '');
-      })));
+      }),
+      /* Une convocation par ordre émis, plus le PV du mis en cause s'il a
+         été entendu. */
+      convocationsDe(id).map(function (c) {
+        return doc((ORDINAUX[c.ordre - 1] || c.ordre + 'e') + ' convocation',
+          ech(c.nom) + ' — ' + (STATUT_CONVOCATION[c.statut] || [, c.statut])[1],
+          'ouvrirConvocationActe(\'' + id + '\', \'mis_en_cause\', ' + c.ordre + ')');
+      }).concat(pvExiste(d, 'mis_en_cause')
+        ? [doc('Procès-verbal d\'audition du mis en cause', 'Comparution enregistrée',
+               'ouvrirPVActe(\'' + id + '\', \'mis_en_cause\')')]
+        : [])));
 
     /* Les comparutions vivent dans CONVOCATIONS, pas dans l'historique :
        on en fabrique la lecture, sans quoi l'acte se déplierait vide. */
@@ -537,15 +562,68 @@ function dossierVerrouille(d) {
   return d.statut === 'CLOTURE' || d.statut === 'TRANSMIS';
 }
 
-function acte(libelle, aide, action, fait, bloque, traces) {
+function acte(libelle, aide, action, fait, bloque, traces, docs) {
   return {
     libelle: libelle, aide: aide, action: action,
     fait: !!fait,
     /* Un acte accompli ne peut plus être bloqué : le prérequis a
        forcément été rempli pour qu'il le soit. */
     bloque: !fait && !!bloque,
-    traces: traces || []
+    traces: traces || [],
+    /* Documents produits par l'acte : ils s'ouvrent depuis son dépliant,
+       sans passer par l'onglet Plainte. */
+    docs: docs || []
   };
+}
+
+/* Une pièce consultable depuis un acte. */
+function doc(libelle, precision, action) {
+  return { libelle: libelle, precision: precision || '', action: action };
+}
+
+/* ── Ouverture des documents depuis un acte ──────────────────
+   Le procès-verbal, la plainte et l'attestation ne se lisaient que dans
+   l'onglet Plainte : il fallait quitter la progression pour vérifier ce
+   qu'un acte avait produit, puis y revenir. Ils s'ouvrent maintenant là
+   où l'acte les mentionne, dans la même visionneuse — celle qui porte
+   « Télécharger / Imprimer ».
+   ─────────────────────────────────────────────────────────── */
+function ouvrirPVActe(id, audition) {
+  var d = mesDossiersActifs().find(function (x) { return x.id === id; });
+  if (!d) return;
+  var qui = audition === 'mis_en_cause' ? 'de la personne mise en cause' : 'du plaignant';
+  afficherDocument('Procès-verbal d\'audition ' + qui + ' — ' + id,
+                   htmlPV(id, audition));
+}
+
+function ouvrirConvocationActe(id, destinataire, ordre) {
+  var d = mesDossiersActifs().find(function (x) { return x.id === id; });
+  if (!d) return;
+
+  if (destinataire === 'plaignant') {
+    /* La convocation du plaignant ne figure pas dans CONVOCATIONS, qui ne
+       numérote que celles du mis en cause : on la reconstitue à partir de
+       l'évènement qui l'a consignée. */
+    var e = ((typeof HISTORIQUE !== 'undefined' && HISTORIQUE[id]) || [])
+      .filter(function (x) {
+        return x.type === 'convocation' && /plaignant|votre audition/i.test(x.libelle || '');
+      })[0];
+    if (!e) return;
+    var quand = /au (\d{2}\/\d{2}\/\d{4}) à (\d+h\d+)/.exec(e.detail || '');
+    lireConvocation(d, {
+      nom: d.plaignant,
+      date: quand ? quand[1] : e.date,
+      heure: quand ? quand[2] : e.heure,
+      emise: e.date,
+      ordre: 1,
+      motif: 'Audition dans le cadre de l\'instruction de votre plainte.'
+    }, 'plaignant');
+    return;
+  }
+
+  var liste = convocationsDe(id);
+  var conv = liste.filter(function (c) { return c.ordre === ordre; })[0] || liste[liste.length - 1];
+  if (conv) lireConvocation(d, conv, 'mis_en_cause');
 }
 
 /* Une chaîne destinée à un argument de fonction dans un attribut onclick :
@@ -602,16 +680,23 @@ function rendreActe(a, id, verrou) {
 
   /* Rien à montrer : pas de chevron ni de dépliant, qui s'ouvriraient sur
      du vide. */
-  if (!detail.length && !notes.length) {
+  if (!detail.length && !notes.length && !a.docs.length) {
     return '<li class="acte' + classe + '"><div class="acte-ligne">' + ligne + '</div></li>';
   }
 
   return '<li class="acte' + classe + '">' +
     '<details class="acte-bloc">' +
       '<summary class="acte-ligne">' + ligne +
+        (a.docs.length
+          ? '<span class="acte-docs-n" title="Documents consultables">' +
+              a.docs.length + '</span>'
+          : '') +
         '<span class="etape-chevron" aria-hidden="true"></span>' +
       '</summary>' +
       '<div class="acte-detail">' +
+        (a.docs.length
+          ? '<div class="doc-liste">' + a.docs.map(rendreDocActe).join('') + '</div>'
+          : '') +
         (detail.length
           ? '<ul class="acte-traces">' + detail.map(rendreTrace).join('') + '</ul>'
           : '') +
@@ -621,6 +706,16 @@ function rendreActe(a, id, verrou) {
       '</div>' +
     '</details>' +
   '</li>';
+}
+
+function rendreDocActe(x) {
+  return '<button type="button" class="doc-item" onclick="' + x.action + '">' +
+    '<span class="doc-item-txt">' +
+      '<span class="doc-item-nom">' + x.libelle + '</span>' +
+      (x.precision ? '<span class="doc-item-sous">' + x.precision + '</span>' : '') +
+    '</span>' +
+    '<span class="doc-item-act">Ouvrir</span>' +
+  '</button>';
 }
 
 /* Un évènement rattaché à un acte : soit un écrit, soit un fait daté.
