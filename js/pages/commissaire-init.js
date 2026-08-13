@@ -44,7 +44,9 @@ function confirmAffectation(enqueteur) {
   if (d) {
     d.enqueteur = enqueteur;
     d.priorite = priorite;
-    if (d.statut === 'RECU') d.statut = 'AUDITION';
+    /* Le dossier reste a l'etape Reçu : affecter n'est pas convoquer.
+       C'est l'enqueteur qui le fera passer a l'audition en fixant la date,
+       depuis l'onglet Progression de son dossier. */
 
     /* L'affectation et la priorité retenue rejoignent l'historique : le
        plaignant voit que son dossier a été confié à quelqu'un. */

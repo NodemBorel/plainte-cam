@@ -30,11 +30,13 @@ const DOSSIERS = [
     lieu: 'Biyem-Assi, Yaoundé 6ème, Mfoundi, Centre',
     prejudice: { nature: 'Financier', montant: '200 000', detail: 'Virement Mobile Money non remboursé' },
     declaration: "Un individu s'est présenté comme agent d'une société de micro-finance. Il m'a soutiré un virement de 200 000 FCFA en promettant un remboursement avec intérêts. Depuis lors, il est injoignable.",
+    misEnCause: "NKOLO Bertrand, se présentant comme agent de micro-finance.",
     contact: { email: 'm.essomba@gmail.com',  telephone: '+237 677 100 002' },
-    contactMisEnCause: null,
+    /* Identifie en cours d'enquete a partir du numero utilise pour le
+       virement : la convocation peut donc lui etre adressee. */
+    contactMisEnCause: { email: null, telephone: '+237 655 803 217' },
     pieces: [{ nom: 'recu-mobile-money.jpg',        taille: '740 Ko' },
-              { nom: 'captures-conversation.pdf',   taille: '2,1 Mo' }],
-    misEnCause: null
+              { nom: 'captures-conversation.pdf',   taille: '2,1 Mo' }]
   },
   {
     id: '2026-00412', type: 'Agression', plaignant: 'Paul ATANGANA',
@@ -77,6 +79,42 @@ const DOSSIERS = [
     pieces: [{ nom: 'photos-degats-moto.jpg',       taille: '3,4 Mo' },
               { nom: 'facture-moto.pdf',            taille: '96 Ko' }],
     misEnCause: null
+  },
+  /* Dossier affecte mais pas encore convoque : c'est le seul etat ou
+     « Fixer la date d'audition » est proposee. Il permet de derouler la
+     chaine complete — convocation, audition tenue, proces-verbal — sans
+     rien avoir a preparer. */
+  {
+    id: '2026-00462', type: 'Escroquerie', plaignant: 'Sylvie NANA',
+    date: '02/06/2026', heure: '10h15', statut: 'RECU', score: 79,
+    enqueteur: 'Insp. KANA', priorite: 'NORMALE',
+    commissariat: 'Commissariat Cité Verte, Yaoundé',
+    lieu: 'Nkolbisson, Yaoundé 7ème, Mfoundi, Centre',
+    prejudice: { nature: 'Financier', montant: '320 000', detail: 'Versement pour une commande de marchandises jamais livrée' },
+    declaration: "J'ai versé 320 000 FCFA à un commerçant pour une commande de marchandises qui ne m'a jamais été livrée. Il ne répond plus à mes appels depuis trois semaines. J'ai conservé le reçu de versement et nos échanges.",
+    contact: { email: 's.nana@gmail.com', telephone: '+237 677 100 006' },
+    /* Coordonnees connues : la convocation du mis en cause est donc
+       possible par les trois canaux. */
+    contactMisEnCause: { email: 'commerce.mbala@yahoo.fr', telephone: '+237 655 231 470' },
+    pieces: [{ nom: 'recu-versement.pdf',           taille: '128 Ko' },
+              { nom: 'echanges-whatsapp.pdf',       taille: '870 Ko' }],
+    misEnCause: "MBALA Joseph, commerçant au marché Mokolo, boutique B-42."
+  },
+  /* Instruction menee a son terme : c'est le seul etat ou la cloture est
+     proposee, et le seul dossier de KANA a l'atteindre. */
+  {
+    id: '2026-00429', type: 'Vol avec violence', plaignant: 'Georges TCHOUMI',
+    date: '10/05/2026', heure: '19h30', statut: 'DECISION', score: 85,
+    enqueteur: 'Insp. KANA', priorite: 'URGENTE',
+    commissariat: 'Commissariat Cité Verte, Yaoundé',
+    lieu: 'Essos, Yaoundé 4ème, Mfoundi, Centre',
+    prejudice: { nature: 'Matériel et corporel', montant: '180 000', detail: 'Sacoche contenant 180 000 FCFA — contusions au bras' },
+    declaration: "En rentrant du travail le 10 mai vers 19h30, deux individus à moto m'ont barré la route à Essos. L'un d'eux m'a saisi le bras et arraché ma sacoche contenant 180 000 FCFA avant de prendre la fuite. J'ai été légèrement blessé au bras.",
+    contact: { email: 'g.tchoumi@gmail.com', telephone: '+237 677 100 007' },
+    contactMisEnCause: { email: null, telephone: '+237 690 774 512' },
+    pieces: [{ nom: 'certificat-medical-bras.pdf', taille: '212 Ko' },
+              { nom: 'plan-des-lieux.jpg',         taille: '1,4 Mo' }],
+    misEnCause: "ONANA Serge, interpellé le 21 mai, reconnu par le plaignant."
   }
 ];
 
@@ -210,6 +248,59 @@ const HISTORIQUE = {
     { etape: 'CLOTURE', type: 'message', date: '25/05/2026', heure: '10h05', auteur: 'Insp. KANA',
       texte: "Votre dossier est clôturé. Si un élément nouveau apparaît — témoin, restitution du bien, aveu — vous pouvez demander sa réouverture en vous présentant au commissariat avec votre numéro de dossier.",
       pieces: [{ nom: 'notification-cloture.pdf', taille: '54 Ko' }] }
+  ],
+
+  /* Parcours complet : les quatre etapes sont franchies, le dossier attend
+     son issue — transmission au parquet ou classement. */
+  '2026-00429': [
+    { etape: 'RECU', type: 'depot',       date: '10/05/2026', heure: '19h30', libelle: 'Plainte déposée en ligne',         detail: 'Enregistrée sur PlainteCam' },
+    { etape: 'RECU', type: 'attestation', date: '10/05/2026', heure: '19h31', libelle: 'Attestation envoyée par e-mail',   detail: 'Numéro de dossier transmis' },
+    { etape: 'RECU', type: 'reception',   date: '10/05/2026', heure: '20h00', libelle: 'Reçue au Commissariat Cité Verte', detail: 'Prise en charge officielle' },
+    { etape: 'RECU', type: 'affectation', date: '11/05/2026', heure: '08h15', libelle: 'Dossier affecté',                  detail: 'Insp. KANA désigné — priorité urgente' },
+
+    { etape: 'AUDITION', type: 'convocation', date: '11/05/2026', heure: '09h00', libelle: 'Convocation du plaignant',
+      detail: 'Audition fixée au 14/05/2026 à 09h00 — par e-mail à g.tchoumi@gmail.com' },
+    { etape: 'AUDITION', type: 'audition',    date: '14/05/2026', heure: '09h00', libelle: 'Votre audition',
+      detail: 'Déclarations recueillies — procès-verbal établi' },
+    /* Commentaires rattachés à un acte : ils s'affichent sous lui. */
+    { etape: 'AUDITION', type: 'note', date: '14/05/2026', heure: '09h40', auteur: 'Insp. KANA',
+      apropos: "Enregistrer l'audition du plaignant",
+      texte: "Le plaignant s'est présenté avec une demi-heure de retard, accompagné de son épouse qui n'a pas été entendue.",
+      pieces: [] },
+    { etape: 'AUDITION', type: 'pv',          date: '14/05/2026', heure: '11h20', libelle: 'Procès-verbal établi',
+      detail: "PV d'audition signé" },
+    { etape: 'AUDITION', type: 'message', date: '14/05/2026', heure: '11h35', auteur: 'Insp. KANA',
+      texte: "Votre procès-verbal d'audition est joint. Le certificat médical que vous avez versé au dossier a été enregistré comme pièce à conviction.",
+      pieces: [{ nom: 'PV-audition-2026-00429.pdf', taille: '184 Ko' }] },
+
+    { etape: 'EN_INSTRUCTION', type: 'statut',      date: '18/05/2026', heure: '08h00', libelle: 'Enquête ouverte',
+      detail: 'Recherche des auteurs engagée' },
+    { etape: 'EN_INSTRUCTION', type: 'note',        date: '20/05/2026', heure: '15h40', libelle: 'Observation interne',
+      detail: 'Recoupement avec deux faits similaires signalés à Essos le même mois.' },
+    { etape: 'EN_INSTRUCTION', type: 'convocation', date: '21/05/2026', heure: '17h00', libelle: 'Convocation du mis en cause',
+      detail: 'ONANA Serge convoqué pour le 22/05/2026 à 10h00' },
+    { etape: 'EN_INSTRUCTION', type: 'message', date: '22/05/2026', heure: '16h00', auteur: 'Insp. KANA',
+      texte: "La personne que vous avez reconnue s'est présentée ce jour et a été entendue. L'enquête se poursuit ; vous serez informé de la suite donnée à votre plainte.",
+      pieces: [] },
+
+    { etape: 'DECISION', type: 'statut', date: '28/05/2026', heure: '09h00', libelle: 'Dossier en délibération',
+      detail: 'Analyse des éléments recueillis' },
+    { etape: 'DECISION', type: 'note', date: '29/05/2026', heure: '14h10', auteur: 'Insp. KANA',
+      apropos: 'Transmettre au procureur',
+      texte: "Les faits relèvent du parquet : violence avec soustraction. Dossier prêt à transmettre, en attente de l'avis du commissaire.",
+      pieces: [] },
+    { etape: 'DECISION', type: 'message', date: '30/05/2026', heure: '08h30', auteur: 'Insp. KANA',
+      apropos: 'Clôturer le dossier',
+      texte: "Votre dossier est complet. Une décision vous sera notifiée prochainement ; vous n'avez aucune démarche à effectuer d'ici là.",
+      pieces: [] }
+  ],
+
+  /* Affecte, rien de plus : l'enqueteur reprend le dossier a son debut. */
+  '2026-00462': [
+    { etape: 'RECU', type: 'depot',       date: '02/06/2026', heure: '10h15', libelle: 'Plainte déposée en ligne',         detail: 'Enregistrée sur PlainteCam' },
+    { etape: 'RECU', type: 'attestation', date: '02/06/2026', heure: '10h16', libelle: 'Attestation envoyée par e-mail',   detail: 'Numéro de dossier transmis' },
+    { etape: 'RECU', type: 'reception',   date: '02/06/2026', heure: '10h40', libelle: 'Reçue au Commissariat Cité Verte', detail: 'Prise en charge officielle' },
+    { etape: 'RECU', type: 'affectation', date: '02/06/2026', heure: '11h05', libelle: 'Dossier affecté',                  detail: 'Insp. KANA désigné — priorité normale' }
   ]
 };
 
@@ -233,16 +324,21 @@ const CONVOCATIONS = {
   /* Le mis en cause ne se présente pas : deux absences constatées, la
      troisième convocation est en cours. */
   '2026-00438': [
-    { ordre: 1, nom: 'Suspect non identifié — société de micro-finance', date: '22/05/2026', heure: '09h00', statut: 'ABSENT',
+    { ordre: 1, nom: 'NKOLO Bertrand', date: '22/05/2026', heure: '09h00', statut: 'ABSENT',
       motif: "Audition dans le cadre de l'instruction d'une plainte pour escroquerie." },
-    { ordre: 2, nom: 'Suspect non identifié — société de micro-finance', date: '29/05/2026', heure: '09h00', statut: 'ABSENT',
+    { ordre: 2, nom: 'NKOLO Bertrand', date: '29/05/2026', heure: '09h00', statut: 'ABSENT',
       motif: 'Seconde convocation — absence non justifiée à la première.' },
-    { ordre: 3, nom: 'Suspect non identifié — société de micro-finance', date: '05/06/2026', heure: '09h00', statut: 'EN_ATTENTE',
+    { ordre: 3, nom: 'NKOLO Bertrand', date: '05/06/2026', heure: '09h00', statut: 'EN_ATTENTE',
       motif: 'Troisième et dernière convocation avant transmission au procureur.' }
   ],
   '2026-00412': [
     { ordre: 1, nom: 'FOUDA Ernest', date: '13/05/2026', heure: '09h30', statut: 'COMPARU',
       motif: "Audition dans le cadre de l'instruction d'une plainte pour agression physique." }
+  ],
+  /* Le mis en cause a comparu : l'instruction a pu aller a son terme. */
+  '2026-00429': [
+    { ordre: 1, nom: 'ONANA Serge', date: '22/05/2026', heure: '10h00', statut: 'COMPARU',
+      motif: "Audition dans le cadre de l'instruction d'une plainte pour vol avec violence." }
   ]
 };
 

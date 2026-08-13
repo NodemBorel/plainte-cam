@@ -19,6 +19,16 @@
   border: 1.5px solid var(--primary);
 }
 .btn-outline:hover { background: var(--primary); color: #fff; }
+/* Action secondaire posée à côté d'une action principale : elle doit se
+   voir sans lui disputer l'attention. */
+.btn-ghost {
+  background: transparent; color: var(--text-light);
+  border: 1.5px solid var(--gray-2);
+}
+.btn-ghost:hover {
+  background: var(--gray-1); color: var(--primary);
+  border-color: var(--gray-3);
+}
 .btn-outline-white {
   background: transparent; color: #fff;
   border: 1.5px solid rgba(255,255,255,.6);

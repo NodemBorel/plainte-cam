@@ -219,8 +219,25 @@ function declarationOriginale(d, audition) {
    signature. Le §7.4 exige un PV revisable dont les modifications sont
    tracees — d'ou le bouton de correction et le journal des versions. */
 function barrePV(d) {
+  var existe = pvExiste(d, pvAudition);
   var signe = pvEstSigne(d.id);
   var revisions = pvRevisions(d.id, pvAudition);
+
+  var actions;
+  if (!existe) {
+    /* Aucun document : ni signature ni correction possibles. */
+    actions = '<span class="text-muted" style="font-size:12.5px">Aucun procès-verbal à ce stade</span>';
+  } else if (signe) {
+    actions = '<span class="badge badge-green">Signé — non modifiable</span>';
+  } else if (modeCorrection) {
+    actions =
+      '<button class="btn btn-success btn-sm" onclick="enregistrerCorrectionPV(\'' + d.id + '\')">Enregistrer la correction</button>' +
+      '<button class="btn btn-outline btn-sm" onclick="basculerCorrection()">Annuler</button>';
+  } else {
+    actions =
+      '<button class="btn btn-outline btn-sm" onclick="basculerCorrection()">Corriger</button>' +
+      '<button class="btn btn-primary btn-sm" onclick="signerPVDossier(\'' + d.id + '\')">Signer le PV</button>';
+  }
 
   return '<div class="pv-barre">' +
     '<div class="form-group" style="margin:0;flex:1;min-width:190px">' +
@@ -235,16 +252,16 @@ function barrePV(d) {
         ? '<button class="btn btn-outline btn-sm" onclick="voirRevisionsPV(\'' + d.id + '\')">' +
           revisions.length + ' révision' + (revisions.length > 1 ? 's' : '') + '</button>'
         : '') +
-      (signe
-        ? '<span class="badge badge-green">Signé — non modifiable</span>'
-        : (modeCorrection
-            ? '<button class="btn btn-success btn-sm" onclick="enregistrerCorrectionPV(\'' + d.id + '\')">Enregistrer la correction</button>' +
-              '<button class="btn btn-outline btn-sm" onclick="basculerCorrection()">Annuler</button>'
-            : '<button class="btn btn-outline btn-sm" onclick="basculerCorrection()">Corriger</button>' +
-              '<button class="btn btn-primary btn-sm" onclick="signerPVDossier(\'' + d.id + '\')">Signer le PV</button>')) +
+      actions +
     '</div>' +
   '</div>' +
-  (modeCorrection && !signe
+
+  /* Chaque correction est listee avec son heure et son auteur : une seule
+     ligne « derniere modification » ne suffit pas a rendre compte de
+     l'historique quand un mis en cause conteste le contenu du PV. */
+  blocModifications(revisions, d.id) +
+
+  (modeCorrection && existe && !signe
     ? '<div class="pv-avis">Modifiez le corps de la déclaration ci-dessous. Chaque correction est horodatée et conservée.</div>'
     : '');
 }
@@ -298,6 +315,31 @@ function enregistrerCorrectionPV(id) {
   rendreDossier();
 }
 
+/* Liste des corrections, sous la barre du PV. Chaque ligne porte son
+   numéro de version, son horodatage et son auteur ; un clic ouvre le
+   détail avant / après. */
+function blocModifications(revisions, id) {
+  if (!revisions.length) return '';
+
+  var lignes = revisions.map(function (r, i) {
+    return '<li><button type="button" onclick="voirRevisionsPV(\'' + id + '\')">' +
+      '<span class="modif-version">v' + (i + 1) + '</span>' +
+      '<span class="modif-quand">' + ech(r.date) + ' à ' + ech(r.heure) + '</span>' +
+      '<span class="modif-qui">' + ech(r.auteur) + '</span>' +
+    '</button></li>';
+  }).reverse().join('');
+
+  /* Replie par defaut : l'historique n'a d'interet qu'a la demande, il ne
+     doit pas s'interposer entre l'agent et le document. */
+  return '<details class="pv-modifs">' +
+    '<summary>' + revisions.length + ' modification' + (revisions.length > 1 ? 's' : '') +
+      ' — la dernière le ' + ech(revisions[revisions.length - 1].date) +
+      ' à ' + ech(revisions[revisions.length - 1].heure) +
+      '<span class="fil-chevron" aria-hidden="true"></span></summary>' +
+    '<ul>' + lignes + '</ul>' +
+  '</details>';
+}
+
 /* Journal des versions : ce qui permet de répondre à un mis en cause qui
    conteste le contenu du PV. */
 function voirRevisionsPV(id) {
@@ -324,29 +366,317 @@ function voirRevisionsPV(id) {
 }
 
 /* ── Onglet 2 : où en est le dossier, et les échanges ───── */
+/* Tout tient dans l'étapier : ce qu'une étape demande et ce qui s'y est
+   passé se lisaient dans deux colonnes séparées, si bien qu'un message
+   écrit à l'audition voisinait à l'écran avec un acte de la décision.
+   Chaque étape porte désormais ses actes, son fil et, si c'est celle en
+   cours, de quoi écrire au dossier. */
 function ongletProgression(d) {
-  var id = d.id;
-  return '<div class="grid-1-2">' +
-    '<div style="display:flex;flex-direction:column;gap:16px">' +
-      '<div class="card">' +
-        '<div class="card-title" style="margin-bottom:12px">Étapes</div>' +
-        friseEtapes(d) +
-        blocEtapeSuivante(d) +
-      '</div>' +
-      (d.statut !== 'CLOTURE' && d.statut !== 'TRANSMIS'
-        ? '<div class="card"><div class="card-title" style="margin-bottom:10px">Clôture</div>' +
-          '<p style="font-size:13px;color:var(--text-light);margin:0 0 12px">' +
-          'Clôturer met fin à l\'instruction. Le plaignant en est informé dans son espace de suivi.</p>' +
-          '<button class="btn btn-success btn-full" onclick="cloturerDossier(\'' + id + '\')">Clôturer le dossier</button></div>'
-        : '') +
-    '</div>' +
-
-    '<div class="card">' +
-      '<div class="card-title" style="margin-bottom:12px">Suivi et échanges</div>' +
-      '<div id="fil-dossier">' + renderFilDossier(id) + '</div>' +
-      blocRedaction(id) +
-    '</div>' +
+  return '<div class="card">' +
+    '<div class="card-title" style="margin-bottom:18px">Étapes du dossier</div>' +
+    friseEtapes(d) +
   '</div>';
+}
+
+/* ── Actions possibles à l'étape en cours ────────────────────
+   Le dossier ne se pilotait que par le bouton « étape suivante », sans
+   qu'on sache ce qu'il reste à faire avant de l'actionner. Chaque étape
+   annonce donc les actes qui lui appartiennent, et ceux déjà accomplis
+   apparaissent barrés plutôt que masqués : l'agent voit son avancement.
+   ─────────────────────────────────────────────────────────── */
+function actesDeLEtape(d, cle) {
+  var id = d.id;
+  var h = (typeof HISTORIQUE !== 'undefined' && HISTORIQUE[id]) || [];
+  var aEtape = function (etape, type) {
+    return h.some(function (e) { return e.etape === etape && e.type === type; });
+  };
+  var aAudition   = h.some(function (e) { return e.type === 'audition'; });
+  var aPV         = h.some(function (e) { return e.type === 'pv'; });
+  var convPlaign  = h.some(function (e) { return e.type === 'convocation' && /plaignant/i.test(e.libelle || ''); });
+  var convMEC     = convocationsDe(id).length > 0;
+  var comparuMEC  = convocationsDe(id).some(function (c) { return c.statut === 'COMPARU'; });
+  var clos        = d.statut === 'CLOTURE' || d.statut === 'TRANSMIS';
+  var actes = [];
+
+  /* La convocation est acquise si elle figure à l'historique, mais aussi
+     dès que l'audition a eu lieu : on ne tient pas une audition sans
+     l'avoir fixée. Sans cette seconde branche, un dossier déjà entendu
+     affichait « 1 à faire » sur une étape franchie de longue date. */
+  if (cle === 'RECU') {
+    actes.push(acte('Fixer la date d\'audition du plaignant',
+      'Émet la convocation et fait passer le dossier à l\'étape Audition.',
+      'programmerAudition(\'' + id + '\', \'RECU\')', convPlaign || aAudition));
+  }
+
+  /* L'étape Audition mène deux fils : celui du plaignant — on l'entend,
+     puis on signe son PV — et celui du mis en cause — on l'identifie, on
+     le convoque, on constate s'il vient. Chacun suit son ordre, mais les
+     deux avancent de front : signer le PV du plaignant n'attend pas la
+     comparution. Un acte dont le tour n'est pas venu reste affiché, sans
+     bouton, avec la raison — comme une étape à venir. */
+  if (cle === 'AUDITION') {
+    actes.push(acte('Enregistrer l\'audition du plaignant',
+      'Consigne que l\'audition a eu lieu. Le procès-verbal devient alors établissable.',
+      'enregistrerAudition(\'' + id + '\', \'AUDITION\')', aAudition));
+
+    actes.push(acte('Relire et signer le procès-verbal',
+      aAudition ? 'Onglet Plainte, document Procès-verbal.'
+                : 'Après l\'enregistrement de l\'audition.',
+      'allerAuPV()', aPV, !aAudition));
+
+    actes.push(acte(misEnCauseIdentifie(d)
+        ? 'Convoquer la personne mise en cause'
+        : 'Identifier la personne mise en cause',
+      misEnCauseIdentifie(d)
+        ? 'Trois absences injustifiées entraînent la transmission au procureur.'
+        : 'Aucune convocation possible tant qu\'elle n\'est pas identifiée.',
+      'changerOngletDossier(\'convocations\')', convMEC));
+
+    actes.push(acte('Constater la comparution ou l\'absence',
+      convMEC ? absencesConstatees(id) + ' absence(s) déjà constatée(s).'
+              : 'Après l\'émission de la convocation.',
+      'changerOngletDossier(\'convocations\')', comparuMEC, !convMEC));
+  }
+
+  if (cle === 'EN_INSTRUCTION') {
+    /* Ces deux actes se cochent d'eux-mêmes : un message ou une note
+       rattachés à l'étape valent exécution. Sans quoi une étape franchie
+       depuis longtemps continuerait d'afficher « 2 à faire ». */
+    actes.push(acte('Informer le plaignant de l\'avancement',
+      'Un message dans son espace de suivi, avec pièce jointe si besoin.',
+      'ouvrirEcrit(\'' + id + '\', \'message\')', aEtape('EN_INSTRUCTION', 'message')));
+    actes.push(acte('Consigner une observation interne',
+      'Note visible du commissariat seul, jamais du plaignant.',
+      'ouvrirEcrit(\'' + id + '\', \'note\')', aEtape('EN_INSTRUCTION', 'note')));
+  }
+
+  /* Etape terminale : les deux issues possibles, et rien d'autre. C'est le
+     seul endroit d'où le dossier peut être clos — toutes les étapes qui
+     précèdent ont alors été franchies. L'issue retenue se coche, de sorte
+     qu'on lise sur un dossier achevé laquelle des deux a été prise. */
+  if (cle === 'DECISION') {
+    actes.push(acte('Transmettre au procureur',
+      'Pour les dossiers relevant du parquet.',
+      'transmettreProcureur(\'' + id + '\')', d.statut === 'TRANSMIS'));
+    actes.push(acte('Clôturer le dossier',
+      'Classement. Le plaignant en est informé dans son espace de suivi.',
+      'cloturerDossier(\'' + id + '\')', d.statut === 'CLOTURE'));
+  }
+
+  return actes;
+}
+
+/* Un dossier achevé ne se pilote plus : ses étapes restent consultables,
+   mais aucun acte n'y est actionnable. Sans quoi un dossier clôturé
+   proposait encore « Identifier la personne mise en cause », bouton
+   compris, sur une étape franchie des semaines plus tôt. */
+function dossierVerrouille(d) {
+  return d.statut === 'CLOTURE' || d.statut === 'TRANSMIS';
+}
+
+function acte(libelle, aide, action, fait, bloque) {
+  return {
+    libelle: libelle, aide: aide, action: action,
+    fait: !!fait,
+    /* Un acte accompli ne peut plus être bloqué : le prérequis a
+       forcément été rempli pour qu'il le soit. */
+    bloque: !fait && !!bloque
+  };
+}
+
+/* Une chaîne destinée à un argument de fonction dans un attribut onclick :
+   sans échappement, « Enregistrer l'audition » ferme le littéral JS sur
+   son apostrophe et le bouton ne fait plus rien. */
+function argJS(s) {
+  return String(s)
+    .replace(/\\/g, '\\\\')
+    .replace(/'/g, "\\'")
+    .replace(/"/g, '&quot;');
+}
+
+/* Écrits rattachés à un acte précis, dans l'ordre où ils ont été posés. */
+function commentairesDeLActe(id, libelle) {
+  return ((typeof HISTORIQUE !== 'undefined' && HISTORIQUE[id]) || [])
+    .filter(function (e) { return e.apropos === libelle; })
+    .sort(function (a, b) { return horodatageEvt(a) - horodatageEvt(b); });
+}
+
+/* Tous les actes de l'étape sont rendus, quel que soit leur état : celui
+   qui est fait porte sa coche, celui qui attend un prérequis le dit, et
+   tous acceptent un commentaire — c'est souvent sur un acte bloqué ou
+   déjà accompli qu'on a le plus à écrire. Seul « Faire » est conditionnel.
+   Les commentaires s'affichent sous l'acte qu'ils concernent, sans quoi
+   il faudrait déplier le détail pour savoir qu'ils existent. */
+function rendreActe(a, id, verrou) {
+  var classe = a.fait ? ' fait' : (a.bloque ? ' bloque' : '');
+  var notes = commentairesDeLActe(id, a.libelle);
+
+  return '<li class="acte' + classe + '">' +
+    '<div class="acte-ligne">' +
+      (a.fait
+        ? '<span class="acte-etat">' + coche() + '</span>'
+        : '<span class="acte-etat vide"></span>') +
+      '<span class="acte-txt">' +
+        '<strong>' + a.libelle + '</strong>' +
+        '<span>' + a.aide + '</span>' +
+      '</span>' +
+      '<span class="acte-cmd">' +
+        '<button class="btn btn-ghost btn-sm" onclick="ouvrirEcrit(\'' + id + '\', ' +
+          '\'note\', \'' + argJS(a.libelle) + '\')">Commenter</button>' +
+        (a.fait || a.bloque || verrou
+          ? (a.bloque ? '<span class="acte-attente">En attente</span>' : '')
+          : '<button class="btn btn-primary btn-sm" onclick="' + a.action + '">Faire</button>') +
+      '</span>' +
+    '</div>' +
+    (notes.length
+      ? '<ul class="acte-notes">' + notes.map(rendreCommentaire).join('') + '</ul>'
+      : '') +
+  '</li>';
+}
+
+function rendreCommentaire(e) {
+  var interne = (e.type === 'note');
+  return '<li class="acte-note' + (interne ? ' interne' : '') + '">' +
+    '<div class="acte-note-tete">' +
+      '<span class="badge ' + (interne ? 'badge-gray' : 'badge-gold') + '">' +
+        (interne ? 'Note interne' : 'Message au plaignant') + '</span>' +
+      '<span>' + ech(e.auteur || '') + ' — ' + ech(e.date) +
+        (e.heure ? ' à ' + ech(e.heure) : '') + '</span>' +
+    '</div>' +
+    '<p>' + ech(e.texte) + '</p>' +
+    piecesHtml(e.pieces) +
+  '</li>';
+}
+
+/* Coche nue : le cercle vient du CSS, aussi bien pour la pastille de la
+   frise que pour la puce d'un acte accompli. */
+function coche() {
+  return '<svg width="11" height="11" viewBox="0 0 12 12" fill="none" stroke="currentColor" ' +
+    'stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">' +
+    '<path d="M2.5 6.25 4.75 8.5 9.5 3.5"/></svg>';
+}
+
+function etiquetteEtape(statut) {
+  var e = (typeof ETAPES !== 'undefined') &&
+    ETAPES.find(function (x) { return x.cle === statut; });
+  return e ? e.libelle : statut;
+}
+
+/* Fixer la date d'audition : un petit formulaire s'ouvre sous la liste. */
+function programmerAudition(id, cle) {
+  var zone = document.getElementById('acte-form-' + (cle || 'RECU'));
+  var d = mesDossiersActifs().find(function (x) { return x.id === id; });
+  if (!zone || !d) return;
+  zone.innerHTML =
+    '<div class="acte-form">' +
+      '<div class="form-row-3">' +
+        '<div class="form-group" style="margin:0">' +
+          '<label class="form-label" for="aud-date">Date d\'audition</label>' +
+          '<input class="form-control" type="date" id="aud-date">' +
+        '</div>' +
+        '<div class="form-group" style="margin:0">' +
+          '<label class="form-label" for="aud-heure">Heure</label>' +
+          '<input class="form-control" type="time" id="aud-heure" value="09:00">' +
+        '</div>' +
+        '<div class="form-group" style="margin:0">' +
+          '<label class="form-label" for="aud-canal">Envoi</label>' +
+          '<select class="form-control" id="aud-canal">' +
+            (d.contact && d.contact.email ? '<option value="email">E-mail</option>' : '') +
+            (d.contact && d.contact.telephone ? '<option value="sms">SMS</option>' : '') +
+            '<option value="remise">Main propre</option>' +
+          '</select>' +
+        '</div>' +
+      '</div>' +
+      '<div class="field-error" id="err-aud-date"></div>' +
+      '<button class="btn btn-primary btn-sm" onclick="confirmerAudition(\'' + id + '\')">Envoyer la convocation</button>' +
+    '</div>';
+  var champ = document.getElementById('aud-date');
+  if (champ) champ.focus();
+}
+
+function confirmerAudition(id) {
+  var d = mesDossiersActifs().find(function (x) { return x.id === id; });
+  var date = (document.getElementById('aud-date') || {}).value || '';
+  var heure = (document.getElementById('aud-heure') || {}).value || '09:00';
+  var canal = (document.getElementById('aud-canal') || {}).value || 'remise';
+  var err = document.getElementById('err-aud-date');
+
+  if (!date) { if (err) err.textContent = 'Indiquez la date d\'audition.'; return; }
+  if (!d) return;
+
+  var p = date.split('-');
+  var jour = p[2] + '/' + p[1] + '/' + p[0];
+  var hh = heure.replace(':', 'h');
+  var lib = canal === 'email' ? 'par e-mail à ' + d.contact.email
+          : canal === 'sms'   ? 'par SMS au ' + d.contact.telephone
+          : 'remise en main propre';
+
+  HISTORIQUE[id].push({
+    etape: 'AUDITION', type: 'convocation',
+    date: jour, heure: hh,
+    libelle: 'Convocation du plaignant',
+    detail: 'Audition fixée au ' + jour + ' à ' + hh + ' — ' + lib
+  });
+
+  if (d.statut === 'RECU') {
+    d.statut = 'AUDITION';
+    ajouterEvenementStatut(id, 'Audition programmée', 'Convocation du plaignant émise');
+  }
+
+  toast('Convocation envoyée ' + lib, 'success');
+  renderMesDossiers();
+  majKPI();
+  rendreDossier();
+}
+
+/* Consigner qu'une audition s'est tenue : c'est ce qui rend le PV
+   etablissable. Rien ne le permettait jusqu'ici. */
+function enregistrerAudition(id, cle) {
+  var zone = document.getElementById('acte-form-' + (cle || 'AUDITION'));
+  if (!zone) return;
+  zone.innerHTML =
+    '<div class="acte-form">' +
+      '<div class="form-row">' +
+        '<div class="form-group" style="margin:0">' +
+          '<label class="form-label" for="tenue-date">Date de l\'audition tenue</label>' +
+          '<input class="form-control" type="date" id="tenue-date">' +
+        '</div>' +
+        '<div class="form-group" style="margin:0">' +
+          '<label class="form-label" for="tenue-heure">Heure</label>' +
+          '<input class="form-control" type="time" id="tenue-heure" value="09:00">' +
+        '</div>' +
+      '</div>' +
+      '<div class="field-error" id="err-tenue-date"></div>' +
+      '<button class="btn btn-primary btn-sm" onclick="confirmerAuditionTenue(\'' + id + '\')">Enregistrer l\'audition</button>' +
+    '</div>';
+  var champ = document.getElementById('tenue-date');
+  if (champ) champ.focus();
+}
+
+function confirmerAuditionTenue(id) {
+  var date = (document.getElementById('tenue-date') || {}).value || '';
+  var heure = (document.getElementById('tenue-heure') || {}).value || '09:00';
+  var err = document.getElementById('err-tenue-date');
+  if (!date) { if (err) err.textContent = 'Indiquez la date de l\'audition.'; return; }
+
+  var p = date.split('-');
+  HISTORIQUE[id].push({
+    etape: 'AUDITION', type: 'audition',
+    date: p[2] + '/' + p[1] + '/' + p[0], heure: heure.replace(':', 'h'),
+    libelle: 'Votre audition',
+    detail: 'Déclarations recueillies — procès-verbal en cours de relecture'
+  });
+
+  toast('Audition enregistrée — le procès-verbal peut être établi', 'success');
+  majKPI();
+  rendreDossier();
+}
+
+/* Raccourcis vers l'endroit ou l'acte se realise. */
+function allerAuPV() {
+  docAffiche = 'pv';
+  pvAudition = 'plaignant';
+  changerOngletDossier('plainte');
 }
 
 /* ── Onglet 3 : convocations du dossier ─────────────────── */
@@ -428,15 +758,72 @@ function ouvrirPieceDossier(index) {
   if (typeof afficherPiece === 'function') afficherPiece(d.pieces[index]);
 }
 
-/* Frise compacte des cinq etapes, cote enqueteur. */
+/* Étapier du dossier : les cinq étapes, chacune portant ce qu'elle
+   demande. On ouvre celle qu'on veut revoir ; celle en cours est dépliée
+   d'office. */
 function friseEtapes(d) {
   if (typeof ETAPES === 'undefined' || typeof ORDRE_ETAPES === 'undefined') return '';
   var rang = ORDRE_ETAPES.indexOf(d.statut);
   var clos = d.statut === 'CLOTURE' || d.statut === 'TRANSMIS';
-  return '<ol class="frise-enq">' + ETAPES.map(function (et) {
+  var verrou = dossierVerrouille(d);
+  return '<ol class="etapier">' + ETAPES.map(function (et, i) {
     var r = ORDRE_ETAPES.indexOf(et.cle);
     var etat = (clos || r < rang) ? 'faite' : (r === rang ? 'courante' : 'avenir');
-    return '<li class="' + etat + '"><span></span>' + et.libelle + '</li>';
+    var tete = '<span class="etape-pt">' + (etat === 'faite' ? coche() : (i + 1)) + '</span>' +
+               '<span class="etape-lib">' + et.libelle + '</span>';
+
+    /* Une étape à venir ne s'ouvre pas : ses actes n'ont pas lieu d'être
+       avant son tour, et un bouton « Clôturer » offert dès la réception
+       de la plainte contredirait la règle qu'on vient de poser. */
+    if (etat === 'avenir') {
+      return '<li class="etape avenir"><div class="etape-tete">' + tete + '</div></li>';
+    }
+
+    /* Les actes sont la lecture principale de l'étape : tous y figurent,
+       avec leur état et leurs commentaires. Le journal brut — dépôt,
+       convocations, changements de statut — reste consultable en dessous,
+       replié : le laisser ouvert redisait ce que les actes annoncent déjà. */
+    var tous = actesDeLEtape(d, et.cle);
+    var restants = tous.filter(function (a) { return !a.fait; });
+
+    var jauge = (!tous.length || verrou) ? ''
+      : '<span class="etape-jauge' + (restants.length ? '' : ' fini') + '">' +
+          (restants.length ? restants.length + ' à faire' : 'Tout est fait') + '</span>';
+
+    var liste = tous.length
+      ? '<ul class="actes">' + tous.map(function (a) {
+          return rendreActe(a, d.id, verrou);
+        }).join('') + '</ul>'
+      : '';
+
+    /* Les commentaires sont déjà rendus sous leur acte : les répéter dans
+       le journal les afficherait deux fois. */
+    var nDetail = evenementsBruts(d.id, et.cle).length;
+    var detail = nDetail
+      ? '<details class="etape-detail">' +
+          '<summary>Voir le détail de l\'étape' +
+            '<span class="etape-detail-n">' + nDetail + '</span>' +
+            '<span class="etape-chevron" aria-hidden="true"></span>' +
+          '</summary>' +
+          '<div class="fil-etape">' + renderFilDossier(d.id, et.cle, true) + '</div>' +
+        '</details>'
+      : '';
+
+    var corps = (liste + detail) ||
+      '<p class="fil-vide">Rien n\'a encore été consigné à cette étape.</p>';
+
+    return '<li class="etape ' + etat + '">' +
+      '<details class="etape-bloc"' + (etat === 'courante' ? ' open' : '') + '>' +
+        '<summary class="etape-tete">' + tete + jauge +
+          '<span class="etape-chevron" aria-hidden="true"></span>' +
+        '</summary>' +
+        '<div class="etape-panneau">' +
+          corps +
+          '<div class="acte-slot" id="acte-form-' + et.cle + '"></div>' +
+          (etat === 'courante' ? blocEtapeSuivante(d) : '') +
+        '</div>' +
+      '</details>' +
+    '</li>';
   }).join('') + '</ol>';
 }
 
@@ -476,27 +863,47 @@ function blocPiecesDossier(d) {
 }
 
 /* Faire avancer le dossier d'une étape. */
+/* Passage à l'étape suivante. Deux cas ne l'affichent pas : le dossier
+   terminé, et l'étape Décision — là, l'issue n'est pas un « suivant »
+   mécanique mais un choix entre transmission et classement, déjà proposé
+   dans la liste des actes. */
 function blocEtapeSuivante(d) {
   var suite = LIBELLE_ETAPE_SUIVANTE[d.statut];
-  if (!suite) {
-    return '<div class="divider"></div>' +
-      '<div class="alert alert-info" style="margin:0 0 14px"><div>' +
-      'Ce dossier a atteint son terme : aucune étape suivante.</div></div>';
-  }
+  if (!suite || suite.vers === 'CLOTURE') return '';
+
   var l = (typeof STATUT_LABELS !== 'undefined' && STATUT_LABELS[suite.vers])
     ? STATUT_LABELS[suite.vers][1] : suite.vers;
-  return '<div class="divider"></div>' +
-    '<div class="card-title" style="margin-bottom:8px">Faire avancer le dossier</div>' +
-    '<div style="display:flex;align-items:center;gap:12px;flex-wrap:wrap;margin-bottom:14px">' +
-      '<span style="font-size:13px;color:var(--text-light)">Étape suivante : <strong style="color:var(--primary)">' + l + '</strong></span>' +
-      '<button class="btn btn-primary btn-sm" onclick="avancerStatut(\'' + d.id + '\')">' + ech(suite.libelle) + '</button>' +
-    '</div>';
+  return '<div class="etape-suite">' +
+    '<span>Étape suivante<strong>' + ech(l) + '</strong></span>' +
+    '<button class="btn btn-outline btn-sm" onclick="avancerStatut(\'' + d.id + '\')">' +
+      'Passer à l\'étape suivante</button>' +
+  '</div>';
 }
 
 /* ── Fil du dossier : évènements, messages et notes ──────── */
-function renderFilDossier(id) {
+/* Évènements d'une étape qui ne sont pas déjà rendus sous un acte : le
+   journal ne redit pas les commentaires. */
+function evenementsBruts(id, cle) {
+  return ((typeof HISTORIQUE !== 'undefined' && HISTORIQUE[id]) || [])
+    .filter(function (e) { return (!cle || e.etape === cle) && !e.apropos; });
+}
+
+/* Le fil se lit étape par étape : `cle` restreint aux évènements qui s'y
+   rattachent. Sans clé, le dossier entier — la vue d'ensemble reste
+   possible si elle sert un jour ailleurs. */
+function renderFilDossier(id, cle, sansCommentaires) {
   var evts = (typeof HISTORIQUE !== 'undefined' && HISTORIQUE[id]) ? HISTORIQUE[id] : [];
-  if (!evts.length) return '<p style="font-size:13px;color:var(--text-light)">Aucun évènement.</p>';
+  if (cle) {
+    evts = evts.filter(function (e) { return e.etape === cle; });
+  }
+  if (sansCommentaires) {
+    evts = evts.filter(function (e) { return !e.apropos; });
+  }
+  /* Filtré par étape, le vide est normal : c'est l'appelant qui décide du
+     message, puisqu'il peut avoir des actes à afficher malgré tout. */
+  if (!evts.length) {
+    return cle ? '' : '<p class="fil-vide">Aucun évènement.</p>';
+  }
 
   return evts.slice().sort(function (a, b) {
     return horodatageEvt(a) - horodatageEvt(b);
@@ -514,6 +921,12 @@ function renderFilDossier(id) {
             (interne ? 'Note interne' : 'Message au plaignant') + '</span>' +
           '<span style="font-size:12px;color:var(--text-light)">' + ech(e.auteur || '') + ' — ' + ech(quand) + '</span>' +
         '</div>' +
+        /* De quel acte parle ce commentaire : sans ce rappel, une note
+           lue trois semaines plus tard perd son objet. */
+        (e.apropos
+          ? '<div class="ecrit-apropos"><span>À propos de</span><strong>' +
+              ech(e.apropos) + '</strong></div>'
+          : '') +
         '<div style="font-size:13px;line-height:1.6">' + ech(e.texte) + '</div>' +
         piecesHtml(e.pieces) +
       '</div>';
@@ -551,34 +964,61 @@ function horodatageEvt(e) {
    La distinction est explicite parce qu'elle a une conséquence : une
    procédure en cours est confidentielle, et l'enquêteur seul décide de
    ce qui est porté à la connaissance du plaignant. */
-function blocRedaction(id) {
-  return '' +
-    '<div class="divider"></div>' +
-    '<div class="card-title" style="margin-bottom:10px">Écrire au dossier</div>' +
-    '<div class="form-group" style="margin-bottom:10px">' +
-      '<label class="form-label" for="ecrit-texte">Contenu</label>' +
-      '<textarea class="form-control" id="ecrit-texte" rows="3" ' +
-        'placeholder="Décrivez l\'avancement, une demande de pièce, ou consignez une observation interne."></textarea>' +
-      '<div class="field-error" id="err-ecrit-texte"></div>' +
-    '</div>' +
-    '<div style="display:flex;gap:16px;flex-wrap:wrap;margin-bottom:12px;font-size:13px">' +
-      '<label style="display:flex;align-items:center;gap:7px;cursor:pointer">' +
-        '<input type="radio" name="ecrit-type" value="message" checked> Message au plaignant' +
-      '</label>' +
-      '<label style="display:flex;align-items:center;gap:7px;cursor:pointer">' +
-        '<input type="radio" name="ecrit-type" value="note"> Note interne' +
-      '</label>' +
-    '</div>' +
-    '<div class="form-group" style="margin-bottom:10px">' +
-      '<label class="form-label" for="ecrit-pieces">Pièces jointes</label>' +
-      '<input type="file" id="ecrit-pieces" multiple class="form-control" ' +
-        'accept=".jpg,.jpeg,.png,.pdf,.mp4" style="padding:7px 10px;font-size:13px">' +
-      '<div class="form-hint">PV, convocation, notification… Le plaignant pourra les télécharger.</div>' +
-    '</div>' +
-    '<div class="form-hint" id="ecrit-portee" style="margin-bottom:12px">' +
-      'Ce texte sera visible par le plaignant dans son espace de suivi.' +
-    '</div>' +
-    '<button class="btn btn-primary btn-sm" onclick="ajouterEcrit(\'' + id + '\')">Enregistrer</button>';
+var dossierAEcrire = null;
+var acteCommente = null;
+
+/* `nature` permet aux actes de l'étape Enquête d'ouvrir la fenêtre sur le
+   bon type : « consigner une observation interne » ne doit pas atterrir
+   sur un message au plaignant. `aPropos` rattache l'écrit à un acte
+   précis, pour qu'on sache plus tard de quoi il parlait. */
+function ouvrirEcrit(id, nature, aPropos) {
+  dossierAEcrire = id;
+  acteCommente = aPropos || null;
+  var type = nature === 'note' ? 'note' : 'message';
+
+  var titre = document.getElementById('ecrit-titre');
+  if (titre) titre.textContent = aPropos ? 'Commenter un acte' : 'Écrire au dossier ' + id;
+
+  var zone = document.getElementById('ecrit-apropos');
+  if (zone) {
+    zone.innerHTML = aPropos
+      ? '<div class="ecrit-apropos"><span>À propos de</span><strong>' +
+          ech(aPropos) + '</strong></div>'
+      : '';
+  }
+
+  var radio = document.querySelector('input[name="ecrit-type"][value="' + type + '"]');
+  if (radio) radio.checked = true;
+
+  var champ = document.getElementById('ecrit-texte');
+  if (champ) champ.value = '';
+  var fichiers = document.getElementById('ecrit-pieces');
+  if (fichiers) fichiers.value = '';
+  var err = document.getElementById('err-ecrit-texte');
+  if (err) err.textContent = '';
+
+  majPorteeEcrit();
+  openModal('modal-ecrit');
+  if (champ) champ.focus();
+}
+
+/* Qui lira ce texte : la réponse change avec le type, elle doit donc se
+   mettre à jour, et non rester figée sur le cas du message. */
+function majPorteeEcrit() {
+  var zone = document.getElementById('ecrit-portee');
+  if (!zone) return;
+  var choisi = document.querySelector('input[name="ecrit-type"]:checked');
+  var note = choisi && choisi.value === 'note';
+
+  zone.className = 'alert ' + (note ? 'alert-warning' : 'alert-info');
+  zone.style.marginBottom = '18px';
+  zone.innerHTML = '<div>' + (note
+    ? 'Cette note reste interne au commissariat : le plaignant ne la verra pas.'
+    : 'Ce texte sera visible par le plaignant dans son espace de suivi.') + '</div>';
+}
+
+function enregistrerEcrit() {
+  if (dossierAEcrire) ajouterEcrit(dossierAEcrire);
 }
 
 function tailleFichier(o) {
@@ -631,12 +1071,17 @@ function ajouterEcrit(id) {
     heure: deuxChiffres(maintenant.getHours()) + 'h' + deuxChiffres(maintenant.getMinutes()),
     auteur: ENQUETEUR_COURANT,
     texte: texte,
-    pieces: pieces
+    pieces: pieces,
+    apropos: acteCommente || null
   });
 
   champ.value = '';
   if (champFichiers) champFichiers.value = '';
-  document.getElementById('fil-dossier').innerHTML = renderFilDossier(id);
+  acteCommente = null;
+  closeModal('modal-ecrit');
+  /* Le fil est desormais reparti dans les etapes : on redessine l'etapier
+     plutot que de viser un conteneur unique qui n'existe plus. */
+  rendreDossier();
 
   var suffixe = pieces.length ? ' (' + pieces.length + ' pièce' + (pieces.length > 1 ? 's' : '') + ')' : '';
   toast((type === 'message'
@@ -664,6 +1109,21 @@ function navEnqTo(page) {
 
 function cloturerDossier(id) {
   var d = mesDossiersActifs().find(function (x) { return x.id === id; });
+  if (!d) return;
+
+  /* On ne clot pas un dossier dont l'instruction n'est pas allee a son
+     terme : audition, enquete et deliberation doivent avoir eu lieu. */
+  if (ORDRE_ETAPES.indexOf(d.statut) < ORDRE_ETAPES.indexOf('DECISION')) {
+    var reste = ETAPES
+      .filter(function (e) {
+        return ORDRE_ETAPES.indexOf(e.cle) > ORDRE_ETAPES.indexOf(d.statut) &&
+               e.cle !== 'CLOTURE';
+      })
+      .map(function (e) { return e.libelle.toLowerCase(); });
+    toast('Clôture impossible : il reste ' + reste.join(', ') + ' à mener', 'error');
+    return;
+  }
+
   if (d) {
     /* L'evenement se rattache a l'etape ou etait le dossier, et le statut
        ne change qu'apres, pour que l'historique reste lisible. */
@@ -750,10 +1210,7 @@ function htmlPV(id, audition) {
   /* Un proces-verbal consigne une audition qui a eu lieu. Tant qu'elle
      n'est pas tenue, il n'y a rien a consigner : on le dit, plutot que de
      produire un document qui aurait l'air authentique. */
-  var aEteAuditionne = (typeof HISTORIQUE !== 'undefined' && HISTORIQUE[d.id] || [])
-    .some(function (e) { return e.type === 'audition'; });
-
-  if (audition === 'plaignant' && !aEteAuditionne) {
+  if (audition === 'plaignant' && !pvExiste(d, 'plaignant')) {
     return messagePVAbsent(
       'Le plaignant n\'a pas encore été auditionné.',
       'Le procès-verbal sera établi à l\'issue de son audition. ' +
@@ -792,7 +1249,7 @@ function htmlPV(id, audition) {
       '<p style="margin:12px 0 0;font-size:17px">Dossier N° <strong>' + d.id + '</strong> — audition du ' + qualite + '</p>' +
     '</div>' +
     '<div style="font-size:15px;line-height:1.85;text-align:justify">' +
-      '<p>L\'an deux mille vingt-six, le <strong>' + dateLettres(d.date) + '</strong>,</p>' +
+      '<p>L\'an deux mille vingt-six, le <strong>' + dateEnClair(d.date) + '</strong>,</p>' +
       '<p>Nous, <strong>' + ech(ENQUETEUR_COURANT) + '</strong>, officier de police judiciaire au ' + ech(d.commissariat) + ',</p>' +
       '<p>avons procédé à l\'audition de :</p>' +
       '<p style="margin-left:18px"><strong>' + ech(auditionne) + '</strong>, en qualité de ' + qualite + '.</p>' +

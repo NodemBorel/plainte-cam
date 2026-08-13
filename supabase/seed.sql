@@ -32,7 +32,9 @@ INSERT INTO profils (id, role, nom, prenom, telephone, email, cni) VALUES
   ('b1000000-0000-0000-0000-000000000011', 'citoyen', 'ESSOMBA', 'Marie', '+237677100002', 'm.essomba@gmail.com',  'CM0012345679'),
   ('b1000000-0000-0000-0000-000000000012', 'citoyen', 'ATANGANA','Paul',  '+237677100003', 'p.atangana@gmail.com', 'CM0012345680'),
   ('b1000000-0000-0000-0000-000000000013', 'citoyen', 'BELLO',   'Fatima','+237677100004', 'f.bello@gmail.com',    'CM0012345681'),
-  ('b1000000-0000-0000-0000-000000000014', 'citoyen', 'FOKO',    'Alain', '+237677100005', 'a.foko@gmail.com',     'CM0012345682');
+  ('b1000000-0000-0000-0000-000000000014', 'citoyen', 'FOKO',    'Alain', '+237677100005', 'a.foko@gmail.com',     'CM0012345682'),
+  ('b1000000-0000-0000-0000-000000000015', 'citoyen', 'NANA',    'Sylvie','+237677100006', 's.nana@gmail.com',     'CM0012345683'),
+  ('b1000000-0000-0000-0000-000000000016', 'citoyen', 'TCHOUMI', 'Georges','+237677100007','g.tchoumi@gmail.com',  'CM0012345684');
 
 -- ── PLAINTES ─────────────────────────────────────────────────
 
@@ -112,6 +114,37 @@ INSERT INTO plaintes (
     '{"Q1": "Moto Yamaha 125, 450 000 FCFA", "Q3": "Je le soupçonne", "Q4": "Non"}',
     '2026-04-29 07:30:00+00',
     '2026-04-28 07:00:00+00'
+  ),
+  -- Affectee mais pas encore convoquee : c'est l'etat de depart d'une
+  -- instruction, celui qui permet de derouler la procedure entiere.
+  (
+    'c1000000-0000-0000-0000-000000000006',
+    '2026-00462',
+    'b1000000-0000-0000-0000-000000000015',
+    'a1000000-0000-0000-0000-000000000001',
+    'b1000000-0000-0000-0000-000000000002',
+    'Escroquerie / Fraude', 'RECU', 'NORMALE', 79,
+    '2026-06-02', 'Centre', 'Mfoundi', 'Yaoundé 7ème', 'Nkolbisson', NULL,
+    'J''ai versé 320 000 FCFA à un commerçant pour une commande de marchandises qui ne m''a jamais été livrée. Il ne répond plus à mes appels depuis trois semaines. J''ai conservé le reçu de versement et nos échanges.',
+    'MBALA Joseph, commerçant au marché Mokolo, boutique B-42.',
+    '{"Q1": "320 000 FCFA", "Q2": "Oui, je connais son nom et sa boutique", "Q3": "Oui, reçu de versement", "Q4": "Nom, téléphone et adresse de la boutique"}',
+    '2026-06-02 11:05:00+00',
+    '2026-06-02 10:15:00+00'
+  ),
+  -- Instruction menee a son terme : le dossier attend son issue.
+  (
+    'c1000000-0000-0000-0000-000000000007',
+    '2026-00429',
+    'b1000000-0000-0000-0000-000000000016',
+    'a1000000-0000-0000-0000-000000000001',
+    'b1000000-0000-0000-0000-000000000002',
+    'Vol avec violence', 'DECISION', 'URGENTE', 85,
+    '2026-05-10', 'Centre', 'Mfoundi', 'Yaoundé 4ème', 'Essos', NULL,
+    'En rentrant du travail le 10 mai vers 19h30, deux individus à moto m''ont barré la route à Essos. L''un d''eux m''a saisi le bras et arraché ma sacoche contenant 180 000 FCFA avant de prendre la fuite. J''ai été légèrement blessé au bras.',
+    'ONANA Serge, interpellé le 21 mai, reconnu par le plaignant.',
+    '{"Q1": "Sacoche contenant 180 000 FCFA", "Q2": "Soirée (18h-22h)", "Q3": "Oui, je l''ai reconnu", "Q4": "Oui, certificat médical"}',
+    '2026-05-11 08:15:00+00',
+    '2026-05-10 19:30:00+00'
   );
 
 -- ── PROCES-VERBAUX ───────────────────────────────────────────
@@ -147,7 +180,18 @@ INSERT INTO historique (plainte_id, action, detail, effectue_par, created_at) VA
   ('c1000000-0000-0000-0000-000000000003', 'Changement de statut',  'Statut passé de AUDITION à DECISION',                          'b1000000-0000-0000-0000-000000000003', '2026-05-20 09:00:00+00'),
 
   ('c1000000-0000-0000-0000-000000000005', 'Plainte deposee',       'Plainte enregistrée - Degradation de biens',                    'b1000000-0000-0000-0000-000000000014', '2026-04-28 07:00:00+00'),
-  ('c1000000-0000-0000-0000-000000000005', 'Changement de statut',  'Statut passé de DECISION à CLOTURE',                           'b1000000-0000-0000-0000-000000000001', '2026-05-25 10:00:00+00');
+  ('c1000000-0000-0000-0000-000000000005', 'Changement de statut',  'Statut passé de DECISION à CLOTURE',                           'b1000000-0000-0000-0000-000000000001', '2026-05-25 10:00:00+00'),
+
+  ('c1000000-0000-0000-0000-000000000006', 'Plainte deposee',       'Plainte enregistrée - Escroquerie / Fraude',                    'b1000000-0000-0000-0000-000000000015', '2026-06-02 10:15:00+00'),
+  ('c1000000-0000-0000-0000-000000000006', 'Attestation envoyee',   'Attestation de dépôt envoyée par e-mail',                       NULL,                                   '2026-06-02 10:16:00+00'),
+  ('c1000000-0000-0000-0000-000000000006', 'Reçue au commissariat', 'Dossier réceptionné au Commissariat Cité Verte',                NULL,                                   '2026-06-02 10:40:00+00'),
+  ('c1000000-0000-0000-0000-000000000006', 'Affectation enqueteur', 'Dossier affecté à Insp. KANA - priorité normale',               'b1000000-0000-0000-0000-000000000001', '2026-06-02 11:05:00+00'),
+
+  ('c1000000-0000-0000-0000-000000000007', 'Plainte deposee',       'Plainte enregistrée - Vol avec violence',                        'b1000000-0000-0000-0000-000000000016', '2026-05-10 19:30:00+00'),
+  ('c1000000-0000-0000-0000-000000000007', 'Affectation enqueteur', 'Dossier affecté à Insp. KANA - priorité urgente',                'b1000000-0000-0000-0000-000000000001', '2026-05-11 08:15:00+00'),
+  ('c1000000-0000-0000-0000-000000000007', 'PV signe',              'PV signé électroniquement par Insp. KANA',                      'b1000000-0000-0000-0000-000000000002', '2026-05-14 11:20:00+00'),
+  ('c1000000-0000-0000-0000-000000000007', 'Changement de statut',  'Statut passé de AUDITION à EN_INSTRUCTION',                     'b1000000-0000-0000-0000-000000000002', '2026-05-18 08:00:00+00'),
+  ('c1000000-0000-0000-0000-000000000007', 'Changement de statut',  'Statut passé de EN_INSTRUCTION à DECISION',                     'b1000000-0000-0000-0000-000000000002', '2026-05-28 09:00:00+00');
 
 -- ── CONVOCATIONS ─────────────────────────────────────────────
 
@@ -166,5 +210,13 @@ INSERT INTO convocations (plainte_id, emis_par, nom_convoque, date_convocation, 
     'FOUDA Ernest',
     '2026-05-10', '10:00',
     'Audition dans le cadre de l''affaire N° 2026-00412 - Agression physique',
+    1, 'COMPARU', true
+  ),
+  (
+    'c1000000-0000-0000-0000-000000000007',
+    'b1000000-0000-0000-0000-000000000002',
+    'ONANA Serge',
+    '2026-05-22', '10:00',
+    'Audition dans le cadre de l''affaire N° 2026-00429 - Vol avec violence',
     1, 'COMPARU', true
   );

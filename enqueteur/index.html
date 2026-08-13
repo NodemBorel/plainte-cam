@@ -169,6 +169,59 @@
 </main>
 </div><!-- page-wrapper -->
 
+<!-- Écrire au dossier : le formulaire tenait sous l'étape en cours et
+     poussait le fil vers le bas à chaque consultation. En fenêtre, l'étape
+     reste lisible et le formulaire ne s'ouvre que lorsqu'on écrit. -->
+<div class="modal-overlay" id="modal-ecrit">
+  <div class="modal-box" style="max-width:560px">
+    <div class="modal-header">
+      <span class="card-title" id="ecrit-titre">Écrire au dossier</span>
+      <button class="modal-close" onclick="closeModal('modal-ecrit')">✕</button>
+    </div>
+    <div class="modal-body">
+      <!-- Rempli quand l'écrit commente un acte précis. -->
+      <div id="ecrit-apropos"></div>
+
+      <div class="form-group">
+        <label class="form-label">Nature de l'écrit</label>
+        <div style="display:flex;gap:16px;flex-wrap:wrap;font-size:13px">
+          <label style="display:flex;align-items:center;gap:7px;cursor:pointer">
+            <input type="radio" name="ecrit-type" value="message" checked
+                   onchange="majPorteeEcrit()"> Message au plaignant
+          </label>
+          <label style="display:flex;align-items:center;gap:7px;cursor:pointer">
+            <input type="radio" name="ecrit-type" value="note"
+                   onchange="majPorteeEcrit()"> Note interne
+          </label>
+        </div>
+      </div>
+
+      <div class="form-group">
+        <label class="form-label" for="ecrit-texte">Contenu</label>
+        <textarea class="form-control" id="ecrit-texte" rows="5"
+          placeholder="Décrivez l'avancement, une demande de pièce, ou consignez une observation interne."></textarea>
+        <div class="field-error" id="err-ecrit-texte"></div>
+      </div>
+
+      <div class="form-group">
+        <label class="form-label" for="ecrit-pieces">Pièces jointes</label>
+        <input type="file" id="ecrit-pieces" multiple class="form-control"
+               accept=".jpg,.jpeg,.png,.pdf,.mp4" style="padding:7px 10px;font-size:13px">
+        <div class="form-hint">PV, convocation, notification… Le plaignant pourra les télécharger.</div>
+      </div>
+
+      <div class="alert alert-info" id="ecrit-portee" style="margin-bottom:18px"><div>
+        Ce texte sera visible par le plaignant dans son espace de suivi.
+      </div></div>
+
+      <div style="display:flex;gap:10px;justify-content:flex-end;flex-wrap:wrap">
+        <button class="btn btn-outline btn-sm" onclick="closeModal('modal-ecrit')">Annuler</button>
+        <button class="btn btn-primary btn-sm" onclick="enregistrerEcrit()">Enregistrer</button>
+      </div>
+    </div>
+  </div>
+</div>
+
 <!-- FOOTER -->
 <footer class="app-footer">
   <div class="app-footer-inner">

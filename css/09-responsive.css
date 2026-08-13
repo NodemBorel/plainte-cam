@@ -100,6 +100,22 @@
   .kpi { padding: 14px 12px; }
   .kpi .num { font-size: 26px; }
   .kpi .lbl { font-size: 11px; }
+
+  /* Un acte tient sur une ligne tant que le bouton a la place. En dessous,
+     le libelle s'ecraserait sur deux caracteres : le bouton passe dessous,
+     aligne a droite, et la puce reste en tete de ligne. */
+  .acte { flex-wrap: wrap; }
+  .acte-txt { flex: 1 1 100%; order: 2; }
+  .acte-etat { order: 1; }
+  .acte .btn, .acte-fait { order: 3; margin-left: auto; }
+
+  .etape-suite { flex-direction: column; align-items: stretch; }
+  .etape-suite .btn { width: 100%; }
+
+  /* Le panneau perd son retrait : 34px pris sur une colonne etroite se
+     paient en retours a la ligne dans chaque libelle d'acte. */
+  .etape-panneau { padding-left: 0; }
+  .etape-jauge { display: none; }
 }
 
 /* ── ≤ 640px : une seule colonne partout ────────────────────── */

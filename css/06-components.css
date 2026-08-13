@@ -384,6 +384,42 @@ button.fil-piece:focus-visible { outline: 2px solid var(--primary); outline-offs
   font-size: 12.5px; color: var(--gold-txt);
 }
 
+/* Liste des corrections : chacune avec son heure et son auteur. */
+.pv-modifs {
+  background: var(--gray-1);
+  border-bottom: 1px solid var(--gray-2);
+}
+.pv-modifs > summary {
+  display: flex; align-items: center; gap: 8px;
+  padding: 8px 14px; cursor: pointer;
+  font-size: 12px; font-weight: 600; color: var(--text-light);
+  list-style: none;
+}
+.pv-modifs > summary::-webkit-details-marker { display: none; }
+.pv-modifs > summary:hover { color: var(--text); }
+.pv-modifs > summary .fil-chevron { margin-left: auto; }
+.pv-modifs[open] > summary .fil-chevron { transform: rotate(225deg) translate(-1px, -1px); }
+
+.pv-modifs ul { list-style: none; margin: 0; padding: 0 10px 10px; }
+.pv-modifs li + li { margin-top: 4px; }
+.pv-modifs li button {
+  display: flex; align-items: center; gap: 12px; width: 100%;
+  padding: 7px 10px; cursor: pointer; text-align: left;
+  background: var(--white);
+  border: 1px solid var(--gray-2);
+  border-radius: var(--radius-sm);
+  font-family: inherit; font-size: 12.5px;
+  transition: var(--transition);
+}
+.pv-modifs li button:hover { border-color: var(--primary); }
+.modif-version {
+  flex-shrink: 0; min-width: 26px;
+  font-weight: 700; color: var(--gold-txt);
+  font-variant-numeric: tabular-nums;
+}
+.modif-quand { flex: 1; color: var(--text); font-variant-numeric: tabular-nums; }
+.modif-qui { flex-shrink: 0; color: var(--text-light); }
+
 /* Journal des versions : avant / après, côte à côte. */
 .revisions {
   background: var(--white); border-radius: var(--radius);
@@ -407,6 +443,123 @@ button.fil-piece:focus-visible { outline: 2px solid var(--primary); outline-offs
   letter-spacing: .07em; color: var(--text-light); margin-bottom: 4px;
 }
 .revision-cote p { margin: 0; font-size: 13px; line-height: 1.6; font-style: italic; }
+
+/* ── ACTES À FAIRE À L'ÉTAPE EN COURS ────────────────────────
+   Ce qui est accompli reste visible, barré : l'agent lit son avancement
+   plutôt qu'une liste qui rétrécit sans qu'on sache ce qu'elle contenait.
+   ─────────────────────────────────────────────────────────── */
+/* Actes de l'étape en cours. Chacun est une ligne cadrée plutôt qu'un
+   empilement titre / texte / bouton : le bouton se retrouve toujours au
+   même endroit, l'œil descend la colonne sans chercher. */
+.actes { list-style: none; padding: 0; margin: 0; }
+.acte {
+  padding: 12px 14px; margin-bottom: 8px;
+  background: var(--white);
+  border: 1px solid var(--gray-2);
+  border-left: 3px solid var(--gold);
+  border-radius: var(--radius-sm);
+  transition: var(--transition);
+}
+.acte:last-child { margin-bottom: 0; }
+.acte:hover { border-color: var(--gray-3); border-left-color: var(--gold); }
+.acte-ligne { display: flex; align-items: center; gap: 12px; }
+
+/* Acte accompli : la coche suffit, le filet passe au vert. */
+.acte.fait { background: var(--gray-1); border-left-color: var(--green-lt); }
+.acte.fait:hover { border-color: var(--gray-2); border-left-color: var(--green-lt); }
+.acte.fait .acte-txt strong { color: var(--text-light); font-weight: 500; }
+.acte.fait .acte-etat {
+  flex-shrink: 0;
+  width: 18px; height: 18px; border-radius: 50%;
+  display: flex; align-items: center; justify-content: center;
+  background: var(--green-lt); color: var(--white);
+}
+
+/* Commentaires posés sur un acte : toujours visibles, en retrait sous lui. */
+.acte-notes {
+  list-style: none; padding: 0;
+  margin: 11px 0 0 30px;
+  display: flex; flex-direction: column; gap: 8px;
+}
+.acte-note {
+  padding: 9px 11px;
+  background: rgba(201, 139, 0, .06);
+  border-left: 2px solid var(--gold);
+  border-radius: var(--radius-sm);
+}
+.acte-note.interne {
+  background: var(--gray-1);
+  border-left-color: var(--gray-3);
+}
+.acte-note-tete {
+  display: flex; align-items: center; gap: 8px;
+  flex-wrap: wrap; margin-bottom: 5px;
+}
+.acte-note-tete > span:last-child { font-size: 11.5px; color: var(--text-light); }
+.acte-note > p { font-size: 12.5px; line-height: 1.6; margin: 0; }
+
+/* Puce d'un acte en attente : le cercle vide dit qu'il reste à faire. */
+.acte-etat.vide {
+  flex-shrink: 0;
+  width: 18px; height: 18px; border-radius: 50%;
+  border: 1.5px dashed var(--gray-3);
+}
+
+.acte-txt { display: flex; flex-direction: column; gap: 3px; flex: 1; min-width: 0; }
+.acte-txt strong { font-size: 13.5px; color: var(--text); font-weight: 600; }
+.acte-txt span { font-size: 12.5px; color: var(--text-light); line-height: 1.5; }
+
+.acte .btn { flex-shrink: 0; }
+/* Commenter, puis Faire : le secondaire précède le principal, qui reste
+   le dernier élément de la ligne et donc toujours au même endroit. */
+.acte-cmd {
+  flex-shrink: 0;
+  display: flex; align-items: center; gap: 8px;
+}
+
+/* Acte dont le tour n'est pas venu : visible pour que l'ordre se lise,
+   mais sans prise — le trait doré cède au pointillé gris. */
+.acte.bloque {
+  background: var(--gray-1);
+  border-left-style: dashed;
+  border-left-color: var(--gray-3);
+}
+.acte.bloque:hover { border-color: var(--gray-2); border-left-color: var(--gray-3); }
+.acte.bloque .acte-txt strong { color: var(--text-light); font-weight: 500; }
+.acte-attente {
+  flex-shrink: 0; font-size: 11px; font-weight: 700;
+  text-transform: uppercase; letter-spacing: .06em;
+  color: var(--text-light);
+}
+
+/* Les actes suivent le récit de l'étape : un peu d'air les en détache. */
+.fil-etape > .actes:not(:first-child) { margin-top: 12px; }
+
+.acte-form {
+  margin-top: 12px; padding: 14px;
+  background: var(--gray-1);
+  border: 1px solid var(--gray-2);
+  border-radius: var(--radius-sm);
+}
+
+/* Pied de la carte : le passage à l'étape suivante, en retrait des actes. */
+.etape-suite {
+  display: flex; align-items: center; justify-content: space-between;
+  gap: 12px; flex-wrap: wrap;
+  margin-top: 16px; padding-top: 14px;
+  border-top: 1px solid var(--gray-2);
+}
+.etape-suite > span {
+  display: flex; flex-direction: column; gap: 1px;
+  font-size: 11px; font-weight: 700;
+  text-transform: uppercase; letter-spacing: .06em;
+  color: var(--text-light);
+}
+.etape-suite strong {
+  font-size: 13.5px; font-weight: 700;
+  text-transform: none; letter-spacing: 0;
+  color: var(--primary);
+}
 
 /* Choix d'un enquêteur : affectation et transfert. */
 .choix-agent {
@@ -476,22 +629,137 @@ button.fil-piece:focus-visible { outline: 2px solid var(--primary); outline-offs
 .fiche-ligne > strong { text-align: right; font-weight: 600; min-width: 0; }
 
 /* Frise compacte : etat de chaque etape d'un coup d'oeil. */
-.frise-enq { list-style: none; padding: 0; margin: 0 0 4px; }
-.frise-enq li {
-  display: flex; align-items: center; gap: 10px;
-  font-size: 13px; padding: 5px 0;
+/* Étapier : la progression et ce que chaque étape demande, au même
+   endroit. Les pastilles sont reliées par un rail, sinon la liste se lit
+   comme cinq lignes sans rapport entre elles ; le rail traverse le
+   panneau déplié, ce qui rattache les actes à leur étape. */
+.etapier { list-style: none; padding: 0; margin: 0; }
+.etape {
+  position: relative;
+  padding-bottom: 6px;
   color: var(--text-light);
 }
-.frise-enq li > span {
-  width: 11px; height: 11px; border-radius: 50%;
-  flex-shrink: 0; border: 1.5px solid var(--gray-3);
-  background: var(--gray-1);
+.etape:last-child { padding-bottom: 0; }
+.etape:not(:last-child)::before {
+  content: ''; position: absolute;
+  left: 10px; top: 26px; bottom: -2px; width: 2px;
+  background: var(--gray-2);
 }
-.frise-enq li.faite    { color: var(--green-txt); }
-.frise-enq li.faite    > span { background: var(--green-lt); border-color: var(--green-lt); }
-.frise-enq li.courante { color: var(--primary); font-weight: 700; }
-.frise-enq li.courante > span {
-  background: var(--white); border-color: var(--primary); border-width: 3px;
+.etape.faite:not(:last-child)::before { background: var(--green-lt); }
+
+.etape-tete {
+  display: flex; align-items: center; gap: 12px;
+  font-size: 13.5px; padding: 5px 0;
+  list-style: none;
+}
+.etape-tete::-webkit-details-marker { display: none; }
+summary.etape-tete { cursor: pointer; }
+summary.etape-tete:hover .etape-lib { color: var(--primary); }
+summary.etape-tete:focus-visible {
+  outline: 2px solid var(--primary); outline-offset: 3px;
+  border-radius: var(--radius-sm);
+}
+
+.etape-pt {
+  position: relative; z-index: 1;
+  width: 22px; height: 22px; border-radius: 50%;
+  flex-shrink: 0;
+  display: flex; align-items: center; justify-content: center;
+  font-size: 11px; font-weight: 700;
+  font-variant-numeric: tabular-nums;
+  border: 1.5px solid var(--gray-3);
+  background: var(--white); color: var(--gray-3);
+}
+.etape-lib { flex: 1; min-width: 0; transition: var(--transition); }
+
+.etape.faite .etape-pt {
+  background: var(--green-lt); border-color: var(--green-lt); color: var(--white);
+}
+.etape.courante { color: var(--primary); }
+.etape.courante .etape-lib { font-weight: 700; }
+.etape.courante .etape-pt {
+  border-color: var(--primary); border-width: 2px; color: var(--primary);
+  box-shadow: 0 0 0 3px rgba(11, 30, 69, .09);
+}
+.etape.avenir .etape-tete { opacity: .55; }
+
+.etape-jauge {
+  flex-shrink: 0;
+  font-size: 10.5px; font-weight: 700;
+  text-transform: uppercase; letter-spacing: .06em;
+  color: var(--gold);
+  background: var(--gray-1);
+  border-radius: 999px; padding: 3px 9px;
+}
+.etape-jauge.fini { color: var(--green-txt); }
+
+/* Chevron : le seul indice qu'une étape s'ouvre. */
+.etape-chevron {
+  flex-shrink: 0;
+  width: 7px; height: 7px;
+  border-right: 1.5px solid var(--gray-3);
+  border-bottom: 1.5px solid var(--gray-3);
+  transform: rotate(45deg); margin: -3px 3px 0 0;
+  transition: var(--transition);
+}
+.etape-bloc[open] > .etape-tete .etape-chevron {
+  transform: rotate(-135deg); margin-top: 2px;
+}
+
+/* Le panneau s'aligne sous le libellé, pas sous la pastille : 22px de
+   pastille plus 12px de gouttiere. */
+.etape-panneau { padding: 6px 0 18px 34px; }
+/* Journal brut de l'étape : consultable, mais replié — les actes disent
+   déjà l'essentiel, et le déplier d'office les redisait. */
+.etape-detail { margin-top: 12px; }
+.etape-detail > summary {
+  display: flex; align-items: center; gap: 8px;
+  list-style: none; cursor: pointer;
+  font-size: 11px; font-weight: 700;
+  text-transform: uppercase; letter-spacing: .06em;
+  color: var(--text-light);
+  padding: 7px 0;
+}
+.etape-detail > summary::-webkit-details-marker { display: none; }
+.etape-detail > summary:hover { color: var(--primary); }
+.etape-detail > summary:focus-visible {
+  outline: 2px solid var(--primary); outline-offset: 3px;
+  border-radius: var(--radius-sm);
+}
+.etape-detail-n {
+  font-size: 10.5px;
+  background: var(--gray-2); color: var(--text-light);
+  border-radius: 999px; padding: 2px 8px;
+}
+.etape-detail > summary .etape-chevron { margin-left: auto; }
+.etape-detail[open] > summary .etape-chevron {
+  transform: rotate(-135deg); margin-top: 2px;
+}
+.etape-detail > .fil-etape {
+  padding: 4px 0 6px 2px;
+  border-left: 2px solid var(--gray-2);
+  padding-left: 12px;
+}
+
+/* Acte auquel un écrit se rapporte — dans la fenêtre au moment de le
+   rédiger, puis dans le fil pour le relire en contexte. */
+.ecrit-apropos {
+  display: flex; flex-direction: column; gap: 2px;
+  padding: 8px 11px; margin-bottom: 12px;
+  background: var(--gray-1);
+  border-left: 3px solid var(--gold);
+  border-radius: var(--radius-sm);
+}
+.ecrit-apropos > span {
+  font-size: 10.5px; font-weight: 700;
+  text-transform: uppercase; letter-spacing: .06em;
+  color: var(--text-light);
+}
+.ecrit-apropos > strong { font-size: 13px; color: var(--primary); }
+.fil-etape { font-size: 13px; }
+.fil-vide {
+  font-size: 12.5px; color: var(--text-light);
+  font-style: italic; margin: 0;
 }
 
 /* Liste des pieces consultables d'un dossier. */
