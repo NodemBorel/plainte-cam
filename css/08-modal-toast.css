@@ -24,6 +24,141 @@
   cursor: pointer; color: var(--text-light); line-height: 1;
 }
 
+/* ── VISIONNEUSE DE DOCUMENT ─────────────────────────────────
+   Affiche une piece officielle au format A4, telle qu'elle sortira a
+   l'impression, sans quitter l'application.
+   ─────────────────────────────────────────────────────────── */
+.visionneuse {
+  position: fixed; inset: 0; z-index: 900;
+  background: #3b3f47;
+  display: none; flex-direction: column;
+}
+.visionneuse.ouverte { display: flex; }
+
+.visionneuse-barre {
+  display: flex; align-items: center; justify-content: space-between;
+  gap: 16px; flex-wrap: wrap;
+  padding: 11px 18px;
+  background: var(--primary);
+  border-bottom: 2px solid var(--gold);
+  flex-shrink: 0;
+}
+.visionneuse-titre {
+  color: var(--white); font-size: 14px; font-weight: 600;
+  min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
+}
+.visionneuse-actions { display: flex; gap: 8px; flex-shrink: 0; }
+
+.visionneuse-defilement {
+  flex: 1; overflow-y: auto;
+  padding: 26px 18px 40px;
+  display: flex; justify-content: center;
+}
+/* Proportion A4 : 210mm de large, marges typographiques d'un document
+   officiel. La feuille garde sa largeur et se centre. */
+.feuille {
+  width: 210mm; max-width: 100%;
+  min-height: 297mm;
+  background: #fff; color: #000;
+  font-family: "Times New Roman", Times, serif;
+  padding: 18mm 16mm;
+  box-shadow: 0 6px 28px rgba(0,0,0,.4);
+  height: fit-content;
+}
+.feuille table { color: #000; }
+
+/* ── Apercu d'une piece jointe ───────────────────────────────
+   Une image ou un PDF, et non un document A4 : pas de feuille blanche
+   ni de marges typographiques. */
+.piece {
+  width: 100%; max-width: 1000px;
+  display: flex; align-items: center; justify-content: center;
+}
+.piece img {
+  max-width: 100%; max-height: 78vh;
+  display: block; border-radius: var(--radius-sm);
+  box-shadow: 0 6px 28px rgba(0,0,0,.4);
+}
+.piece iframe {
+  width: 100%; height: 78vh; border: none;
+  border-radius: var(--radius-sm); background: #fff;
+}
+.piece-vide {
+  background: var(--white); border-radius: var(--radius);
+  padding: 34px 30px; text-align: center; max-width: 420px;
+}
+.piece-vide-ext {
+  display: inline-block;
+  font-size: 12px; font-weight: 700; letter-spacing: .1em;
+  color: var(--white); background: var(--primary);
+  padding: 5px 12px; border-radius: var(--radius-sm);
+  margin-bottom: 14px;
+}
+.piece-vide-nom { font-size: 15px; font-weight: 700; color: var(--text); word-break: break-all; }
+.piece-vide-taille { font-size: 12.5px; color: var(--text-light); margin-top: 3px; }
+.piece-vide p {
+  font-size: 13px; line-height: 1.6; color: var(--text-light);
+  margin: 14px 0 16px;
+}
+
+/* Variante integree a une colonne de page : meme typographie, mais la
+   feuille suit la largeur disponible au lieu d'imposer ses 210mm. */
+.feuille--inline {
+  width: 100%; min-height: 0;
+  padding: 26px 28px;
+  box-shadow: none;
+  font-size: 13px;
+}
+.feuille--inline h1 { font-size: 19px !important; }
+.feuille--inline table { font-size: 12.5px !important; }
+.feuille--inline svg { max-width: 100%; height: auto; }
+
+.doc-onglets {
+  display: flex; align-items: center; gap: 2px;
+  flex-wrap: wrap;
+  padding: 8px 10px;
+  background: var(--gray-1);
+  border-bottom: 1px solid var(--gray-2);
+}
+.doc-onglet {
+  background: none; border: none; cursor: pointer;
+  font-family: inherit; font-size: 13px; font-weight: 600;
+  color: var(--text-light);
+  padding: 8px 13px; border-radius: var(--radius-sm);
+  transition: var(--transition);
+}
+.doc-onglet:hover { background: var(--white); color: var(--text); }
+.doc-onglet.actif { background: var(--white); color: var(--primary); box-shadow: var(--shadow); }
+.doc-onglets-actions { margin-left: auto; }
+
+/* Commandes propres au proces-verbal, sous la barre d'onglets. */
+.pv-barre {
+  display: flex; align-items: flex-end; gap: 14px; flex-wrap: wrap;
+  padding: 12px 14px;
+  background: var(--white);
+  border-bottom: 1px solid var(--gray-2);
+}
+.pv-barre-actions { margin-left: auto; display: flex; align-items: center; gap: 8px; }
+@media (max-width: 560px) {
+  .pv-barre-actions { margin-left: 0; width: 100%; }
+}
+
+/* Le document est long : on le borne et on le fait defiler sur place. */
+.doc-apercu {
+  max-height: 560px; overflow-y: auto;
+  background: var(--gray-1);
+  padding: 14px;
+}
+
+@media (max-width: 640px) {
+  .visionneuse-defilement { padding: 14px 10px 28px; }
+  .feuille { padding: 12mm 8mm; min-height: 0; }
+  .visionneuse-barre { padding: 9px 12px; }
+  .feuille--inline { padding: 18px 16px; }
+  .doc-apercu { max-height: 400px; padding: 10px; }
+  .doc-onglets-actions { margin-left: 0; width: 100%; }
+}
+
 /* ── MESSAGES DE VALIDATION ──────────────────────────────────
    En haut et centres : dans le coin inferieur droit, ils passaient
    inapercus, surtout sur un formulaire long ou l'attention est en haut de

@@ -10,14 +10,59 @@ function navAgent(el, page) {
   if (page === 'page-dossiers') initDashboard();
 }
 
+var dossierAAffecter = null;
+
 function affecterDossier(id) {
+  dossierAAffecter = id;
+  var d = (typeof DOSSIERS !== 'undefined') ? DOSSIERS.find(function (x) { return x.id === id; }) : null;
   document.querySelector('#modal-affectation .card-title').textContent = 'Affecter le dossier ' + id;
+
+  /* La suggestion s'appuie sur le score de complétude et la nature des
+     faits : c'est ici, chez le commissaire, que ce score sert. */
+  var sug = document.getElementById('affectation-suggestion');
+  if (sug && d) {
+    sug.innerHTML = '<div class="alert alert-info" style="margin-bottom:18px"><div>' +
+      '<strong>' + d.type + '</strong> — score de complétude ' + d.score + ' %.<br>' +
+      'Enquêteur suggéré selon la spécialité : <strong>' +
+      (/escroquerie|fraude/i.test(d.type) ? 'Insp. KANA' : 'Insp. BIYA') + '</strong>.' +
+      '</div></div>';
+  }
+
+  /* Priorité pré-positionnée sur celle du dossier, modifiable. */
+  var sel = document.getElementById('affect-priorite');
+  if (sel && d) sel.value = d.priorite || 'NORMALE';
+
   openModal('modal-affectation');
 }
 
 function confirmAffectation(enqueteur) {
+  var d = (typeof DOSSIERS !== 'undefined')
+    ? DOSSIERS.find(function (x) { return x.id === dossierAAffecter; }) : null;
+  var sel = document.getElementById('affect-priorite');
+  var priorite = sel ? sel.value : 'NORMALE';
+
+  if (d) {
+    d.enqueteur = enqueteur;
+    d.priorite = priorite;
+    if (d.statut === 'RECU') d.statut = 'AUDITION';
+
+    /* L'affectation et la priorité retenue rejoignent l'historique : le
+       plaignant voit que son dossier a été confié à quelqu'un. */
+    if (typeof HISTORIQUE !== 'undefined') {
+      if (!HISTORIQUE[d.id]) HISTORIQUE[d.id] = [];
+      var m = new Date(), dd = function (n) { return String(n).padStart(2, '0'); };
+      HISTORIQUE[d.id].push({
+        etape: 'RECU', type: 'affectation',
+        date: dd(m.getDate()) + '/' + dd(m.getMonth() + 1) + '/' + m.getFullYear(),
+        heure: dd(m.getHours()) + 'h' + dd(m.getMinutes()),
+        libelle: 'Dossier affecté',
+        detail: enqueteur + ' désigné — priorité ' + priorite.toLowerCase()
+      });
+    }
+  }
+
   closeModal('modal-affectation');
-  toast('Dossier affecté à ' + enqueteur, 'success');
+  toast('Dossier affecté à ' + enqueteur + ' (priorité ' + priorite.toLowerCase() + ')', 'success');
   initDashboard();
 }
 
@@ -52,25 +97,101 @@ function buildPieChart() {
   }).join('');
 }
 
-(function initCommissairePage() {
-  var agents = [
-    { name: 'Insp. NGUEMO', spec: 'Vol, Agression', load: '5 dossiers', star: true },
-    { name: 'Insp. KANA', spec: 'Escroquerie, Fraude', load: '3 dossiers', star: false },
-    { name: 'Insp. BIYA', spec: 'Generaliste', load: '2 dossiers', star: false },
-  ];
-  var list = document.getElementById('enqueteur-list');
-  if (list) {
-    list.innerHTML = agents.map(function(a) {
-      return '<div onclick="confirmAffectation(\'' + a.name + '\')"' +
-        ' style="padding:12px 16px;border:1.5px solid var(--gray-2);border-radius:var(--radius-sm);cursor:pointer;margin-bottom:10px;font-size:14px"' +
-        ' onmouseover="this.style.borderColor=\'var(--primary)\'"' +
-        ' onmouseout="this.style.borderColor=\'var(--gray-2)\'">' +
-        '<strong>' + a.name + '</strong>' + (a.star ? ' (recommande)' : '') + '<br>' +
-        '<span class="text-muted">' + a.spec + ' - ' + a.load + '</span>' +
-      '</div>';
-    }).join('');
+/* ============================================================
+   TRANSFERT D'UN DOSSIER  (§7.4)
+
+   « En cas d'indisponibilite de l'enqueteur en charge, le dossier est
+   transfere a un autre enqueteur » — compte rendu d'entretien. La
+   decision revient au commissaire : l'enqueteur ne se dessaisit pas
+   lui-meme de son dossier.
+   ============================================================ */
+
+var ENQUETEURS = [
+  { nom: 'Insp. KANA', specialite: 'Escroquerie, Fraude' },
+  { nom: 'Insp. BIYA', specialite: 'Généraliste' }
+];
+
+var dossierATransferer = null;
+
+function chargeDe(nomEnqueteur) {
+  if (typeof DOSSIERS === 'undefined') return 0;
+  return DOSSIERS.filter(function (d) {
+    return d.enqueteur === nomEnqueteur && d.statut !== 'CLOTURE' && d.statut !== 'TRANSMIS';
+  }).length;
+}
+
+function ouvrirTransfert(id) {
+  var d = (typeof DOSSIERS !== 'undefined') ? DOSSIERS.find(function (x) { return x.id === id; }) : null;
+  if (!d) return;
+  dossierATransferer = id;
+
+  document.getElementById('transfert-titre').textContent = 'Transférer le dossier ' + id;
+  document.getElementById('transfert-actuel').innerHTML =
+    '<div class="alert alert-info" style="margin-bottom:16px"><div>' +
+      'Actuellement confié à <strong>' + d.enqueteur + '</strong>' +
+      ' — ' + chargeDe(d.enqueteur) + ' dossier(s) en cours.' +
+    '</div></div>';
+
+  /* On ne propose pas de transferer un dossier a celui qui l'a deja. */
+  var autres = ENQUETEURS.filter(function (e) { return e.nom !== d.enqueteur; });
+  document.getElementById('transfert-liste').innerHTML = autres.length
+    ? autres.map(function (e) {
+        return '<button type="button" class="choix-agent" onclick="confirmerTransfert(\'' + e.nom + '\')">' +
+          '<span class="choix-agent-nom">' + e.nom + '</span>' +
+          '<span class="choix-agent-info">' + e.specialite + ' — ' + chargeDe(e.nom) + ' dossier(s)</span>' +
+        '</button>';
+      }).join('')
+    : '<p style="font-size:13px;color:var(--text-light);margin:0">' +
+      'Aucun autre enquêteur disponible dans ce commissariat.</p>';
+
+  var err = document.getElementById('err-transfert');
+  if (err) err.textContent = '';
+  openModal('modal-transfert');
+}
+
+function confirmerTransfert(nouvelEnqueteur) {
+  var d = (typeof DOSSIERS !== 'undefined')
+    ? DOSSIERS.find(function (x) { return x.id === dossierATransferer; }) : null;
+  if (!d) return;
+
+  var motif = (document.getElementById('transfert-motif') || {}).value || 'Transfert';
+  var ancien = d.enqueteur;
+  d.enqueteur = nouvelEnqueteur;
+
+  /* Le transfert est un acte de procedure : il rejoint l'historique, donc
+     le suivi du plaignant, qui doit savoir qui instruit son dossier. */
+  if (typeof HISTORIQUE !== 'undefined' && HISTORIQUE[d.id]) {
+    var m = new Date(), dd = function (n) { return String(n).padStart(2, '0'); };
+    HISTORIQUE[d.id].push({
+      etape: d.statut, type: 'affectation',
+      date: dd(m.getDate()) + '/' + dd(m.getMonth() + 1) + '/' + m.getFullYear(),
+      heure: dd(m.getHours()) + 'h' + dd(m.getMinutes()),
+      libelle: 'Dossier transféré',
+      detail: 'De ' + ancien + ' à ' + nouvelEnqueteur + ' — ' + motif
+    });
   }
 
+  closeModal('modal-transfert');
+  toast('Dossier ' + d.id + ' transféré à ' + nouvelEnqueteur, 'success');
+  initDashboard();
+}
+
+/* Liste des enqueteurs a qui affecter un dossier. Elle annoncait
+   « Insp. NGUEMO — 5 dossiers » en dur : NGUEMO est le commissaire, et
+   les charges ne correspondaient a rien. Elles se calculent. */
+function remplirListeEnqueteurs() {
+  var list = document.getElementById('enqueteur-list');
+  if (!list) return;
+  list.innerHTML = ENQUETEURS.map(function (e) {
+    return '<button type="button" class="choix-agent" onclick="confirmAffectation(\'' + e.nom + '\')">' +
+      '<span class="choix-agent-nom">' + e.nom + '</span>' +
+      '<span class="choix-agent-info">' + e.specialite + ' — ' + chargeDe(e.nom) + ' dossier(s) en cours</span>' +
+    '</button>';
+  }).join('');
+}
+
+(function initCommissairePage() {
+  remplirListeEnqueteurs();
   showPage('page-dashboard');
   initDashboard();
   drawMiniChart();

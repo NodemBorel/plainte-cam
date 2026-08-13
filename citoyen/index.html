@@ -304,25 +304,40 @@
       </div>
       <div class="form-row">
         <div class="form-group">
-          <label class="form-label">Nom (si connu)</label>
-          <input type="text" class="form-control" placeholder="Nom du mis en cause">
+          <label class="form-label" for="mec-nom">Nom (si connu)</label>
+          <input type="text" class="form-control" id="mec-nom" placeholder="Nom du mis en cause">
         </div>
         <div class="form-group">
-          <label class="form-label">Prénom</label>
-          <input type="text" class="form-control" placeholder="Prénom">
-        </div>
-        <div class="form-group">
-          <label class="form-label">Adresse (si connue)</label>
-          <input type="text" class="form-control" placeholder="Adresse du mis en cause">
-        </div>
-        <div class="form-group">
-          <label class="form-label">Téléphone (si connu)</label>
-          <input type="tel" class="form-control" placeholder="+237 6XX XXX XXX">
+          <label class="form-label" for="mec-prenom">Prénom</label>
+          <input type="text" class="form-control" id="mec-prenom" placeholder="Prénom">
         </div>
       </div>
       <div class="form-group">
-        <label class="form-label">Description physique</label>
-        <textarea class="form-control" rows="3" placeholder="Taille, corpulence, vêtements portés, signes particuliers...">Jeune homme, environ 25 ans, taille moyenne, tee-shirt rouge, jean bleu, a pris la fuite en courant.</textarea>
+        <label class="form-label" for="mec-adresse">Adresse (si connue)</label>
+        <input type="text" class="form-control" id="mec-adresse" placeholder="Adresse du mis en cause">
+      </div>
+
+      <!-- Ces coordonnées permettent au commissariat de convoquer la personne
+           par e-mail ou par SMS. Sans elles, la convocation devra être remise
+           en main propre — ce que le compte rendu d'entretien décrit comme
+           risqué pour le plaignant. -->
+      <div class="form-row">
+        <div class="form-group">
+          <label class="form-label" for="mec-telephone">Téléphone (si connu)</label>
+          <input type="tel" class="form-control" id="mec-telephone" placeholder="+237 6XX XXX XXX">
+        </div>
+        <div class="form-group">
+          <label class="form-label" for="mec-email">Adresse e-mail (si connue)</label>
+          <input type="email" class="form-control" id="mec-email" placeholder="nom@exemple.com">
+        </div>
+      </div>
+      <div class="form-hint" style="margin:-6px 0 14px">
+        Si vous les connaissez, elles évitent que vous ayez à porter vous-même la convocation.
+      </div>
+
+      <div class="form-group">
+        <label class="form-label" for="mec-description">Description physique</label>
+        <textarea class="form-control" id="mec-description" rows="3" placeholder="Taille, corpulence, vêtements portés, signes particuliers...">Jeune homme, environ 25 ans, taille moyenne, tee-shirt rouge, jean bleu, a pris la fuite en courant.</textarea>
       </div>
     </div>
 
@@ -800,6 +815,7 @@
 <script src="../js/modules/data.js"></script>
 <script src="../js/modules/questionnaire.js"></script>
 <script src="../js/modules/qrcode.js"></script>
+<script src="../js/modules/documents.js"></script>
 <script src="../js/data/geo.js"></script>
 <script src="../js/pages/citoyen.js"></script>
 <script src="../js/pages/citoyen-geo.js"></script>
@@ -843,259 +859,6 @@
     toast('Message transmis au service d\'assistance', 'success');
   }
 
-  /* ══════════════════════════════════════════════════════════
-     DOCUMENTS OFFICIELS TÉLÉCHARGEABLES
-
-     Deux documents distincts, tous deux imprimables en PDF par
-     l'impression native du navigateur :
-
-       • l'attestation de dépôt — preuve que la plainte a été reçue ;
-       • la déclaration de plainte — le contenu même de la plainte.
-
-     L'en-tête bilingue, le bloc de vérification et la mécanique
-     d'impression sont partagés : les deux documents ne peuvent pas
-     dériver l'un de l'autre.
-     ══════════════════════════════════════════════════════════ */
-
-  const MOIS = ['janvier','février','mars','avril','mai','juin',
-                'juillet','août','septembre','octobre','novembre','décembre'];
-
-  /* « 15/05/2026 » ou « 2026-05-15 » -> « 15 mai 2026 » */
-  function dateEnClair(v) {
-    if (!v) return '';
-    let j, m, a;
-    if (v.indexOf('/') !== -1)      { [j, m, a] = v.split('/'); }
-    else if (v.indexOf('-') !== -1) { [a, m, j] = v.split('-'); }
-    else return v;
-    const mi = parseInt(m, 10) - 1;
-    return parseInt(j, 10) + ' ' + (MOIS[mi] || m) + ' ' + a;
-  }
-
-  function enteteOfficielle() {
-    return `
-      <table style="width:100%;text-align:center;font-size:14px;font-weight:bold;margin-bottom:40px;border-collapse:collapse">
-        <tr>
-          <td style="width:45%;vertical-align:top;line-height:1.4">
-            RÉPUBLIQUE DU CAMEROUN<br>
-            <span style="font-weight:normal;font-style:italic">Paix - Travail - Patrie</span><br>
-            ---------<br>
-            DIRECTION GÉNÉRALE DE LA SÛRETÉ NATIONALE
-          </td>
-          <td style="width:10%;vertical-align:top">
-            <div style="width:80px;height:80px;border:2px solid #000;border-radius:50%;margin:0 auto;display:flex;align-items:center;justify-content:center;font-size:13px;font-weight:bold;text-align:center">DGSN</div>
-          </td>
-          <td style="width:45%;vertical-align:top;line-height:1.4">
-            REPUBLIC OF CAMEROON<br>
-            <span style="font-weight:normal;font-style:italic">Peace - Work - Fatherland</span><br>
-            ---------<br>
-            GENERAL DELEGATION FOR NATIONAL SECURITY
-          </td>
-        </tr>
-      </table>`;
-  }
-
-  function titreDocument(titre, numero) {
-    return `
-      <div style="text-align:center;margin-bottom:40px">
-        <h1 style="margin:0;font-size:26px;text-transform:uppercase;text-decoration:underline;letter-spacing:1px">${titre}</h1>
-        <p style="margin:14px 0 0;font-size:19px">Dossier N° <strong>${numero}</strong></p>
-      </div>`;
-  }
-
-  /* Bloc de vérification : QR calculé localement + code de contrôle et URL
-     en clair, pour que le document reste vérifiable sans lecteur de QR. */
-  function blocVerification(numero, mentionDroite) {
-    return `
-      <table style="width:100%;font-size:15px;margin-top:20px">
-        <tr>
-          <td style="width:50%;vertical-align:top;text-align:left;padding-left:10px">
-            <div style="font-weight:bold;margin-bottom:8px;width:150px;text-align:center">Vérification Électronique</div>
-            <div style="width:116px;height:116px;border:2px solid #000;margin-left:18px;display:flex;align-items:center;justify-content:center;padding:4px">
-              ${QR.svg(urlVerification(numero), { taille: 106, couleur: '#000000', alt: 'Code QR de vérification' })}
-            </div>
-            <div style="font-size:11px;margin-top:6px;width:240px;line-height:1.5">
-              Code de contrôle : <strong>${codeVerification(numero)}</strong><br>
-              <span style="font-size:10px">${urlVerification(numero)}</span>
-            </div>
-          </td>
-          <td style="width:50%;vertical-align:bottom;text-align:right;padding-right:10px">
-            ${mentionDroite}
-          </td>
-        </tr>
-      </table>`;
-  }
-
-  /* Mécanique d'impression, commune aux deux documents. */
-  function imprimerDocument(html) {
-    const zone = document.createElement('div');
-    zone.id = 'print-doc-area';
-    zone.style.width = '100%';
-    zone.style.fontFamily = '"Times New Roman", Times, serif';
-    zone.style.color = '#000';
-    zone.style.background = '#fff';
-    zone.style.padding = '20px';
-    zone.innerHTML = html;
-
-    const style = document.createElement('style');
-    style.innerHTML = `
-      @media print {
-        body * { visibility: hidden; }
-        #print-doc-area, #print-doc-area * { visibility: visible; }
-        #print-doc-area { position: absolute; left: 0; top: 0; width: 100%; }
-      }`;
-
-    document.head.appendChild(style);
-    document.body.appendChild(zone);
-    /* Le QR est calculé localement : aucun chargement réseau à attendre. */
-    window.print();
-    setTimeout(() => {
-      if (zone.parentNode)  document.body.removeChild(zone);
-      if (style.parentNode) document.head.removeChild(style);
-    }, 800);
-  }
-
-  /* ── Source des données ──────────────────────────────────────
-     Depuis le suivi, le dossier vient de DOSSIERS. Juste après un dépôt,
-     il vient du formulaire encore rempli. On ne fabrique rien : si une
-     information est absente, elle est signalée comme telle. */
-  function donneesDossier(numero) {
-    const d = (typeof DOSSIERS !== 'undefined')
-      ? DOSSIERS.find(x => x.id === numero) : null;
-    if (d) {
-      return {
-        numero: d.id, plaignant: d.plaignant, type: d.type,
-        date: d.date, heure: d.heure || '',
-        lieu: d.lieu || '', declaration: d.declaration || '',
-        misEnCause: d.misEnCause || '', prejudice: d.prejudice || null,
-        commissariat: d.commissariat || 'Commissariat compétent',
-        statut: (typeof STATUT_LABELS !== 'undefined' && STATUT_LABELS[d.statut])
-                ? STATUT_LABELS[d.statut][1] : d.statut,
-        enqueteur: d.enqueteur || null
-      };
-    }
-
-    /* Repli : le formulaire de dépôt de la session en cours. */
-    const val = id => { const e = document.getElementById(id); return e ? e.value.trim() : ''; };
-    const dateEl = document.querySelector('[data-step="1"] input[type="date"]');
-    const mecNom = document.querySelector('[data-step="3"] input[placeholder="Nom du mis en cause"]');
-    const mecDesc = document.querySelector('[data-step="3"] textarea');
-    const infoComm = document.getElementById('commissariat-info-text');
-    return {
-      numero: numero,
-      plaignant: 'Jean MBIDA',
-      type: val('nature-infraction'),
-      date: dateEl ? dateEl.value : '', heure: '',
-      lieu: val('lieu-faits'),
-      declaration: val('declaration-text'),
-      misEnCause: (mecNom && mecNom.value.trim())
-        ? mecNom.value.trim() + (mecDesc && mecDesc.value.trim() ? ' — ' + mecDesc.value.trim() : '')
-        : (mecDesc ? mecDesc.value.trim() : ''),
-      prejudice: val('prejudice-nature') ? {
-        nature: val('prejudice-nature'),
-        montant: val('prejudice-montant'),
-        detail: val('prejudice-detail')
-      } : null,
-      commissariat: infoComm ? infoComm.textContent.trim() : 'Commissariat compétent',
-      statut: 'Transmis pour instruction',
-      enqueteur: null
-    };
-  }
-
-  function numeroCourant() {
-    const el = document.querySelector('#page-confirmation .big-num');
-    return (el ? el.textContent : 'N° 2026-00451').replace(/^\s*N°\s*/, '').trim();
-  }
-
-  function ligne(intitule, valeur) {
-    return `<tr>
-      <td style="padding:11px 14px;border:1px solid #000;width:38%;font-weight:bold">${intitule}</td>
-      <td style="padding:11px 14px;border:1px solid #000">${valeur || '<em>non renseigné</em>'}</td>
-    </tr>`;
-  }
-
-  /* ══════════ ATTESTATION DE DÉPÔT ══════════ */
-  function telechargerAttestationPDF(numero) {
-    const n = numero || numeroCourant();
-    const d = donneesDossier(n);
-
-    imprimerDocument(
-      enteteOfficielle() +
-      titreDocument('Attestation de Dépôt de Plainte', d.numero) + `
-      <div style="font-size:17px;line-height:1.8;text-align:justify;margin-bottom:30px">
-        <p>Il est certifié par la présente que la déclaration de plainte enregistrée sur la plateforme nationale <strong>PlainteCam</strong> a été formellement reçue et consignée dans nos systèmes sécurisés.</p>
-      </div>
-      <table style="width:100%;border-collapse:collapse;font-size:15px;margin-bottom:34px">
-        <tbody>
-          ${ligne("Date d'enregistrement", dateEnClair(d.date) + (d.heure ? ' à ' + d.heure : ''))}
-          ${ligne('Identité du plaignant', '<strong>' + d.plaignant + '</strong>')}
-          ${ligne("Nature de l'infraction", d.type)}
-          ${ligne('Commissariat en charge', d.commissariat)}
-          ${ligne('Statut actuel', '<strong>' + d.statut + '</strong>')}
-        </tbody>
-      </table>
-      <div style="font-size:14px;line-height:1.6;text-align:justify;margin-bottom:44px;border-left:4px solid #000;padding-left:18px;font-style:italic">
-        <strong>Note importante :</strong> ce document numérique est généré automatiquement par le système central PlainteCam. Il fait foi de la date certaine du dépôt de votre plainte. L'officier de police judiciaire en charge du dossier vous contactera pour la suite de la procédure et l'audition. Toute fausse déclaration expose son auteur aux sanctions prévues par le Code pénal.
-      </div>` +
-      blocVerification(d.numero, `
-        <div style="margin-bottom:26px">Fait à Yaoundé, le ${dateEnClair(d.date)}</div>
-        <div style="font-weight:bold;margin-bottom:12px">Pour la Délégation Générale,<br>Le Système Central PlainteCam</div>
-        <div style="font-size:13px;margin-bottom:34px">(Signature électronique et cachet numérique)</div>
-        <div style="display:inline-block;border-bottom:1px solid #000;width:220px"></div>`)
-    );
-  }
-
-  /* ══════════ DÉCLARATION DE PLAINTE ══════════ */
-  function telechargerPlaintePDF(numero) {
-    const n = numero || numeroCourant();
-    const d = donneesDossier(n);
-
-    const prej = d.prejudice ? `
-      <p style="font-weight:bold;margin:26px 0 8px">III. PRÉJUDICE SUBI</p>
-      <table style="width:100%;border-collapse:collapse;font-size:15px">
-        <tbody>
-          ${ligne('Nature du préjudice', d.prejudice.nature)}
-          ${d.prejudice.montant ? ligne('Montant estimé', d.prejudice.montant + ' FCFA') : ''}
-          ${d.prejudice.detail  ? ligne('Précisions', d.prejudice.detail) : ''}
-        </tbody>
-      </table>` : '';
-
-    imprimerDocument(
-      enteteOfficielle() +
-      titreDocument('Déclaration de Plainte', d.numero) + `
-      <p style="font-weight:bold;margin:0 0 8px">I. IDENTITÉ ET OBJET</p>
-      <table style="width:100%;border-collapse:collapse;font-size:15px">
-        <tbody>
-          ${ligne('Plaignant', '<strong>' + d.plaignant + '</strong>')}
-          ${ligne("Nature de l'infraction", d.type)}
-          ${ligne('Date des faits', dateEnClair(d.date))}
-          ${ligne('Lieu des faits', d.lieu)}
-          ${ligne('Commissariat compétent', d.commissariat)}
-          ${d.enqueteur ? ligne('Enquêteur désigné', d.enqueteur) : ''}
-        </tbody>
-      </table>
-
-      <p style="font-weight:bold;margin:26px 0 8px">II. EXPOSÉ DES FAITS</p>
-      <div style="font-size:15px;line-height:1.85;text-align:justify;border:1px solid #000;padding:16px 18px">
-        ${d.declaration
-          ? '« ' + d.declaration + ' »'
-          : '<em>Aucune déclaration enregistrée pour ce dossier.</em>'}
-      </div>
-      ${prej}
-
-      <p style="font-weight:bold;margin:26px 0 8px">IV. MIS EN CAUSE</p>
-      <div style="font-size:15px;line-height:1.7;border:1px solid #000;padding:14px 18px">
-        ${d.misEnCause || '<em>Mis en cause inconnu du plaignant à la date de la déclaration.</em>'}
-      </div>
-
-      <div style="font-size:14px;line-height:1.6;text-align:justify;margin:30px 0 36px;border-left:4px solid #000;padding-left:18px;font-style:italic">
-        <strong>Mention légale :</strong> la présente déclaration reproduit les informations saisies par le plaignant sur la plateforme PlainteCam. Elle ne constitue pas un procès-verbal d'audition : celui-ci est établi par l'officier de police judiciaire lors de l'audition. Toute fausse déclaration expose son auteur aux sanctions prévues par le Code pénal camerounais.
-      </div>` +
-      blocVerification(d.numero, `
-        <div style="margin-bottom:26px">Déclaration établie le ${dateEnClair(d.date)}${d.heure ? ' à ' + d.heure : ''}</div>
-        <div style="font-weight:bold;margin-bottom:44px">Signature du déclarant<br><span style="font-weight:normal;font-size:14px">${d.plaignant}</span></div>
-        <div style="display:inline-block;border-bottom:1px solid #000;width:220px"></div>`)
-    );
-  }
 </script>
 </body>
 </html>

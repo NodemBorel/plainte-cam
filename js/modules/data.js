@@ -16,6 +16,10 @@ const DOSSIERS = [
     lieu: 'Marché Mokolo, Mokolo, Yaoundé 1er, Mfoundi, Centre',
     prejudice: { nature: 'Matériel', montant: '150 000', detail: 'Téléphone Samsung Galaxy noir' },
     declaration: "Le 15 mai 2026 vers 14h00, je me trouvais au Marché Mokolo à Yaoundé. Un individu inconnu, jeune homme d'environ 25 ans, vêtu d'un tee-shirt rouge, a arraché mon téléphone Samsung Galaxy de couleur noire. Il a pris la fuite en courant. Valeur : 150 000 FCFA.",
+    contact: { email: 'j.mbida@gmail.com',    telephone: '+237 677 100 001' },
+    contactMisEnCause: null,
+    pieces: [{ nom: 'facture-achat-telephone.pdf', taille: '128 Ko' },
+              { nom: 'photo-lieu-des-faits.jpg',    taille: '1,8 Mo' }],
     misEnCause: "Jeune homme, environ 25 ans, taille moyenne, tee-shirt rouge, jean bleu."
   },
   {
@@ -26,6 +30,10 @@ const DOSSIERS = [
     lieu: 'Biyem-Assi, Yaoundé 6ème, Mfoundi, Centre',
     prejudice: { nature: 'Financier', montant: '200 000', detail: 'Virement Mobile Money non remboursé' },
     declaration: "Un individu s'est présenté comme agent d'une société de micro-finance. Il m'a soutiré un virement de 200 000 FCFA en promettant un remboursement avec intérêts. Depuis lors, il est injoignable.",
+    contact: { email: 'm.essomba@gmail.com',  telephone: '+237 677 100 002' },
+    contactMisEnCause: null,
+    pieces: [{ nom: 'recu-mobile-money.jpg',        taille: '740 Ko' },
+              { nom: 'captures-conversation.pdf',   taille: '2,1 Mo' }],
     misEnCause: null
   },
   {
@@ -36,6 +44,11 @@ const DOSSIERS = [
     lieu: 'Nlongkak, Yaoundé 1er, Mfoundi, Centre',
     prejudice: { nature: 'Corporel', montant: '', detail: 'Blessures légères — certificat médical disponible' },
     declaration: "J'ai été agressé physiquement par mon voisin suite à un différend concernant un terrain. Il m'a frappé à plusieurs reprises, causant des blessures légères. Je dispose d'un certificat médical.",
+    contact: { email: 'p.atangana@gmail.com', telephone: '+237 677 100 003' },
+    /* Voisin direct : ses coordonnees sont connues du plaignant. */
+    contactMisEnCause: { email: null, telephone: '+237 699 442 018' },
+    pieces: [{ nom: 'certificat-medical.pdf',       taille: '344 Ko' },
+              { nom: 'photos-blessures.jpg',        taille: '2,6 Mo' }],
     misEnCause: "FOUDA Ernest, voisin direct, 40 ans environ."
   },
   {
@@ -46,6 +59,9 @@ const DOSSIERS = [
     lieu: 'Mendong, Yaoundé 6ème, Mfoundi, Centre',
     prejudice: { nature: 'Moral', montant: '', detail: 'Messages menaçants répétés' },
     declaration: "Je suis victime de harcèlement répété de la part d'un collègue de bureau depuis plusieurs semaines. Il m'envoie des messages menaçants et me surveille.",
+    contact: { email: 'f.bello@gmail.com',    telephone: '+237 677 100 004' },
+    contactMisEnCause: null,
+    pieces: [{ nom: 'captures-messages.pdf',        taille: '1,2 Mo' }],
     misEnCause: null
   },
   {
@@ -56,6 +72,10 @@ const DOSSIERS = [
     lieu: 'Obili, Yaoundé 1er, Mfoundi, Centre',
     prejudice: { nature: 'Matériel', montant: '450 000', detail: 'Moto Yamaha 125 — rétroviseurs et phare avant brisés' },
     declaration: "Ma moto a été délibérément endommagée dans la nuit du 28 avril. Les rétroviseurs et le phare avant ont été brisés. Des voisins ont entendu du bruit mais n'ont pas vu l'auteur.",
+    contact: { email: 'a.foko@gmail.com',     telephone: '+237 677 100 005' },
+    contactMisEnCause: null,
+    pieces: [{ nom: 'photos-degats-moto.jpg',       taille: '3,4 Mo' },
+              { nom: 'facture-moto.pdf',            taille: '96 Ko' }],
     misEnCause: null
   }
 ];
@@ -132,7 +152,11 @@ const HISTORIQUE = {
     { etape: 'AUDITION', type: 'convocation', date: '18/05/2026', heure: '11h10', libelle: 'Convocation émise',   detail: 'Personne mise en cause convoquée' },
     { etape: 'AUDITION', type: 'message', date: '19/05/2026', heure: '08h30', auteur: 'Insp. KANA',
       texte: "Votre audition est fixée. Présentez-vous au commissariat muni de votre pièce d'identité et de tout justificatif du virement. La convocation est jointe.",
-      pieces: [{ nom: 'convocation-2026-00438.pdf', taille: '78 Ko' }] }
+      pieces: [{ nom: 'convocation-2026-00438.pdf', taille: '78 Ko' }] },
+    /* Audition tenue, procès-verbal encore non signé : c'est le seul
+       dossier où l'enquêteur peut corriger le PV avant de le signer. Sans
+       lui, la révision du §7.4 n'aurait aucun cas de démonstration. */
+    { etape: 'AUDITION', type: 'audition', date: '20/05/2026', heure: '10h00', libelle: 'Votre audition', detail: 'Déclarations recueillies — procès-verbal en cours de relecture' }
   ],
 
   '2026-00412': [
@@ -194,6 +218,62 @@ function historiqueCitoyen(numeroDossier) {
   return (HISTORIQUE[numeroDossier] || []).filter(e => e.type !== 'note');
 }
 
+/* ============================================================
+   CONVOCATIONS
+
+   Le compte rendu d'entretien est formel : lorsque le mis en cause est
+   identifié, il est convoqué « au minimum 3 fois ». En cas d'absence
+   répétée et injustifiée, le dossier est transmis au procureur.
+
+   D'où le numéro d'ordre — le champ numero_ordre existe déjà dans
+   supabase/schema.sql — et les trois états possibles.
+   ============================================================ */
+
+const CONVOCATIONS = {
+  /* Le mis en cause ne se présente pas : deux absences constatées, la
+     troisième convocation est en cours. */
+  '2026-00438': [
+    { ordre: 1, nom: 'Suspect non identifié — société de micro-finance', date: '22/05/2026', heure: '09h00', statut: 'ABSENT',
+      motif: "Audition dans le cadre de l'instruction d'une plainte pour escroquerie." },
+    { ordre: 2, nom: 'Suspect non identifié — société de micro-finance', date: '29/05/2026', heure: '09h00', statut: 'ABSENT',
+      motif: 'Seconde convocation — absence non justifiée à la première.' },
+    { ordre: 3, nom: 'Suspect non identifié — société de micro-finance', date: '05/06/2026', heure: '09h00', statut: 'EN_ATTENTE',
+      motif: 'Troisième et dernière convocation avant transmission au procureur.' }
+  ],
+  '2026-00412': [
+    { ordre: 1, nom: 'FOUDA Ernest', date: '13/05/2026', heure: '09h30', statut: 'COMPARU',
+      motif: "Audition dans le cadre de l'instruction d'une plainte pour agression physique." }
+  ]
+};
+
+const STATUT_CONVOCATION = {
+  EN_ATTENTE: ['badge-orange', 'En attente'],
+  COMPARU:    ['badge-green',  'Comparu'],
+  ABSENT:     ['badge-red',    'Absent']
+};
+
+const ORDINAUX = ['1re', '2e', '3e', '4e', '5e'];
+
+function convocationsDe(numeroDossier) {
+  return CONVOCATIONS[numeroDossier] || [];
+}
+
+/* Une convocation ne peut être émise que si le mis en cause est identifié :
+   sur un vol commis par un inconnu, il n'y a personne à convoquer. */
+function misEnCauseIdentifie(dossier) {
+  if (!dossier || !dossier.misEnCause) return false;
+  /* Un simple signalement physique ne vaut pas identité. */
+  return !/^(jeune homme|homme|femme|individu|inconnu)/i.test(dossier.misEnCause.trim());
+}
+
+/* Trois absences constatées : le dossier relève du procureur. */
+function absencesConstatees(numeroDossier) {
+  return convocationsDe(numeroDossier).filter(c => c.statut === 'ABSENT').length;
+}
+function doitPasserAuProcureur(numeroDossier) {
+  return absencesConstatees(numeroDossier) >= 3;
+}
+
 const STATUT_LABELS = {
   RECU: ['badge-blue', 'Reçu'],
   AUDITION: ['badge-gold', 'Audition'],
@@ -202,3 +282,62 @@ const STATUT_LABELS = {
   TRANSMIS: ['badge-gray', 'Transmis'],
   CLOTURE: ['badge-green', 'Clôturé'],
 };
+
+/* ============================================================
+   CORRECTIONS DU PROCÈS-VERBAL
+
+   Le §7.4 demande un PV révisable dont « toutes les modifications sont
+   tracées ». Le compte rendu d'entretien explique pourquoi : le mis en
+   cause refuse parfois de signer en prétextant que le contenu ne reflète
+   pas ses déclarations. Sans historique des versions, ce refus est
+   invérifiable et fragilise la procédure.
+
+   On ne conserve donc pas seulement le texte corrigé, mais chaque
+   révision : qui, quand, l'avant et l'après. Une fois le PV signé, il
+   n'est plus modifiable.
+   ============================================================ */
+
+const PV_CORRECTIONS = {};
+
+function clePV(numeroDossier, audition) {
+  return numeroDossier + '|' + (audition || 'plaignant');
+}
+
+/* Texte en vigueur : la dernière correction, ou l'original s'il n'y en a pas. */
+function pvTexte(numeroDossier, audition, original) {
+  const e = PV_CORRECTIONS[clePV(numeroDossier, audition)];
+  return (e && e.texte) ? e.texte : original;
+}
+
+function pvRevisions(numeroDossier, audition) {
+  const e = PV_CORRECTIONS[clePV(numeroDossier, audition)];
+  return e ? e.revisions : [];
+}
+
+function pvEstSigne(numeroDossier) {
+  return (HISTORIQUE[numeroDossier] || []).some(e => e.type === 'pv');
+}
+
+/* Enregistre une correction. Refuse si le PV est déjà signé : un document
+   signé ne se réécrit pas. */
+function corrigerPV(numeroDossier, audition, nouveauTexte, auteur, original) {
+  if (pvEstSigne(numeroDossier)) return false;
+
+  const cle = clePV(numeroDossier, audition);
+  const avant = pvTexte(numeroDossier, audition, original);
+  if (avant === nouveauTexte) return false;
+
+  if (!PV_CORRECTIONS[cle]) PV_CORRECTIONS[cle] = { texte: null, revisions: [] };
+
+  const m = new Date();
+  const dd = n => String(n).padStart(2, '0');
+  PV_CORRECTIONS[cle].revisions.push({
+    date: dd(m.getDate()) + '/' + dd(m.getMonth() + 1) + '/' + m.getFullYear(),
+    heure: dd(m.getHours()) + 'h' + dd(m.getMinutes()),
+    auteur: auteur,
+    avant: avant,
+    apres: nouveauTexte
+  });
+  PV_CORRECTIONS[cle].texte = nouveauTexte;
+  return true;
+}

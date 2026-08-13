@@ -386,11 +386,57 @@
       <button class="modal-close" onclick="closeModal('modal-affectation')">✕</button>
     </div>
     <div class="modal-body">
-      <div class="alert alert-info" style="margin-bottom:18px">
-        <div>Suggestion IA : <strong>Insp. NGUEMO</strong> — Vol simple, charge actuelle = 5 dossiers</div>
+      <div id="affectation-suggestion"></div>
+
+      <!-- La priorité est fixée par le commissaire au moment de la cotation,
+           conformément au compte rendu d'entretien : c'est le chef d'unité
+           qui cote le dossier. L'enquêteur la reçoit, il ne l'arbitre pas. -->
+      <div class="form-group">
+        <label class="form-label" for="affect-priorite">Priorité du dossier</label>
+        <select class="form-control" id="affect-priorite">
+          <option value="BASSE">Basse</option>
+          <option value="NORMALE" selected>Normale</option>
+          <option value="HAUTE">Haute</option>
+          <option value="URGENTE">Urgente</option>
+        </select>
+        <div class="form-hint">Elle détermine l'ordre de traitement par l'enquêteur.</div>
       </div>
-      <div style="font-size:14px;margin-bottom:16px"><strong>Sélectionner un enquêteur :</strong></div>
+
+      <div class="divider"></div>
+      <div style="font-size:14px;margin-bottom:14px"><strong>Sélectionner un enquêteur :</strong></div>
       <div id="enqueteur-list"></div>
+    </div>
+  </div>
+</div>
+
+<!-- MODAL TRANSFERT
+     Le compte rendu d'entretien le prévoit : « en cas d'indisponibilité de
+     l'enquêteur en charge, le dossier est transféré à un autre enquêteur ».
+     C'est une décision du commissaire, pas de l'enquêteur lui-même. -->
+<div class="modal-overlay" id="modal-transfert">
+  <div class="modal-box" style="max-width:480px">
+    <div class="modal-header">
+      <span class="card-title" id="transfert-titre">Transférer le dossier</span>
+      <button class="modal-close" onclick="closeModal('modal-transfert')" aria-label="Fermer">✕</button>
+    </div>
+    <div class="modal-body">
+      <div id="transfert-actuel"></div>
+
+      <div class="form-group">
+        <label class="form-label" for="transfert-motif">Motif du transfert</label>
+        <select class="form-control" id="transfert-motif">
+          <option value="Indisponibilité de l'enquêteur">Indisponibilité de l'enquêteur</option>
+          <option value="Réaffectation selon la spécialité">Réaffectation selon la spécialité</option>
+          <option value="Équilibrage de la charge de travail">Équilibrage de la charge de travail</option>
+          <option value="Dessaisissement">Dessaisissement</option>
+        </select>
+      </div>
+
+      <div class="form-group">
+        <label class="form-label">Nouvel enquêteur</label>
+        <div id="transfert-liste"></div>
+        <div class="field-error" id="err-transfert"></div>
+      </div>
     </div>
   </div>
 </div>

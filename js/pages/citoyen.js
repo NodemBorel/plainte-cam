@@ -47,8 +47,8 @@ function buildRecap() {
   const dateFait = dateEl ? dateEl.value : '';
   const desc     = document.getElementById('declaration-text').value || '';
 
-  const nomMec   = document.querySelector('[data-step="3"] input[placeholder="Nom du mis en cause"]');
-  const descMec  = document.querySelector('[data-step="3"] textarea');
+  const nomMec   = document.getElementById('mec-nom');
+  const descMec  = document.getElementById('mec-description');
   const nomMecVal  = nomMec  && nomMec.value.trim()  ? nomMec.value.trim()  : null;
   const descMecVal = descMec && descMec.value.trim() ? descMec.value.trim() : null;
 
@@ -671,8 +671,8 @@ function texteALire() {
     parts.push(p);
   }
 
-  var mec = document.querySelector('[data-step="3"] input[placeholder="Nom du mis en cause"]');
-  var mecDesc = document.querySelector('[data-step="3"] textarea');
+  var mec = document.getElementById('mec-nom');
+  var mecDesc = document.getElementById('mec-description');
   if (mec && mec.value.trim()) parts.push('Mis en cause : ' + mec.value.trim() + '.');
   else if (mecDesc && mecDesc.value.trim()) parts.push('Le mis en cause n\'est pas identifié. Description : ' + mecDesc.value.trim());
 
@@ -748,8 +748,8 @@ function sauverBrouillon() {
     var dateEl = document.querySelector('[data-step="1"] input[type="date"]');
     if (dateEl) data.champs['__date'] = dateEl.value;
 
-    var mec = document.querySelector('[data-step="3"] input[placeholder="Nom du mis en cause"]');
-    var mecDesc = document.querySelector('[data-step="3"] textarea');
+    var mec = document.getElementById('mec-nom');
+    var mecDesc = document.getElementById('mec-description');
     if (mec) data.champs['__mecNom'] = mec.value;
     if (mecDesc) data.champs['__mecDesc'] = mecDesc.value;
 
@@ -834,8 +834,8 @@ function reprendreBrouillon() {
   set('prejudice-detail',   d.champs['prejudice-detail']);
   onPrejudiceChange();
 
-  var mec = document.querySelector('[data-step="3"] input[placeholder="Nom du mis en cause"]');
-  var mecDesc = document.querySelector('[data-step="3"] textarea');
+  var mec = document.getElementById('mec-nom');
+  var mecDesc = document.getElementById('mec-description');
   if (mec && d.champs['__mecNom'])      mec.value = d.champs['__mecNom'];
   if (mecDesc && d.champs['__mecDesc']) mecDesc.value = d.champs['__mecDesc'];
 

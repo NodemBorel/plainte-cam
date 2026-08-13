@@ -32,7 +32,12 @@ function initDashboard(liste) {
       <td><span class="badge ${cls}">${lbl}</span></td>
       <td>${d.enqueteur || '<span class="text-muted">Non affecte</span>'}</td>
       <td>
-        <button class="btn btn-primary btn-sm" onclick="event.stopPropagation();openDossier('${d.id}')">Ouvrir</button>
+        <div style="display:flex;gap:6px;flex-wrap:wrap">
+          <button class="btn btn-primary btn-sm" onclick="event.stopPropagation();openDossier('${d.id}')">Ouvrir</button>
+          ${d.enqueteur
+            ? `<button class="btn btn-outline btn-sm" onclick="event.stopPropagation();ouvrirTransfert('${d.id}')">Transférer</button>`
+            : `<button class="btn btn-outline btn-sm" onclick="event.stopPropagation();affecterDossier('${d.id}')">Affecter</button>`}
+        </div>
       </td>
     </tr>`;
   }).join('');
