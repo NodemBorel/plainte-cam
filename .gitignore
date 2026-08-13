@@ -1,0 +1,5 @@
+# Secrets : ne doivent jamais rejoindre le depot.
+key.txt
+*.key
+.env
+.env.*
