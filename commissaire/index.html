@@ -96,7 +96,7 @@
        « 24 dossiers actifs » pour un commissariat qui en comptait sept. -->
   <div class="kpi-row" id="kpi-commissaire"></div>
 
-  <div class="grid-2-1">
+  <div class="grid-2-1 grid-egales">
 
     <!-- Plaintes à affecter -->
     <div class="card">
@@ -115,6 +115,7 @@
           <tbody id="a-affecter"></tbody>
         </table>
       </div>
+      <div id="pagination-attente"></div>
     </div>
 
     <!-- Charge enquêteurs : NGUEMO y figurait comme enquêteur alors qu'il
@@ -146,7 +147,8 @@
       <span class="card-title">Plaintes reçues — 14 derniers jours</span>
       <span class="text-muted" id="chart-legende"></span>
     </div>
-    <canvas id="chart-plaintes" width="800" height="160"></canvas>
+    <canvas id="chart-plaintes" width="800" height="210"></canvas>
+    <div class="series" id="chart-series"></div>
   </div>
 </div>
 
@@ -246,6 +248,7 @@
           <tbody id="charge-detaillee"></tbody>
         </table>
       </div>
+      <div id="pagination-rendement"></div>
     </div>
   </div>
 
@@ -313,6 +316,7 @@
         <tbody id="agents-tbody"></tbody>
       </table>
     </div>
+    <div id="pagination-agents"></div>
   </div>
 </div>
 
@@ -552,6 +556,19 @@
 </div>
 
 <!-- MISE HORS SERVICE D'UN AGENT -->
+<!-- RENDEMENT D'UN ENQUÊTEUR, PLAINTE PAR PLAINTE
+     Le tableau des statistiques donnait des totaux sans qu'on puisse
+     savoir de quels dossiers ils venaient. -->
+<div class="modal-overlay" id="modal-rendement">
+  <div class="modal-box" style="max-width:680px">
+    <div class="modal-header">
+      <span class="card-title" id="rendement-titre">Rendement</span>
+      <button class="modal-close" onclick="closeModal('modal-rendement')" aria-label="Fermer">✕</button>
+    </div>
+    <div class="modal-body" id="rendement-corps"></div>
+  </div>
+</div>
+
 <div class="modal-overlay" id="modal-agent-etat">
   <div class="modal-box" style="max-width:420px">
     <div class="modal-header">

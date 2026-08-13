@@ -162,6 +162,57 @@ function majBilanFiltres(total, debut, affiches) {
     (actifs.length ? '<span class="filtres-actifs">' + actifs.join(' · ') + '</span>' : '');
 }
 
+/* ============================================================
+   PAGINATION PARTAGÉE
+
+   Les tables du tableau de bord et des statistiques débordaient dès que
+   le commissariat grossissait : rien ne bornait leur hauteur. Un même
+   mécanisme les pagine toutes — mais il ne s'affiche que s'il sert. Une
+   barre de navigation sous un tableau de trois lignes est du bruit.
+   ============================================================ */
+function trancheDePage(liste, etat) {
+  const total = liste.length;
+  const pages = Math.max(1, Math.ceil(total / etat.parPage));
+  if (etat.page > pages) etat.page = pages;
+  if (etat.page < 1) etat.page = 1;
+  const debut = (etat.page - 1) * etat.parPage;
+  return { total: total, pages: pages, debut: debut,
+           lignes: liste.slice(debut, debut + etat.parPage) };
+}
+
+/* `action` reçoit le numéro de page ; `nom` sert aux libellés. */
+function barrePagination(cible, t, etat, action, nom) {
+  const el = document.getElementById(cible);
+  if (!el) return;
+
+  /* Tout tient sur une page : rien à afficher. */
+  if (t.pages <= 1) { el.innerHTML = ''; return; }
+
+  const p = etat.page;
+  const bouton = (n, libelle, dispo, courante) =>
+    '<button type="button" class="page-btn' + (courante ? ' courante' : '') + '"' +
+      (dispo ? ' onclick="' + action + '(' + n + ')"' : ' disabled') +
+      (courante ? ' aria-current="page"' : '') + '>' + libelle + '</button>';
+
+  const nums = [];
+  const de = Math.max(1, Math.min(p - 2, t.pages - 4));
+  const a  = Math.min(t.pages, Math.max(p + 2, 5));
+  if (de > 1) nums.push(bouton(1, '1', true, false), '<span class="page-ellipse">…</span>');
+  for (let i = de; i <= a; i++) nums.push(bouton(i, String(i), true, i === p));
+  if (a < t.pages) nums.push('<span class="page-ellipse">…</span>',
+                             bouton(t.pages, String(t.pages), true, false));
+
+  el.innerHTML = '<nav class="pagination" aria-label="Pages">' +
+    '<span class="pagination-etat">' + (t.debut + 1) + '–' +
+      (t.debut + t.lignes.length) + ' sur ' + t.total + ' ' + nom + '</span>' +
+    '<span class="pagination-nav">' +
+      bouton(p - 1, 'Précédent', p > 1, false) +
+      '<span class="pagination-pages">' + nums.join('') + '</span>' +
+      bouton(p + 1, 'Suivant', p < t.pages, false) +
+    '</span>' +
+  '</nav>';
+}
+
 /* Sélecteur du nombre de lignes, partagé par le tableau des dossiers et
    le journal d'audit. Il vit ici, dans le fichier chargé en premier :
    défini dans l'autre, il n'aurait existé qu'après son premier usage. */
@@ -275,75 +326,180 @@ function depotsRecents(jours) {
   return { data, fin: new Date(fin) };
 }
 
+/* ============================================================
+   PLAINTES REÇUES — GRAPHIQUE À DEUX AXES
+
+   Le tracé ne portait que des barres, sans repère : on voyait des
+   hauteurs relatives sans savoir de combien ni de quand il s'agissait.
+   Deux séries y répondent, sur deux échelles distinctes :
+
+     — les dépôts du jour, en barres, sur l'axe de gauche ;
+     — leur cumul sur la période, en courbe, sur l'axe de droite.
+
+   Les deux ne partagent pas d'échelle : un cumul de quatorze écraserait
+   des barres qui valent un ou deux. D'où le second axe.
+
+   Tout est tracé au canvas : le projet n'a ni bibliothèque ni étape de
+   construction, et une dépendance externe ne fonctionnerait pas hors
+   ligne — ce qu'un commissariat ne peut pas supposer.
+   ============================================================ */
 function drawMiniChart() {
   const c = document.getElementById('chart-plaintes');
-  if (!c) return;
+  if (!c || !c.getContext) return;
   const ctx = c.getContext('2d');
+
   const recents = depotsRecents(14);
-  const data = recents.data;
-  /* Sans dépôt sur la période, toutes les barres valent zéro : diviser
-     par ce maximum donnerait des NaN et un graphique vide sans raison. */
-  const max = Math.max(1, ...data);
+  const jours = recents.data;
+  const total = jours.reduce((a, b) => a + b, 0);
+
+  /* Cumul : la pente dit si le rythme des dépôts s'accélère. */
+  let somme = 0;
+  const cumul = jours.map(v => (somme += v));
 
   const legende = document.getElementById('chart-legende');
   if (legende) {
-    const total = data.reduce((a, b) => a + b, 0);
-    const dernier = data[data.length - 1];
     legende.textContent = recents.fin
       ? total + ' dépôt' + (total > 1 ? 's' : '') + ' sur la période — ' +
-        dernier + ' le ' + recents.fin.toLocaleDateString('fr-FR')
+        'dernier le ' + recents.fin.toLocaleDateString('fr-FR')
       : 'Aucun dépôt enregistré';
   }
 
-  /* Le canvas etait fige a 800px de large dans un conteneur plus etroit :
-     il etait tout simplement coupe sur mobile. On le redimensionne sur la
-     largeur reellement disponible, et on tient compte de la densite d'ecran
-     pour eviter un trace flou sur les affichages haute resolution. */
-  const dispo = c.parentNode ? c.parentNode.clientWidth : 800;
-  const dpr = window.devicePixelRatio || 1;
-  const W = Math.max(260, dispo);
-  const H = 160;
+  /* Le canvas était figé à 800px dans un conteneur plus étroit : il était
+     coupé sur mobile. On le redimensionne sur la largeur disponible, et
+     l'on tient compte de la densité d'écran pour éviter un tracé flou. */
+  const dispo = (c.parentNode && c.parentNode.clientWidth) || 800;
+  const dpr = (typeof window !== 'undefined' && window.devicePixelRatio) || 1;
+  const W = Math.max(280, dispo);
+  const H = 210;
   c.style.width = '100%';
   c.style.height = H + 'px';
   c.width  = Math.round(W * dpr);
   c.height = Math.round(H * dpr);
   ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
 
-  /* Couleurs lues sur la charte au lieu d'etre dupliquees en dur. */
-  const styles = getComputedStyle(document.documentElement);
-  const cOr    = (styles.getPropertyValue('--gold') || '#c98b00').trim();
-  const cMarine= (styles.getPropertyValue('--primary') || '#0b1e45').trim();
-  const cGrille= (styles.getPropertyValue('--gray-2') || '#e0ddd8').trim();
+  /* Couleurs lues sur la charte plutôt que dupliquées en dur. */
+  const styles = (typeof getComputedStyle === 'function')
+    ? getComputedStyle(document.documentElement) : null;
+  const jeton = (nom, repli) => {
+    const v = styles ? (styles.getPropertyValue(nom) || '').trim() : '';
+    return v || repli;
+  };
+  const cMarine = jeton('--primary', '#0b1e45');
+  const cOr     = jeton('--gold', '#c98b00');
+  const cGrille = jeton('--gray-2', '#e0ddd8');
+  const cTexte  = jeton('--text-light', '#6b6560');
 
-  const pad = 20;
-  const espace = W > 480 ? 4 : 2;
-  const barW = Math.max(3, (W - pad * 2) / data.length - espace);
-
+  const mG = 34, mD = 34, mH = 16, mB = 30;   /* marges des quatre axes */
+  const zoneL = W - mG - mD;
+  const zoneH = H - mH - mB;
   ctx.clearRect(0, 0, W, H);
+  if (zoneL <= 0 || zoneH <= 0) return;
 
-  /* Ligne de base, pour que les barres reposent sur quelque chose. */
+  /* Échelles. Le maximum des barres est arrondi au pas supérieur pour que
+     les graduations tombent juste. */
+  const maxJour = Math.max(1, ...jours);
+  const pasG = maxJour <= 4 ? 1 : Math.ceil(maxJour / 4);
+  const hautG = pasG * Math.ceil(maxJour / pasG);
+  const maxCumul = Math.max(1, cumul[cumul.length - 1]);
+
+  const yG = v => mH + zoneH - (v / hautG) * zoneH;
+  const yD = v => mH + zoneH - (v / maxCumul) * zoneH;
+  const xAu = i => mG + (jours.length > 1 ? (i * zoneL) / (jours.length - 1) : zoneL / 2);
+
+  ctx.font = '10px system-ui, -apple-system, Segoe UI, sans-serif';
+  ctx.textBaseline = 'middle';
+
+  /* Grille et graduations de gauche — les dépôts quotidiens. */
+  ctx.strokeStyle = cGrille;
+  ctx.lineWidth = 1;
+  ctx.fillStyle = cTexte;
+  for (let v = 0; v <= hautG; v += pasG) {
+    const y = Math.round(yG(v)) + .5;
+    ctx.beginPath();
+    ctx.moveTo(mG, y);
+    ctx.lineTo(W - mD, y);
+    ctx.stroke();
+    ctx.textAlign = 'right';
+    ctx.fillText(String(v), mG - 7, y);
+  }
+
+  /* Graduations de droite — le cumul. Trois repères suffisent. */
+  ctx.textAlign = 'left';
+  ctx.fillStyle = cOr;
+  [0, Math.round(maxCumul / 2), maxCumul].forEach(v => {
+    ctx.fillText(String(v), W - mD + 7, Math.round(yD(v)));
+  });
+
+  /* Barres : les dépôts du jour. */
+  const largeur = Math.max(3, Math.min(22, (zoneL / jours.length) * .55));
+  jours.forEach((v, i) => {
+    if (!v) return;
+    const x = xAu(i) - largeur / 2;
+    const y = yG(v);
+    const h = mH + zoneH - y;
+    /* Le dernier jour se distingue : c'est celui qu'on regarde. */
+    ctx.fillStyle = (i === jours.length - 1) ? cOr : cMarine;
+    if (typeof ctx.roundRect === 'function') {
+      ctx.beginPath();
+      /* roundRect n'existe pas sur Firefox < 112 ni Safari < 16.4 : sans
+         repli, l'exception laissait le graphique entièrement vide. */
+      ctx.roundRect(x, y, largeur, h, 3);
+      ctx.fill();
+    } else {
+      ctx.fillRect(x, y, largeur, h);
+    }
+  });
+
+  /* Courbe : le cumul, sur l'axe de droite. */
+  ctx.strokeStyle = cOr;
+  ctx.lineWidth = 2;
+  ctx.beginPath();
+  cumul.forEach((v, i) => {
+    const x = xAu(i), y = yD(v);
+    if (i === 0) ctx.moveTo(x, y); else ctx.lineTo(x, y);
+  });
+  ctx.stroke();
+
+  ctx.fillStyle = cOr;
+  cumul.forEach((v, i) => {
+    ctx.beginPath();
+    ctx.arc(xAu(i), yD(v), 2.5, 0, Math.PI * 2);
+    ctx.fill();
+  });
+
+  /* Ligne de base et dates : sans elles, on ignore la période couverte. */
   ctx.strokeStyle = cGrille;
   ctx.lineWidth = 1;
   ctx.beginPath();
-  ctx.moveTo(pad, H - pad + .5);
-  ctx.lineTo(W - pad, H - pad + .5);
+  ctx.moveTo(mG, mH + zoneH + .5);
+  ctx.lineTo(W - mD, mH + zoneH + .5);
   ctx.stroke();
 
-  data.forEach((v, i) => {
-    const x = pad + i * (barW + espace);
-    const bh = (v / max) * (H - pad * 2);
-    const y = H - pad - bh;
-    ctx.fillStyle = i === data.length - 1 ? cOr : cMarine;
-    ctx.beginPath();
-    /* roundRect n'existe pas sur Firefox < 112 ni Safari < 16.4 : sans repli,
-       l'exception laissait le graphique entierement vide, sans message. */
-    if (typeof ctx.roundRect === 'function') {
-      ctx.roundRect(x, y, barW, bh, 3);
-      ctx.fill();
-    } else {
-      ctx.fillRect(x, y, barW, bh);
-    }
-  });
+  if (recents.fin) {
+    ctx.fillStyle = cTexte;
+    ctx.textAlign = 'center';
+    const pas = W < 520 ? 4 : 2;     /* moins d'étiquettes si c'est étroit */
+    jours.forEach((_, i) => {
+      if (i % pas !== 0 && i !== jours.length - 1) return;
+      const j = new Date(recents.fin.getTime() - (jours.length - 1 - i) * 86400000);
+      ctx.fillText(j.getDate() + '/' + (j.getMonth() + 1), xAu(i), H - mB / 2);
+    });
+  }
+
+  majLegendeChart();
+}
+
+/* Légende des deux séries, en HTML : les couleurs y sont celles de la
+   charte, et le texte reste sélectionnable — ce qu'un tracé au canvas ne
+   permet pas. */
+function majLegendeChart() {
+  const el = document.getElementById('chart-series');
+  if (!el) return;
+  el.innerHTML =
+    '<span class="serie"><span class="serie-puce barre"></span>Dépôts du jour ' +
+      '<em>axe de gauche</em></span>' +
+    '<span class="serie"><span class="serie-puce courbe"></span>Cumul sur la période ' +
+      '<em>axe de droite</em></span>';
 }
 
 /* Le graphique n'etait pas retrace au redimensionnement. */

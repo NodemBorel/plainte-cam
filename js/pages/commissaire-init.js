@@ -187,17 +187,26 @@ function majKPICommissaire() {
   }).join('');
 }
 
+var vueAttente = { page: 1, parPage: 5 };
+function allerPageAttente(n) { vueAttente.page = n; majAffectations(); }
+
 function majAffectations() {
   var corps = document.getElementById('a-affecter');
   var compteur = document.getElementById('attente-compteur');
   if (!corps) return;
 
-  var liste = nonAffectes();
+  var toutes = nonAffectes();
+  /* La file débordait de la carte dès qu'elle s'allongeait : rien ne
+     bornait sa hauteur. Elle se pagine, et la barre ne paraît que si
+     plusieurs pages existent. */
+  var t = trancheDePage(toutes, vueAttente);
+  barrePagination('pagination-attente', t, vueAttente, 'allerPageAttente', 'en attente');
+  var liste = t.lignes;
+
+  /* Le compteur annonce le total, non la page affichée. */
   if (compteur) {
-    compteur.textContent = liste.length
-      ? liste.length + (liste.length > 1 ? ' en attente' : ' en attente')
-      : 'aucune';
-    compteur.className = 'badge ' + (liste.length ? 'badge-red' : 'badge-green');
+    compteur.textContent = toutes.length ? toutes.length + ' en attente' : 'aucune';
+    compteur.className = 'badge ' + (toutes.length ? 'badge-red' : 'badge-green');
   }
 
   if (!liste.length) {
@@ -400,15 +409,21 @@ function majGraphiques() {
   if (pie) pie.innerHTML = buildPieChart();
 }
 
+var vueRendement = { page: 1, parPage: 8 };
+function allerPageRendement(n) { vueRendement.page = n; majChargeDetaillee(); }
+
 /* Charge par enquêteur : en cours, achevés, et délai réellement observé
    entre le dépôt et le dernier acte des dossiers qu'il a menés à terme. */
 function majChargeDetaillee() {
   var corps = document.getElementById('charge-detaillee');
   if (!corps || typeof DOSSIERS === 'undefined') return;
 
+  var t = trancheDePage(enqueteursActifs(), vueRendement);
+  barrePagination('pagination-rendement', t, vueRendement, 'allerPageRendement', 'enquêteurs');
+
   /* « Dossiers menés » est le total confié, achevé ou non — il ne répète
      pas les dossiers en cours, que la vue d'ensemble suit déjà. */
-  corps.innerHTML = enqueteursActifs().map(function (e) {
+  corps.innerHTML = t.lignes.map(function (e) {
     var siens = DOSSIERS.filter(function (d) { return d.enqueteur === e.nom; });
     var acheves = siens.filter(function (d) {
       return d.statut === 'CLOTURE' || d.statut === 'TRANSMIS';
@@ -417,7 +432,11 @@ function majChargeDetaillee() {
     var moyen = delais.length
       ? (delais.reduce(function (a, b) { return a + b; }, 0) / delais.length) : null;
 
-    return '<tr>' +
+    /* Le tableau donnait des totaux sans qu'on puisse savoir de quels
+       dossiers ils venaient : un délai moyen de 22 jours ne dit pas si
+       c'est un dossier lourd ou une série de retards. La ligne s'ouvre. */
+    return '<tr onclick="ouvrirRendementAgent(\'' + ech(e.nom) + '\')" ' +
+      'style="cursor:pointer" title="Voir le détail plainte par plainte">' +
       '<td><strong>' + ech(e.nom) + '</strong><br>' +
         '<span class="text-muted" style="font-size:12px">' + ech(e.specialite) + '</span></td>' +
       '<td>' + siens.length + '</td>' +
@@ -427,6 +446,87 @@ function majChargeDetaillee() {
         : moyen.toFixed(1).replace('.', ',') + ' j') + '</td>' +
     '</tr>';
   }).join('');
+}
+
+/* ── Détail du rendement, plainte par plainte ────────────────
+   Les moyennes se lisent mal seules : un délai de 22 jours peut venir
+   d'un dossier resté en souffrance comme d'une série régulière. On donne
+   donc le détail, dossier par dossier, avec la durée de chacun.
+   ─────────────────────────────────────────────────────────── */
+function ouvrirRendementAgent(nom) {
+  var a = agentParNom(nom);
+  var siens = DOSSIERS.filter(function (d) { return d.enqueteur === nom; })
+    .slice()
+    .sort(function (x, y) { return horodatage(y) - horodatage(x); });
+
+  var titre = document.getElementById('rendement-titre');
+  if (titre) titre.textContent = nom + (a ? ' — ' + a.specialite : '');
+
+  var zone = document.getElementById('rendement-corps');
+  if (!zone) return;
+
+  if (!siens.length) {
+    zone.innerHTML = '<p style="font-size:13.5px;color:var(--text-light);margin:0">' +
+      ech(nom) + ' n\'a encore aucun dossier à son nom.</p>';
+    openModal('modal-rendement');
+    return;
+  }
+
+  var acheves = siens.filter(estAcheve);
+  var delais = acheves.map(delaiDossier).filter(function (x) { return x !== null; });
+  var moyen = delais.length
+    ? (delais.reduce(function (s, x) { return s + x; }, 0) / delais.length) : null;
+  var plusLong = delais.length ? Math.max.apply(null, delais) : null;
+
+  zone.innerHTML =
+    '<div class="recap" style="margin-bottom:16px">' +
+      '<div class="recap-ligne"><span>Dossiers menés</span><strong>' +
+        siens.length + '</strong></div>' +
+      '<div class="recap-ligne"><span>Achevés</span><strong>' +
+        acheves.length + ' — ' + (siens.length - acheves.length) + ' en cours</strong></div>' +
+      '<div class="recap-ligne"><span>Délai moyen</span><strong>' +
+        (moyen === null ? 'aucun dossier achevé' : enJours(moyen)) + '</strong></div>' +
+      (plusLong !== null
+        ? '<div class="recap-ligne"><span>Le plus long</span><strong>' +
+          enJours(plusLong) + '</strong></div>' : '') +
+    '</div>' +
+
+    '<div class="table-wrap">' +
+      '<table style="font-size:13px">' +
+        '<thead><tr><th>Dossier</th><th>Plaignant</th><th>État</th><th>Durée</th></tr></thead>' +
+        '<tbody>' + siens.map(ligneRendement).join('') + '</tbody>' +
+      '</table>' +
+    '</div>' +
+    '<p style="font-size:12px;color:var(--text-light);margin:12px 0 0">' +
+      'La durée court du dépôt au dernier acte consigné. Pour un dossier ' +
+      'en cours, elle continue de courir.</p>';
+
+  openModal('modal-rendement');
+}
+
+function estAcheve(d) { return d.statut === 'CLOTURE' || d.statut === 'TRANSMIS'; }
+
+function enJours(v) {
+  return v < 1 ? 'moins d\'un jour'
+       : v.toFixed(1).replace('.', ',') + ' jour' + (v >= 2 ? 's' : '');
+}
+
+function ligneRendement(d) {
+  var l = (typeof STATUT_LABELS !== 'undefined' && STATUT_LABELS[d.statut])
+    || ['badge-gray', d.statut];
+  var duree = delaiDossier(d);
+  return '<tr onclick="closeModal(\'modal-rendement\');consulterDossier(\'' + d.id + '\')" ' +
+    'style="cursor:pointer">' +
+    '<td><strong>' + ech(d.id) + '</strong><br>' +
+      '<span class="text-muted">' + ech(d.type) + '</span></td>' +
+    '<td>' + ech(d.plaignant) + '<br>' +
+      '<span class="text-muted">déposée le ' + ech(d.date) + '</span></td>' +
+    '<td><span class="badge ' + l[0] + '">' + l[1] + '</span></td>' +
+    '<td style="white-space:nowrap">' +
+      (duree === null ? '<span class="text-muted">—</span>' : enJours(duree)) +
+      (estAcheve(d) ? '' : '<br><span class="text-muted">en cours</span>') +
+    '</td>' +
+  '</tr>';
 }
 
 /* Du dépôt au dernier acte consigné, en jours. */
@@ -493,7 +593,8 @@ function buildPieChart() {
    personne ne les instruise. Il faut d'abord les transférer.
    ============================================================ */
 
-var vueAgents = { recherche: '', role: '', etat: '' };
+var vueAgents = { recherche: '', role: '', etat: '', page: 1, parPage: 10 };
+function allerPageAgents(n) { vueAgents.page = n; rendreAgents(); }
 var agentEnEdition = null;   /* id, ou null pour une création */
 var agentAEtat = null;       /* agent dont on change l'état */
 
@@ -514,17 +615,23 @@ function agentsFiltres() {
   });
 }
 
-function chercherAgents(t) { vueAgents.recherche = t || ''; rendreAgents(); }
+function chercherAgents(t) {
+  vueAgents.recherche = t || '';
+  vueAgents.page = 1;
+  rendreAgents();
+}
 
 function filtrerAgents() {
   var lu = function (id) { var el = document.getElementById(id); return el ? el.value : ''; };
   vueAgents.role = lu('filtre-agent-role');
   vueAgents.etat = lu('filtre-agent-etat');
+  vueAgents.page = 1;
   rendreAgents();
 }
 
 function reinitialiserAgents() {
   vueAgents.recherche = vueAgents.role = vueAgents.etat = '';
+  vueAgents.page = 1;
   ['recherche-agents', 'filtre-agent-role', 'filtre-agent-etat'].forEach(function (id) {
     var el = document.getElementById(id);
     if (el) el.value = '';
@@ -537,8 +644,11 @@ function rendreAgents() {
   if (!corps || typeof AGENTS === 'undefined') return;
 
   majKPIAgents();
-  var liste = agentsFiltres();
-  majBilanAgents(liste.length);
+  var toutes = agentsFiltres();
+  majBilanAgents(toutes.length);
+  var t = trancheDePage(toutes, vueAgents);
+  barrePagination('pagination-agents', t, vueAgents, 'allerPageAgents', 'agents');
+  var liste = t.lignes;
 
   if (!liste.length) {
     corps.innerHTML = '<tr><td colspan="7" style="text-align:center;color:var(--text-light);padding:26px">' +
@@ -550,7 +660,9 @@ function rendreAgents() {
 
   corps.innerHTML = liste.map(function (a) {
     var charge = a.role === 'enqueteur' ? chargeDe(a.nom) : null;
-    return '<tr' + (a.actif ? '' : ' class="agent-inactif"') + '>' +
+    var clic = a.role === 'enqueteur'
+      ? ' onclick="voirDossiersDeLAgent(\'' + ech(a.nom) + '\')" style="cursor:pointer"' : '';
+    return '<tr' + (a.actif ? '' : ' class="agent-inactif"') + clic + '>' +
       '<td><strong>' + ech(a.nom) + '</strong><br>' +
         '<span class="text-muted">' + ech(a.prenom) + ' ' + ech(a.nomFamille) +
         ' — ' + ech(a.grade) + '</span></td>' +
@@ -567,13 +679,35 @@ function rendreAgents() {
           (a.motifInactif ? '<br><span class="text-muted" style="font-size:11.5px">' +
             ech(a.motifInactif) + '</span>' : '')) + '</td>' +
       '<td><div style="display:flex;gap:6px;flex-wrap:wrap">' +
-        '<button class="btn btn-outline btn-sm" onclick="ouvrirFicheAgent(\'' + a.id + '\')">Modifier</button>' +
+        /* Voir ce qu'un enquêteur porte : le registre disait « 4 dossiers »
+           sans qu'on puisse savoir lesquels. */
+        (a.role === 'enqueteur'
+          ? '<button class="btn btn-primary btn-sm" onclick="event.stopPropagation();' +
+            'voirDossiersDeLAgent(\'' + ech(a.nom) + '\')">Ses dossiers</button>'
+          : '') +
+        '<button class="btn btn-outline btn-sm" onclick="event.stopPropagation();' +
+          'ouvrirFicheAgent(\'' + a.id + '\')">Modifier</button>' +
         (a.role === 'commissaire' ? ''
-          : '<button class="btn btn-ghost btn-sm" onclick="ouvrirEtatAgent(\'' + a.id + '\')">' +
+          : '<button class="btn btn-ghost btn-sm" onclick="event.stopPropagation();' +
+            'ouvrirEtatAgent(\'' + a.id + '\')">' +
             (a.actif ? 'Mettre hors service' : 'Remettre en service') + '</button>') +
       '</div></td>' +
     '</tr>';
   }).join('');
+}
+
+/* Les dossiers d'un enquêteur : on ouvre le tableau général filtré sur
+   lui, plutôt qu'une liste de plus. Le commissaire y retrouve la
+   recherche, les filtres et les actions qu'il connaît déjà. */
+function voirDossiersDeLAgent(nom) {
+  reinitialiserFiltres();
+  var sel = document.getElementById('filtre-enqueteur');
+  if (sel) sel.value = nom;
+  vueDossiers.enqueteur = nom;
+  vueDossiers.page = 1;
+  initDashboard();
+  navAgent(null, 'page-dossiers');
+  toast('Dossiers de ' + nom + ' — ' + chargeDe(nom) + ' en cours', 'info');
 }
 
 function teinteRole(role) {

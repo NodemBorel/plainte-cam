@@ -112,6 +112,15 @@
 .grid-2 > *, .grid-1-2 > *, .grid-2-1 > *,
 .grid-main-aside > *, .grid-aside-main > * { min-width: 0; }
 
+/* Deux cartes côte à côte de contenus inégaux laissaient un décrochement
+   sous la plus courte. `align-items: start` reste le défaut — certaines
+   colonnes doivent garder leur hauteur propre — et cette classe demande
+   l'alignement là où on le veut. */
+.grid-egales { align-items: stretch; }
+.grid-egales > .card { display: flex; flex-direction: column; }
+/* Le corps prend la place restante : la pagination reste collée en bas. */
+.grid-egales > .card > .table-wrap { flex: 1; }
+
 /* ── FOOTER APP (pages internes) ─────────────────────────── */
 .app-footer {
   background: var(--primary);
