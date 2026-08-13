@@ -24,7 +24,14 @@ INSERT INTO profils (id, role, nom, prenom, telephone, email, matricule, grade, 
 -- Enquêteurs
 INSERT INTO profils (id, role, nom, prenom, telephone, email, matricule, grade, specialite, commissariat_id) VALUES
   ('b1000000-0000-0000-0000-000000000002', 'enqueteur', 'KANA',  'Nicole', '+237677000011', 'n.kana@police.cm',  'SN-2021044', 'Inspecteur de Police', 'Escroquerie, Fraude',   'a1000000-0000-0000-0000-000000000001'),
-  ('b1000000-0000-0000-0000-000000000003', 'enqueteur', 'BIYA',  'Pierre', '+237677000012', 'p.biya@police.cm',  'SN-2020031', 'Inspecteur de Police', 'Generaliste',           'a1000000-0000-0000-0000-000000000001');
+  ('b1000000-0000-0000-0000-000000000003', 'enqueteur', 'BIYA',  'Pierre', '+237677000012', 'p.biya@police.cm',  'SN-2020031', 'Inspecteur de Police', 'Generaliste',           'a1000000-0000-0000-0000-000000000001'),
+  ('b1000000-0000-0000-0000-000000000004', 'enqueteur', 'NKOA',  'Estelle','+237677000013', 'e.nkoa@police.cm',  'SN-2022017', 'Inspecteur de Police', 'Atteintes aux personnes','a1000000-0000-0000-0000-000000000001'),
+  -- En conge : conserve au registre, mais ne recoit plus de dossier.
+  ('b1000000-0000-0000-0000-000000000005', 'enqueteur', 'TCHATCHOUA', 'Marc', '+237677000014', 'm.tchatchoua@police.cm', 'SN-2019008', 'Inspecteur de Police', 'Generaliste', 'a1000000-0000-0000-0000-000000000001');
+
+-- Accueil
+INSERT INTO profils (id, role, nom, prenom, telephone, email, matricule, grade, specialite, commissariat_id) VALUES
+  ('b1000000-0000-0000-0000-000000000006', 'accueil', 'MOUKOURI', 'Alice', '+237677000015', 'a.moukouri@police.cm', 'SN-2023005', 'Brigadier', 'Accueil et enregistrement des plaintes', 'a1000000-0000-0000-0000-000000000001');
 
 -- Citoyens
 INSERT INTO profils (id, role, nom, prenom, telephone, email, cni) VALUES

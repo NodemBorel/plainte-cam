@@ -2,20 +2,112 @@
    Espace Commissaire — tableau de bord, dossiers, PV
    ============================================================ */
 
+/* ============================================================
+   TABLEAU DES DOSSIERS : recherche, filtres, pagination
+
+   Un seul état décrit ce que le tableau montre. Les trois mécanismes s'y
+   composent : on cherche dans un statut filtré, on pagine le résultat, et
+   changer un critère ramène à la première page — sinon on se retrouve
+   page 3 d'une liste qui n'en compte plus qu'une.
+   ============================================================ */
+var vueDossiers = {
+  recherche: '',
+  statut: '',
+  enqueteur: '',
+  priorite: '',
+  page: 1,
+  parPage: 8
+};
+
+/* Texte cherché dans tout ce qui identifie un dossier. Les accents sont
+   retirés des deux côtés : « Degradation » doit trouver « Dégradation ». */
+function sansAccents(s) {
+  return String(s == null ? '' : s)
+    .normalize('NFD').replace(/[̀-ͯ]/g, '').toLowerCase();
+}
+
+function correspond(d, terme) {
+  if (!terme) return true;
+  const foin = sansAccents([
+    d.id, d.plaignant, d.type, d.lieu, d.enqueteur || '',
+    d.statut, d.priorite, (d.prejudice && d.prejudice.montant) || ''
+  ].join(' '));
+  /* Plusieurs mots : tous doivent se retrouver, dans n'importe quel ordre. */
+  return sansAccents(terme).split(/\s+/).filter(Boolean)
+    .every(mot => foin.indexOf(mot) !== -1);
+}
+
+function dossiersFiltres() {
+  if (typeof DOSSIERS === 'undefined') return [];
+  const v = vueDossiers;
+  return DOSSIERS.filter(d =>
+    (!v.statut    || d.statut === v.statut) &&
+    (!v.priorite  || d.priorite === v.priorite) &&
+    (!v.enqueteur || (v.enqueteur === '__aucun' ? !d.enqueteur : d.enqueteur === v.enqueteur)) &&
+    correspond(d, v.recherche)
+  );
+}
+
+function chercherDossiers(terme) {
+  vueDossiers.recherche = terme || '';
+  vueDossiers.page = 1;
+  initDashboard();
+}
+
+function filtrerDossiers() {
+  const lu = (id) => { const el = document.getElementById(id); return el ? el.value : ''; };
+  vueDossiers.statut    = lu('filtre-statut');
+  vueDossiers.enqueteur = lu('filtre-enqueteur');
+  vueDossiers.priorite  = lu('filtre-priorite');
+  vueDossiers.page = 1;
+  initDashboard();
+}
+
+function reinitialiserFiltres() {
+  vueDossiers.recherche = vueDossiers.statut = vueDossiers.enqueteur = vueDossiers.priorite = '';
+  vueDossiers.page = 1;
+  ['recherche-dossiers', 'filtre-statut', 'filtre-enqueteur', 'filtre-priorite']
+    .forEach(id => { const el = document.getElementById(id); if (el) el.value = ''; });
+  initDashboard();
+}
+
+function allerPageDossiers(n) {
+  vueDossiers.page = n;
+  initDashboard();
+  /* Changer de page sans remonter laisse l'œil au bas d'un tableau qui a
+     changé sous lui. */
+  const t = document.getElementById('dossiers-tbody');
+  if (t && t.scrollIntoView) t.scrollIntoView({ block: 'start', behavior: 'smooth' });
+}
+
 function initDashboard(liste) {
   const tbody = document.getElementById('dossiers-tbody');
   if (!tbody) return;
-  const lignes = liste || DOSSIERS;
+
+  /* `liste` reste accepté pour un appel direct ; sans elle, c'est l'état
+     de la vue qui décide. */
+  const filtres = liste || dossiersFiltres();
+  const total = filtres.length;
+  const pages = Math.max(1, Math.ceil(total / vueDossiers.parPage));
+  if (vueDossiers.page > pages) vueDossiers.page = pages;
+  const debut = (vueDossiers.page - 1) * vueDossiers.parPage;
+  const lignes = liste || filtres.slice(debut, debut + vueDossiers.parPage);
+
+  majBilanFiltres(total, debut, lignes.length);
+  majPaginationDossiers(total, pages);
+
   if (!lignes.length) {
-    tbody.innerHTML = '<tr><td colspan="9" style="text-align:center;color:var(--text-light);padding:22px">'
-      + 'Aucun dossier ne correspond à ce filtre.</td></tr>';
+    tbody.innerHTML = '<tr><td colspan="9" style="text-align:center;color:var(--text-light);padding:26px">'
+      + 'Aucun dossier ne correspond à cette recherche.'
+      + '<br><button class="btn btn-ghost btn-sm" style="margin-top:12px" '
+      + 'onclick="reinitialiserFiltres()">Réinitialiser les filtres</button></td></tr>';
     return;
   }
   tbody.innerHTML = lignes.map(d => {
     const [cls, lbl] = STATUT_LABELS[d.statut];
     const scoreClass = d.score >= 80 ? 'high' : d.score >= 50 ? 'med' : 'low';
     const prioColor = d.priorite === 'URGENTE' ? 'red' : d.priorite === 'HAUTE' ? 'orange' : 'gray';
-    return `<tr onclick="openDossier('${d.id}')" style="cursor:pointer">
+    return `<tr onclick="consulterDossier('${d.id}')" style="cursor:pointer">
       <td><strong>${d.id}</strong></td>
       <td>${d.plaignant}</td>
       <td>${d.type}</td>
@@ -33,7 +125,7 @@ function initDashboard(liste) {
       <td>${d.enqueteur || '<span class="text-muted">Non affecte</span>'}</td>
       <td>
         <div style="display:flex;gap:6px;flex-wrap:wrap">
-          <button class="btn btn-primary btn-sm" onclick="event.stopPropagation();openDossier('${d.id}')">Ouvrir</button>
+          <button class="btn btn-primary btn-sm" onclick="event.stopPropagation();consulterDossier('${d.id}')">Ouvrir</button>
           ${d.enqueteur
             ? `<button class="btn btn-outline btn-sm" onclick="event.stopPropagation();ouvrirTransfert('${d.id}')">Transférer</button>`
             : `<button class="btn btn-outline btn-sm" onclick="event.stopPropagation();affecterDossier('${d.id}')">Affecter</button>`}
@@ -43,120 +135,116 @@ function initDashboard(liste) {
   }).join('');
 }
 
-function openDossier(id) {
-  const d = DOSSIERS.find(d => d.id === id);
-  if (!d) return;
-  document.getElementById('modal-dossier-title').textContent = 'Dossier N° ' + d.id;
-  document.getElementById('modal-dossier-body').innerHTML = buildDossierModal(d);
-  openModal('modal-dossier');
+/* Combien de dossiers on regarde, et sur quel total : sans ce repère, un
+   filtre actif ne se distingue pas d'un commissariat vide. */
+function majBilanFiltres(total, debut, affiches) {
+  const el = document.getElementById('filtres-bilan');
+  if (!el) return;
+  const v = vueDossiers;
+  const tout = (typeof DOSSIERS !== 'undefined') ? DOSSIERS.length : 0;
+  const actifs = [
+    v.recherche && `« ${ech(v.recherche)} »`,
+    v.statut    && (STATUT_LABELS[v.statut] ? STATUT_LABELS[v.statut][1] : v.statut),
+    v.enqueteur && (v.enqueteur === '__aucun' ? 'non affectés' : v.enqueteur),
+    v.priorite  && ('priorité ' + v.priorite.toLowerCase())
+  ].filter(Boolean);
+
+  if (!total) {
+    el.innerHTML = '<span class="filtres-vide">Aucun résultat' +
+      (actifs.length ? ' pour ' + actifs.join(' · ') : '') + '</span>';
+    return;
+  }
+  el.innerHTML =
+    '<span><strong>' + (debut + 1) + '–' + (debut + affiches) + '</strong> sur ' +
+      total + ' dossier' + (total > 1 ? 's' : '') +
+      (total < tout ? ' <span class="text-muted">(' + tout + ' au total)</span>' : '') +
+    '</span>' +
+    (actifs.length ? '<span class="filtres-actifs">' + actifs.join(' · ') + '</span>' : '');
 }
 
-function buildDossierModal(d) {
-  const [cls, lbl] = STATUT_LABELS[d.statut];
-  return `
-    <div style="display:flex;gap:10px;flex-wrap:wrap;margin-bottom:16px">
-      <span class="badge ${cls}">${lbl}</span>
-      <span class="badge badge-${d.priorite === 'URGENTE' ? 'red' : d.priorite === 'HAUTE' ? 'orange' : 'gray'}">${d.priorite}</span>
-      <span class="badge badge-blue">Score IA : ${d.score}%</span>
-    </div>
-    <div class="form-row" style="font-size:14px;gap:16px;margin-bottom:18px">
-      <div><strong>Plaignant :</strong> ${d.plaignant}</div>
-      <div><strong>Type :</strong> ${d.type}</div>
-      <div><strong>Date :</strong> ${d.date}</div>
-      <div><strong>Enqueteur :</strong> ${d.enqueteur || 'Non affecte'}</div>
-    </div>
-
-    <div style="border-bottom:1px solid var(--gray-2);margin-bottom:16px;display:flex;gap:0">
-      ${['Declaration','Proces-verbal IA','Convocation'].map((t,i)=>`
-        <button onclick="switchTab(this,'tab-${i}')" class="btn btn-sm ${i===0?'btn-primary':'btn-outline'}" style="border-radius:0;flex:1">${t}</button>
-      `).join('')}
-    </div>
-
-    <div id="tab-0">
-      <p style="font-size:14px;line-height:1.8">
-        Le <span class="entity entity-date">15 mai 2026</span> vers <span class="entity entity-date">14h00</span>,
-        <span class="entity entity-per">${d.plaignant}</span> etait present(e) au
-        <span class="entity entity-loc">Marche Mokolo, Yaounde</span>.
-        Un <span class="entity entity-per">individu inconnu</span> a derobe un
-        <span class="entity entity-obj">telephone portable</span> d'une valeur de
-        <span class="entity entity-money">150 000 FCFA</span> avant de prendre la fuite.
-      </p>
-    </div>
-    <div id="tab-1" style="display:none">
-      <div class="alert alert-info" style="margin-bottom:14px">
-        <span>Ce PV a ete genere automatiquement par l'IA a partir de la declaration.</span>
-      </div>
-      <textarea class="form-control" style="min-height:200px;font-family:'Times New Roman',serif">PROCES-VERBAL D'AUDITION N° PV-2026-00451
-
-Le quinze mai deux mille vingt-six a quatorze heures trente-deux minutes,
-Nous, Inspecteur ${d.enqueteur || 'N. NGUEMO'}, officier de police judiciaire,
-avons procede a l'audition de :
-
-M./Mme ${d.plaignant}, ne(e) le XX/XX/XXXX,
-demeurant a Yaounde, porteur(se) de la CNI N° XXXX.
-
-Lequel/Laquelle nous a declare ce qui suit :
-
-"${d.plaignant === 'Jean MBIDA' ? "Le 15 mai 2026 vers 14h00, je me trouvais au Marche Mokolo. Un individu inconnu m'a arrache mon telephone Samsung Galaxy d'une valeur de 150 000 FCFA et a pris la fuite." : "Un individu s'est presente a mon domicile en se faisant passer pour un agent commercial. Il m'a extorque la somme de 300 000 FCFA sous pretexte de regulariser mon abonnement telephonique."}"
-
-Lecture faite, le comparant declare que le present proces-verbal est fidele a ses declarations.
-
-Fait a Yaounde, le ${d.date}.
-                    Signature du plaignant         Signature de l'enqueteur</textarea>
-      <div style="display:flex;gap:10px;margin-top:12px">
-        <button class="btn btn-success btn-sm" onclick="signPV()">Signer electroniquement le PV</button>
-        <button class="btn btn-outline btn-sm" onclick="toast('PV exporté en PDF','success')">Exporter PDF</button>
-      </div>
-    </div>
-    <div id="tab-2" style="display:none">
-      <div class="form-row">
-        <div class="form-group">
-          <label class="form-label">Nom du destinataire</label>
-          <input class="form-control" value="Suspect inconnu (description)">
-        </div>
-        <div class="form-group">
-          <label class="form-label">Date de convocation</label>
-          <input type="date" class="form-control" value="2026-05-22">
-        </div>
-        <div class="form-group">
-          <label class="form-label">Heure</label>
-          <input type="time" class="form-control" value="09:00">
-        </div>
-        <div class="form-group">
-          <label class="form-label">N° ordre</label>
-          <select class="form-control"><option>1ere convocation</option><option>2eme</option><option>3eme</option></select>
-        </div>
-      </div>
-      <div class="form-group">
-        <label class="form-label">Motif</label>
-        <textarea class="form-control" rows="3">Audition dans le cadre de l'affaire N° ${d.id} - ${d.type}</textarea>
-      </div>
-      <button class="btn btn-primary" onclick="sendConvocation()">Envoyer la convocation par SMS</button>
-    </div>`;
+/* Sélecteur du nombre de lignes, partagé par le tableau des dossiers et
+   le journal d'audit. Il vit ici, dans le fichier chargé en premier :
+   défini dans l'autre, il n'aurait existé qu'après son premier usage. */
+function selecteurTaille(id, valeur, action) {
+  return '<label class="par-page" for="' + id + '">Lignes' +
+    '<select class="form-control" id="' + id + '" onchange="' + action + '(this.value)">' +
+      [10, 15, 25, 50, 100].map(function (n) {
+        return '<option value="' + n + '"' + (n === valeur ? ' selected' : '') + '>' + n + '</option>';
+      }).join('') +
+    '</select></label>';
 }
 
-function switchTab(btn, tabId) {
-  ['tab-0','tab-1','tab-2'].forEach(id => {
-    const el = document.getElementById(id);
-    if (el) el.style.display = id === tabId ? '' : 'none';
-  });
-  btn.parentElement.querySelectorAll('button').forEach(b => {
-    b.className = 'btn btn-sm btn-outline';
-    b.style.borderRadius = '0';
-    b.style.flex = '1';
-  });
-  btn.className = 'btn btn-sm btn-primary';
-  btn.style.borderRadius = '0';
-  btn.style.flex = '1';
+/* Changer le nombre de lignes ramène en première page : rester « page 7 »
+   d'une liste qui n'en compte plus que trois n'a pas de sens. */
+function changerTaillePageDossiers(n) {
+  vueDossiers.parPage = parseInt(n, 10) || 8;
+  vueDossiers.page = 1;
+  initDashboard();
 }
 
-function signPV() {
-  toast('PV signé électroniquement — ' + new Date().toLocaleString('fr-FR'), 'success');
+function majPaginationDossiers(total, pages) {
+  const el = document.getElementById('pagination-dossiers');
+  if (!el) return;
+  const taille = selecteurTaille('taille-dossiers', vueDossiers.parPage,
+                                 'changerTaillePageDossiers');
+
+  /* Une seule page : le sélecteur reste — il sert à en obtenir plusieurs
+     ou à tout afficher d'un coup. Les flèches, elles, disparaissent. */
+  if (pages <= 1) {
+    el.innerHTML = total
+      ? '<nav class="pagination">' + taille +
+        '<span class="text-muted" style="font-size:12.5px">' +
+          total + ' dossier' + (total > 1 ? 's' : '') + ' — page unique</span></nav>'
+      : '';
+    return;
+  }
+
+  const p = vueDossiers.page;
+  const bouton = (n, libelle, dispo, courante) =>
+    '<button type="button" class="page-btn' + (courante ? ' courante' : '') + '"' +
+      (dispo ? ' onclick="allerPageDossiers(' + n + ')"' : ' disabled') +
+      (courante ? ' aria-current="page"' : '') +
+    '>' + libelle + '</button>';
+
+  /* Fenêtre glissante autour de la page courante : au-delà d'une dizaine
+     de pages, toutes les afficher déborderait. */
+  const nums = [];
+  const de = Math.max(1, Math.min(p - 2, pages - 4));
+  const a  = Math.min(pages, Math.max(p + 2, 5));
+  if (de > 1) nums.push(bouton(1, '1', true, false), '<span class="page-ellipse">…</span>');
+  for (let i = de; i <= a; i++) nums.push(bouton(i, String(i), true, i === p));
+  if (a < pages) nums.push('<span class="page-ellipse">…</span>', bouton(pages, String(pages), true, false));
+
+  el.innerHTML = '<nav class="pagination" aria-label="Pages de résultats">' +
+    taille +
+    '<span class="pagination-nav">' +
+      bouton(p - 1, 'Précédent', p > 1, false) +
+      '<span class="pagination-pages">' + nums.join('') + '</span>' +
+      bouton(p + 1, 'Suivant', p < pages, false) +
+    '</span>' +
+    '<span class="pagination-etat">Page ' + p + ' sur ' + pages + '</span>' +
+  '</nav>';
 }
 
-function sendConvocation() {
-  toast('Convocation envoyée par SMS','success');
-  closeModal('modal-dossier');
+
+/* Ouvrir un dossier depuis le tableau ou le journal : c'est la vue
+   complète de l'enquêteur qui s'affiche, en lecture seule. La fiche
+   résumée en fenêtre n'en montrait qu'une partie et dupliquait un travail
+   déjà fait ailleurs. */
+function consulterDossier(id) {
+  if (typeof MODE_CONSULTATION !== 'undefined') MODE_CONSULTATION = true;
+  /* Le commissaire vient voir où en est le dossier, non lire la plainte :
+     on l'ouvre sur la progression, qui porte aussi le retour d'étape. */
+  if (typeof ongletDossier !== 'undefined') ongletDossier = 'progression';
+  if (typeof ouvrirDossier === 'function') ouvrirDossier(id);
+}
+
+/* Ouvre le journal d'audit prérempli sur ce dossier. */
+function voirJournalDossier(id) {
+  const champ = document.getElementById('recherche-audit');
+  if (champ) champ.value = id;
+  chercherAudit(id);
+  navAgent(null, 'page-audit');
 }
 
 /* Dépôts des quatorze derniers jours, comptés sur les dossiers réels.

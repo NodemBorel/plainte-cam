@@ -67,6 +67,172 @@ select.form-control { cursor: pointer; }
 .badge-gray   { background: var(--gray-2);      color: var(--text-light); }
 
 /* ── TABLE ───────────────────────────────────────────────── */
+/* ── Recherche, filtres et pagination d'un tableau ───────────
+   Le champ de recherche s'étire, les sélecteurs gardent leur largeur : le
+   contraire donnait quatre contrôles serrés et un champ minuscule.
+   ─────────────────────────────────────────────────────────── */
+.filtres-ligne {
+  display: flex; gap: 12px; flex-wrap: wrap; align-items: center;
+}
+.champ-recherche {
+  position: relative; flex: 1 1 240px; min-width: 200px;
+}
+.champ-recherche > svg {
+  position: absolute; left: 12px; top: 50%; transform: translateY(-50%);
+  color: var(--gray-3); pointer-events: none;
+}
+.champ-recherche > input { padding-left: 34px; }
+/* La croix native de <input type=search> varie d'un navigateur à l'autre
+   et se place mal dans un champ à icône. */
+.champ-recherche > input::-webkit-search-cancel-button { margin-left: 4px; }
+
+/* Intervalle de dates : les deux champs et leurs mots de liaison forment
+   un seul bloc, qui se replie d'un bloc quand la ligne manque de place. */
+.champ-periode {
+  display: flex; align-items: center; gap: 7px; flex-wrap: nowrap;
+}
+.champ-periode > label {
+  font-size: 12.5px; color: var(--text-light); white-space: nowrap;
+}
+.champ-periode > input { width: 148px; }
+
+.filtres-bilan {
+  display: flex; align-items: center; gap: 10px; flex-wrap: wrap;
+  margin-top: 12px; padding-top: 11px;
+  border-top: 1px solid var(--gray-2);
+  font-size: 12.5px; color: var(--text-light);
+}
+.filtres-bilan strong { color: var(--text); font-variant-numeric: tabular-nums; }
+.filtres-actifs {
+  font-size: 11px; font-weight: 700;
+  text-transform: uppercase; letter-spacing: .05em;
+  color: var(--primary);
+  background: var(--gray-1); border-radius: 999px; padding: 3px 10px;
+}
+.filtres-vide { color: var(--red); font-weight: 600; }
+
+.pagination {
+  display: flex; align-items: center; justify-content: space-between;
+  gap: 12px; flex-wrap: wrap;
+  padding: 14px 18px;
+  border-top: 1px solid var(--gray-2);
+}
+.pagination-pages { display: flex; align-items: center; gap: 4px; flex-wrap: wrap; }
+.pagination-nav {
+  display: flex; align-items: center; gap: 6px; flex-wrap: wrap;
+  /* Les flèches restent au centre quels que soient les deux blocs
+     latéraux, dont la largeur varie avec le nombre de pages. */
+  margin: 0 auto;
+}
+.pagination-etat {
+  font-size: 12.5px; color: var(--text-light);
+  font-variant-numeric: tabular-nums; white-space: nowrap;
+}
+.par-page {
+  display: flex; align-items: center; gap: 7px;
+  font-size: 12.5px; color: var(--text-light); white-space: nowrap;
+}
+.par-page > select {
+  width: auto; padding: 6px 26px 6px 10px;
+  font-size: 12.5px;
+}
+.page-btn {
+  min-width: 34px; height: 34px; padding: 0 11px;
+  display: inline-flex; align-items: center; justify-content: center;
+  font-family: inherit; font-size: 13px; font-weight: 600;
+  font-variant-numeric: tabular-nums;
+  color: var(--text); background: var(--white);
+  border: 1px solid var(--gray-2); border-radius: var(--radius-sm);
+  cursor: pointer; transition: var(--transition);
+}
+.page-btn:hover:not(:disabled):not(.courante) {
+  border-color: var(--primary); color: var(--primary);
+}
+.page-btn.courante {
+  background: var(--primary); border-color: var(--primary); color: var(--white);
+  cursor: default;
+}
+.page-btn:disabled { opacity: .4; cursor: not-allowed; }
+.page-btn:focus-visible { outline: 2px solid var(--primary); outline-offset: 2px; }
+.page-ellipse { padding: 0 4px; color: var(--text-light); }
+
+/* ── Barres horizontales des répartitions ────────────────────
+   Statut, type d'infraction, priorité : un seul rendu, aligné en
+   colonnes pour que les chiffres se comparent d'un coup d'œil.
+   ─────────────────────────────────────────────────────────── */
+.barres { display: flex; flex-direction: column; gap: 9px; }
+.barre-ligne {
+  display: grid;
+  grid-template-columns: 10px minmax(0, 1fr) 90px 26px 42px;
+  align-items: center; gap: 10px;
+  font-size: 13px;
+}
+.barre-puce { width: 10px; height: 10px; border-radius: 2px; }
+.barre-lib { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.barre-piste {
+  height: 8px; border-radius: var(--radius-sm);
+  background: var(--gray-2); overflow: hidden;
+}
+.barre-remplie { display: block; height: 8px; border-radius: var(--radius-sm); }
+.barre-n {
+  text-align: right; font-weight: 700;
+  font-variant-numeric: tabular-nums;
+}
+.barre-pct {
+  text-align: right; color: var(--text-light);
+  font-variant-numeric: tabular-nums;
+}
+
+/* ── Fiche d'un dossier, vue du commissariat ─────────────── */
+.fiche-grille {
+  display: grid; grid-template-columns: repeat(auto-fit, minmax(230px, 1fr));
+  gap: 10px 22px;
+}
+.fiche-ligne {
+  display: flex; flex-direction: column; gap: 2px;
+  font-size: 13.5px; min-width: 0;
+}
+.fiche-ligne > span {
+  font-size: 10.5px; font-weight: 700;
+  text-transform: uppercase; letter-spacing: .06em;
+  color: var(--text-light);
+}
+.fiche-ligne > strong { font-weight: 600; }
+.fiche-declaration {
+  font-size: 13.5px; line-height: 1.75; margin: 0;
+  padding: 12px 14px;
+  background: var(--gray-1);
+  border-left: 3px solid var(--primary);
+  border-radius: var(--radius-sm);
+}
+.fiche-actes { list-style: none; padding: 0; margin: 0; }
+.fiche-actes > li {
+  display: flex; align-items: center; gap: 10px; flex-wrap: wrap;
+  padding: 7px 0; font-size: 13px;
+  border-bottom: 1px solid var(--gray-2);
+}
+.fiche-actes > li:last-child { border-bottom: none; }
+.fiche-actes > li > span:last-of-type { flex: 1; min-width: 0; }
+.fiche-actes time { color: var(--text-light); white-space: nowrap; font-size: 12px; }
+
+/* Agent hors service : sa ligne reste lisible mais s'efface. */
+.agent-inactif > td { opacity: .6; }
+.agent-inactif strong { font-weight: 600; }
+
+/* ── Journal d'audit ─────────────────────────────────────── */
+.lien-dossier {
+  padding: 0; border: 0; background: none;
+  font-family: inherit; font-size: 13px; font-weight: 700;
+  color: var(--primary); cursor: pointer;
+  text-decoration: underline; text-underline-offset: 2px;
+}
+.lien-dossier:hover { color: var(--gold); }
+.audit-detail { max-width: 380px; }
+.audit-detail > span {
+  display: block; margin-top: 3px;
+  font-size: 12px; color: var(--text-light); line-height: 1.5;
+}
+
 .table-wrap { overflow-x: auto; }
 table { width: 100%; border-collapse: collapse; font-size: 13px; }
 th {
@@ -531,6 +697,12 @@ button.fil-piece:focus-visible { outline: 2px solid var(--primary); outline-offs
   text-transform: uppercase; letter-spacing: .06em;
   color: var(--text-light);
 }
+/* État d'un acte accompli, en consultation : rien à exécuter, on lit. */
+.acte-fait {
+  flex-shrink: 0; font-size: 11px; font-weight: 700;
+  text-transform: uppercase; letter-spacing: .06em;
+  color: var(--green-txt);
+}
 
 /* Dictée de la déposition : le micro se signale sans crier, et l'état dit
    toujours où l'on en est — en écoute, arrêté, ou empêché. */
@@ -596,6 +768,47 @@ button.fil-piece:focus-visible { outline: 2px solid var(--primary); outline-offs
 .choix-agent:hover { border-color: var(--primary); background: var(--gray-1); }
 .choix-agent-nom { font-size: 14px; font-weight: 700; color: var(--primary); }
 .choix-agent-info { font-size: 12.5px; color: var(--text-light); }
+
+/* Enquêteur présenté mais non choisissable — celui qui détient déjà le
+   dossier. Il reste lisible : le masquer laissait croire qu'il n'existait
+   pas dans l'unité. */
+.choix-agent.indisponible {
+  opacity: .5; cursor: not-allowed;
+  background: var(--gray-1);
+}
+.choix-agent.indisponible:hover { border-color: var(--gray-2); background: var(--gray-1); }
+
+/* Enquêteur retenu : le choix se voit avant qu'on ne le valide. */
+.choix-agent.choisi {
+  border-color: var(--primary); border-width: 2px;
+  background: rgba(11, 30, 69, .04);
+  padding: 11.5px 13.5px;         /* compense la bordure épaissie */
+}
+.choix-agent.choisi::after {
+  content: '✓';
+  position: absolute; right: 14px; top: 50%; transform: translateY(-50%);
+  font-size: 15px; font-weight: 700; color: var(--primary);
+}
+.choix-agent { position: relative; }
+
+/* Récapitulatif d'une action avant confirmation. */
+.recap {
+  border: 1px solid var(--gray-2); border-radius: var(--radius-sm);
+  background: var(--gray-1);
+}
+.recap-ligne {
+  display: flex; align-items: baseline; justify-content: space-between;
+  gap: 14px; padding: 9px 13px;
+  font-size: 13px;
+  border-bottom: 1px solid var(--gray-2);
+}
+.recap-ligne:last-child { border-bottom: none; }
+.recap-ligne > span {
+  font-size: 11px; font-weight: 700;
+  text-transform: uppercase; letter-spacing: .05em;
+  color: var(--text-light); white-space: nowrap;
+}
+.recap-ligne > strong { text-align: right; }
 
 /* Trois champs sur une ligne : nom, date, heure. */
 .form-row-3 {

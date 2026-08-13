@@ -86,6 +86,78 @@ const CITOYENS = [
    présenter la plateforme sous une autre identité. */
 const CITOYEN_CONNECTE = 'CIT-001';
 
+/* ── Agents du commissariat ─────────────────────────────────
+   La liste des enquêteurs vivait dans commissaire-init.js, réduite à deux
+   noms et une spécialité. Les grades, matricules et coordonnées ne
+   figuraient que dans seed.sql, et l'entrée « Gestion des agents » du
+   menu se contentait d'un message. Le registre est ici, partagé.
+
+   `nom` est l'identité telle qu'elle apparaît dans les dossiers
+   (`d.enqueteur`) : c'est la clé de rattachement, elle ne se change pas
+   sans reprendre les dossiers.
+   ─────────────────────────────────────────────────────────── */
+const AGENTS = [
+  { id: 'AG-001', nom: 'Comm. NGUEMO', nomFamille: 'NGUEMO', prenom: 'Nicole',
+    role: 'commissaire', matricule: 'SN-2018001', grade: 'Commissaire de Police',
+    specialite: 'Direction du commissariat', telephone: '+237 677 000 010',
+    email: 'n.nguemo@police.cm', actif: true, depuis: '02/01/2018',
+    commissariat: 'Commissariat Cité Verte, Yaoundé' },
+  { id: 'AG-002', nom: 'Insp. KANA', nomFamille: 'KANA', prenom: 'Nicole',
+    role: 'enqueteur', matricule: 'SN-2021044', grade: 'Inspecteur de Police',
+    specialite: 'Escroquerie, Fraude', telephone: '+237 677 000 011',
+    email: 'n.kana@police.cm', actif: true, depuis: '15/03/2021',
+    commissariat: 'Commissariat Cité Verte, Yaoundé' },
+  { id: 'AG-003', nom: 'Insp. BIYA', nomFamille: 'BIYA', prenom: 'Pierre',
+    role: 'enqueteur', matricule: 'SN-2020031', grade: 'Inspecteur de Police',
+    specialite: 'Généraliste', telephone: '+237 677 000 012',
+    email: 'p.biya@police.cm', actif: true, depuis: '04/09/2020',
+    commissariat: 'Commissariat Cité Verte, Yaoundé' },
+  { id: 'AG-004', nom: 'Insp. NKOA', nomFamille: 'NKOA', prenom: 'Estelle',
+    role: 'enqueteur', matricule: 'SN-2022017', grade: 'Inspecteur de Police',
+    specialite: 'Atteintes aux personnes', telephone: '+237 677 000 013',
+    email: 'e.nkoa@police.cm', actif: true, depuis: '11/01/2022',
+    commissariat: 'Commissariat Cité Verte, Yaoundé' },
+  /* En congé : il garde sa place au registre mais ne reçoit plus de
+     dossier — c'est ce que décrit le compte rendu d'entretien lorsqu'il
+     parle du transfert « en cas d'indisponibilité ». */
+  { id: 'AG-005', nom: 'Insp. TCHATCHOUA', nomFamille: 'TCHATCHOUA', prenom: 'Marc',
+    role: 'enqueteur', matricule: 'SN-2019008', grade: 'Inspecteur de Police',
+    specialite: 'Généraliste', telephone: '+237 677 000 014',
+    email: 'm.tchatchoua@police.cm', actif: false, depuis: '20/06/2019',
+    motifInactif: 'Congé annuel jusqu\'au 30/06/2026',
+    commissariat: 'Commissariat Cité Verte, Yaoundé' },
+  { id: 'AG-006', nom: 'Brig. MOUKOURI', nomFamille: 'MOUKOURI', prenom: 'Alice',
+    role: 'accueil', matricule: 'SN-2023005', grade: 'Brigadier',
+    specialite: 'Accueil et enregistrement des plaintes', telephone: '+237 677 000 015',
+    email: 'a.moukouri@police.cm', actif: true, depuis: '06/02/2023',
+    commissariat: 'Commissariat Cité Verte, Yaoundé' }
+];
+
+const ROLES_AGENT = {
+  commissaire: 'Commissaire',
+  enqueteur:   'Enquêteur',
+  accueil:     'Accueil'
+};
+
+function agentParId(id)   { return AGENTS.find(a => a.id === id) || null; }
+function agentParNom(nom) { return AGENTS.find(a => a.nom === nom) || null; }
+
+/* Enquêteurs à qui l'on peut confier un dossier : ceux qui sont en
+   service. Un agent en congé reste au registre, il ne reçoit rien. */
+function enqueteursDisponibles() {
+  return AGENTS.filter(a => a.role === 'enqueteur' && a.actif);
+}
+
+/* Un dossier se trouve par son numéro, quel que soit l'agent qui le
+   consulte. La recherche passait par mesDossiersActifs(), filtrée sur
+   l'enquêteur connecté : le commissaire, qui supervise tous les dossiers,
+   n'en aurait trouvé aucun. */
+function dossierParId(numero) {
+  return (typeof DOSSIERS !== 'undefined')
+    ? DOSSIERS.find(d => d.id === numero) || null
+    : null;
+}
+
 function citoyen(idCitoyen) {
   return CITOYENS.find(c => c.id === idCitoyen) || null;
 }

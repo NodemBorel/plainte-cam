@@ -22,6 +22,18 @@ function mesDossiersActifs() {
   return DOSSIERS.filter(function (d) { return d.enqueteur === ENQUETEUR_COURANT; });
 }
 
+/* ── Mode consultation ───────────────────────────────────────
+   Le commissaire ouvre le même dossier que l'enquêteur, avec ses étapes,
+   ses actes, ses documents et ses convocations. Il ne les exécute pas :
+   instruire est le travail de l'officier saisi. Ce drapeau retire les
+   commandes d'exécution — « Faire », « Commenter », « étape suivante »,
+   rédaction — et ouvre en échange la seule prérogative qui lui revient :
+   revenir sur une étape franchie à tort.
+   ─────────────────────────────────────────────────────────── */
+var MODE_CONSULTATION = false;
+
+function enConsultation() { return MODE_CONSULTATION === true; }
+
 /* Les messages et notes sont saisis par l'agent puis reinjectes en
    innerHTML : ils doivent etre neutralises (§8.2 — protection XSS). */
 
@@ -71,18 +83,22 @@ var dossierOuvert = null;
 /* Le detail tenait dans une modale, trop etroite pour tout ce qui doit y
    figurer. C'est desormais une page a part entiere. */
 function ouvrirDossier(id) {
-  var d = mesDossiersActifs().find(function (x) { return x.id === id; });
+  var d = dossierParId(id);
   if (!d) return;
   dossierOuvert = id;
   rendreDossier();
   showPage('page-dossier');
 }
 
+/* On revient d'où l'on vient : l'enquêteur à ses dossiers, le commissaire
+   au tableau de tous les dossiers. */
 function retourDossiers() {
   dossierOuvert = null;
-  var el = document.querySelector('.sidebar-item[data-page="page-dashboard"]');
-  if (el) navEnq(el, 'page-dashboard');
-  else showPage('page-dashboard');
+  var vers = document.getElementById('mes-dossiers-tbody') ? 'page-dashboard' : 'page-dossiers';
+  var el = document.querySelector('.sidebar-item[data-page="' + vers + '"]');
+  if (el && typeof navEnq === 'function' && vers === 'page-dashboard') navEnq(el, vers);
+  else if (typeof navAgent === 'function') navAgent(el, vers);
+  else showPage(vers);
 }
 
 /* Document affiche dans l'apercu : 'plainte' ou 'attestation'. */
@@ -104,7 +120,7 @@ var ONGLETS_DOSSIER = [
 function rendreDossier() {
   var zone = document.getElementById('dossier-zone');
   if (!zone || !dossierOuvert) return;
-  var d = mesDossiersActifs().find(function (x) { return x.id === dossierOuvert; });
+  var d = dossierParId(dossierOuvert);
   if (!d) { zone.innerHTML = ''; return; }
   var id = d.id;
   var prio = (d.priorite || 'NORMALE').toLowerCase();
@@ -120,6 +136,14 @@ function rendreDossier() {
       '<div class="dossier-tete-badges">' +
         badgeStatut(d.statut) +
         '<span class="badge badge-gray"><span class="priority-dot ' + prio + '"></span>Priorité ' + prio + '</span>' +
+        /* En consultation, l'enquêteur saisi se lit ici : le commissaire
+           ouvre des dossiers qui ne sont pas les siens. */
+        (enConsultation()
+          ? '<span class="badge badge-blue">' + ech(d.enqueteur || 'Non affecté') + '</span>' +
+            (typeof voirJournalDossier === 'function'
+              ? '<button class="btn btn-ghost btn-sm" onclick="voirJournalDossier(\'' + id + '\')">Journal du dossier</button>'
+              : '')
+          : '') +
       '</div>' +
     '</div>' +
 
@@ -219,6 +243,16 @@ function barrePV(d) {
   var revisions = pvRevisions(d.id, pvAudition);
 
   var actions;
+  /* En consultation, le procès-verbal se lit : ni signature ni
+     correction. Le journal des révisions, lui, reste consultable — c'est
+     ce qui permet au commissaire de vérifier ce qui a été réécrit. */
+  if (enConsultation()) {
+    actions = !existe
+      ? '<span class="text-muted" style="font-size:12.5px">Aucun procès-verbal à ce stade</span>'
+      : (signe ? '<span class="badge badge-green">Signé</span>'
+               : '<span class="badge badge-orange">Établi — non signé</span>');
+    return barrePVRendu(actions, revisions, d);
+  }
   if (!existe) {
     /* Aucun document : ni signature ni correction possibles. */
     actions = '<span class="text-muted" style="font-size:12.5px">Aucun procès-verbal à ce stade</span>';
@@ -234,6 +268,13 @@ function barrePV(d) {
       '<button class="btn btn-primary btn-sm" onclick="signerPVDossier(\'' + d.id + '\')">Signer le PV</button>';
   }
 
+  return barrePVRendu(actions, revisions, d,
+                      modeCorrection && existe && !signe);
+}
+
+/* Enveloppe commune aux deux modes : le sélecteur d'audition, le journal
+   des révisions et les commandes propres au mode. */
+function barrePVRendu(actions, revisions, d, avisCorrection) {
   return '<div class="pv-barre">' +
     '<div class="form-group" style="margin:0;flex:1;min-width:190px">' +
       '<label class="form-label" for="pv-audition">Audition</label>' +
@@ -256,7 +297,7 @@ function barrePV(d) {
      l'historique quand un mis en cause conteste le contenu du PV. */
   blocModifications(revisions, d.id) +
 
-  (modeCorrection && existe && !signe
+  (avisCorrection
     ? '<div class="pv-avis">Modifiez le corps de la déclaration ci-dessous. Chaque correction est horodatée et conservée.</div>'
     : '');
 }
@@ -277,7 +318,7 @@ function changerAuditionPV(valeur) {
 
 function enregistrerCorrectionPV(id) {
   var corps = document.getElementById('pv-corps');
-  var d = mesDossiersActifs().find(function (x) { return x.id === id; });
+  var d = dossierParId(id);
   if (!corps || !d) return;
 
   var nouveau = corps.innerText.trim();
@@ -589,7 +630,7 @@ function doc(libelle, precision, action) {
    « Télécharger / Imprimer ».
    ─────────────────────────────────────────────────────────── */
 function ouvrirPVActe(id, audition) {
-  var d = mesDossiersActifs().find(function (x) { return x.id === id; });
+  var d = dossierParId(id);
   if (!d) return;
   var qui = audition === 'mis_en_cause' ? 'de la personne mise en cause' : 'du plaignant';
   afficherDocument('Procès-verbal d\'audition ' + qui + ' — ' + id,
@@ -597,7 +638,7 @@ function ouvrirPVActe(id, audition) {
 }
 
 function ouvrirConvocationActe(id, destinataire, ordre) {
-  var d = mesDossiersActifs().find(function (x) { return x.id === id; });
+  var d = dossierParId(id);
   if (!d) return;
 
   if (destinataire === 'plaignant') {
@@ -657,16 +698,22 @@ function rendreActe(a, id, verrou) {
   });
 
   /* Les boutons vivent dans le <summary> : sans stopPropagation, cliquer
-     « Faire » replierait l'acte au passage. */
-  var boutons =
-    '<span class="acte-cmd">' +
-      '<button class="btn btn-ghost btn-sm" onclick="event.stopPropagation();ouvrirEcrit(\'' +
-        id + '\', \'note\', \'' + argJS(a.libelle) + '\')">Commenter</button>' +
-      (a.fait || a.bloque || verrou
-        ? (a.bloque ? '<span class="acte-attente">En attente</span>' : '')
-        : '<button class="btn btn-primary btn-sm" onclick="event.stopPropagation();' +
-            a.action + '">Faire</button>') +
-    '</span>';
+     « Faire » replierait l'acte au passage. En consultation il n'y a rien
+     à exécuter : seul l'état de l'acte se lit. */
+  var boutons = enConsultation()
+    ? '<span class="acte-cmd">' +
+        (a.fait ? '<span class="acte-fait">Fait</span>'
+                : a.bloque ? '<span class="acte-attente">En attente</span>'
+                : '<span class="acte-attente">À faire</span>') +
+      '</span>'
+    : '<span class="acte-cmd">' +
+        '<button class="btn btn-ghost btn-sm" onclick="event.stopPropagation();ouvrirEcrit(\'' +
+          id + '\', \'note\', \'' + argJS(a.libelle) + '\')">Commenter</button>' +
+        (a.fait || a.bloque || verrou
+          ? (a.bloque ? '<span class="acte-attente">En attente</span>' : '')
+          : '<button class="btn btn-primary btn-sm" onclick="event.stopPropagation();' +
+              a.action + '">Faire</button>') +
+      '</span>';
 
   var ligne =
     (a.fait
@@ -761,7 +808,7 @@ function etiquetteEtape(statut) {
 /* Fixer la date d'audition : un petit formulaire s'ouvre sous la liste. */
 function programmerAudition(id, cle) {
   var zone = document.getElementById('acte-form-' + (cle || 'RECU'));
-  var d = mesDossiersActifs().find(function (x) { return x.id === id; });
+  var d = dossierParId(id);
   if (!zone || !d) return;
   zone.innerHTML =
     '<div class="acte-form">' +
@@ -791,7 +838,7 @@ function programmerAudition(id, cle) {
 }
 
 function confirmerAudition(id) {
-  var d = mesDossiersActifs().find(function (x) { return x.id === id; });
+  var d = dossierParId(id);
   var date = (document.getElementById('aud-date') || {}).value || '';
   var heure = (document.getElementById('aud-heure') || {}).value || '09:00';
   var canal = (document.getElementById('aud-canal') || {}).value || 'remise';
@@ -967,7 +1014,7 @@ function confirmerAuditionTenue(id) {
   /* Une dictee laissee ouverte continuerait a ecouter apres coup. */
   if (typeof Dictee !== 'undefined' && Dictee.enCours()) Dictee.arreter();
 
-  var d = mesDossiersActifs().find(function (x) { return x.id === id; });
+  var d = dossierParId(id);
   var p = date.split('-');
   var pieces = sonAudition
     ? [{ nom: 'audition-' + id + '.webm',
@@ -1003,6 +1050,84 @@ function confirmerAuditionTenue(id) {
   rendreDossier();
 }
 
+/* ── Annulation d'une étape, par le commissaire ──────────────
+   Il ne conduit pas l'instruction, mais il répond de son régularité : un
+   dossier passé à l'enquête sans que l'audition ait eu lieu doit pouvoir
+   revenir en arrière. L'annulation est un acte de procédure comme un
+   autre — datée, motivée, consignée, et visible du plaignant.
+   ─────────────────────────────────────────────────────────── */
+var dossierAAnnuler = null;
+
+function demanderAnnulationEtape(id) {
+  var d = dossierParId(id);
+  if (!d || !etapePrecedente(d.statut)) return;
+  dossierAAnnuler = id;
+
+  var vers = etapePrecedente(d.statut);
+  var zone = document.getElementById('annulation-recapitulatif');
+  if (zone) {
+    zone.innerHTML =
+      '<p style="font-size:14px;line-height:1.7;margin:0 0 16px">' +
+        'Le dossier <strong>' + ech(d.id) + '</strong> — ' + ech(d.type) + ', ' +
+        ech(d.plaignant) + ' — va revenir de l\'étape <strong>' +
+        ech(etiquetteEtape(d.statut)) + '</strong> à l\'étape <strong>' +
+        ech(etiquetteEtape(vers)) + '</strong>.' +
+      '</p>' +
+      '<div class="recap">' +
+        '<div class="recap-ligne"><span>Enquêteur saisi</span><strong>' +
+          ech(d.enqueteur || 'Aucun') + '</strong></div>' +
+        '<div class="recap-ligne"><span>Actes consignés</span><strong>' +
+          ((HISTORIQUE[d.id] || []).length) + ' — tous conservés</strong></div>' +
+      '</div>';
+  }
+  var err = document.getElementById('err-annulation');
+  if (err) err.textContent = '';
+  var motif = document.getElementById('annulation-motif');
+  if (motif) motif.value = '';
+  openModal('modal-annulation');
+}
+
+function confirmerAnnulationEtape() {
+  var d = dossierParId(dossierAAnnuler);
+  if (!d) return;
+  var vers = etapePrecedente(d.statut);
+  if (!vers) return;
+
+  /* Un retour en arrière sans motif ne se relit pas : trois mois plus
+     tard, personne ne saura pourquoi le dossier a reculé. */
+  var motif = ((document.getElementById('annulation-motif') || {}).value || '').trim();
+  if (motif.length < 10) {
+    var err = document.getElementById('err-annulation');
+    if (err) err.textContent = 'Indiquez le motif de l\'annulation (une phrase au moins).';
+    return;
+  }
+
+  var depuis = d.statut;
+  /* L'évènement se rattache à l'étape quittée, et le statut ne change
+     qu'après : l'ordre inverse daterait l'annulation d'une étape où le
+     dossier n'est pas encore revenu. */
+  if (typeof HISTORIQUE !== 'undefined' && HISTORIQUE[d.id]) {
+    var m = new Date(), dd = function (n) { return String(n).padStart(2, '0'); };
+    HISTORIQUE[d.id].push({
+      etape: depuis, type: 'statut',
+      date: dd(m.getDate()) + '/' + dd(m.getMonth() + 1) + '/' + m.getFullYear(),
+      heure: dd(m.getHours()) + 'h' + dd(m.getMinutes()),
+      libelle: 'Étape annulée',
+      detail: 'Retour de « ' + etiquetteEtape(depuis) + ' » à « ' +
+              etiquetteEtape(vers) + ' » par le commissaire — ' + motif
+    });
+  }
+  d.statut = vers;
+
+  closeModal('modal-annulation');
+  dossierAAnnuler = null;
+  toast('Dossier ' + d.id + ' ramené à l\'étape ' + etiquetteEtape(vers), 'success');
+  rendreDossier();
+  if (typeof rafraichirTableauDeBord === 'function') rafraichirTableauDeBord();
+  if (typeof initDashboard === 'function') initDashboard();
+  if (typeof rendreAudit === 'function') rendreAudit();
+}
+
 /* Raccourcis vers l'endroit ou l'acte se realise. */
 function allerAuPV() {
   docAffiche = 'pv';
@@ -1026,10 +1151,13 @@ function ongletConvocations(d) {
             : '<span class="text-muted">Inconnue du plaignant à la date de la déclaration.</span>') +
         '</div>' +
       '</div>' +
-      '<div class="card">' +
-        '<div class="card-title" style="margin-bottom:12px">Émettre une convocation</div>' +
-        '<div id="dossier-conv-formulaire">' + formulaireConvocation(d) + '</div>' +
-      '</div>' +
+      /* Convoquer relève de l'officier saisi : en consultation, seul le
+         suivi des convocations émises se lit. */
+      (enConsultation() ? '' :
+        '<div class="card">' +
+          '<div class="card-title" style="margin-bottom:12px">Émettre une convocation</div>' +
+          '<div id="dossier-conv-formulaire">' + formulaireConvocation(d) + '</div>' +
+        '</div>') +
     '</div>' +
 
     '<div class="card">' +
@@ -1084,7 +1212,7 @@ function telechargerDocumentAffiche() {
 
 /* Ouvre une piece versee par le plaignant dans la visionneuse. */
 function ouvrirPieceDossier(index) {
-  var d = mesDossiersActifs().find(function (x) { return x.id === dossierOuvert; });
+  var d = dossierParId(dossierOuvert);
   if (!d || !d.pieces || !d.pieces[index]) return;
   if (typeof afficherPiece === 'function') afficherPiece(d.pieces[index]);
 }
@@ -1135,11 +1263,54 @@ function friseEtapes(d) {
         '<div class="etape-panneau">' +
           corps +
           '<div class="acte-slot" id="acte-form-' + et.cle + '"></div>' +
-          (etat === 'courante' ? blocEtapeSuivante(d) : '') +
+          (enConsultation()
+            ? blocAnnulationEtape(d, et.cle)
+            : (etat === 'courante' ? blocEtapeSuivante(d) : '')) +
         '</div>' +
       '</details>' +
     '</li>';
   }).join('') + '</ol>';
+}
+
+/* ── Revenir sur une étape franchie ──────────────────────────
+   Seule la dernière étape franchie s'annule : revenir sur l'audition
+   alors que le dossier est en délibération sauterait tout ce qui les
+   sépare, et laisserait un dossier dont l'état ne correspond plus à ses
+   actes. On remonte donc d'un cran à la fois.
+   ─────────────────────────────────────────────────────────── */
+/* Marche arrière, explicitement. La déduire de l'ordre du tableau serait
+   faux : ORDRE_ETAPES place TRANSMIS avant CLOTURE, si bien qu'annuler la
+   clôture aurait renvoyé le dossier au parquet, où il n'est jamais allé.
+   Un dossier clos comme un dossier transmis reviennent à la décision. */
+var ETAPE_PRECEDENTE = {
+  AUDITION:       'RECU',
+  EN_INSTRUCTION: 'AUDITION',
+  DECISION:       'EN_INSTRUCTION',
+  TRANSMIS:       'DECISION',
+  CLOTURE:        'DECISION'
+};
+
+function etapePrecedente(statut) { return ETAPE_PRECEDENTE[statut] || null; }
+
+/* Sur quelle ligne de l'étapier poser le bouton. Un dossier transmis au
+   parquet n'a pas de ligne à lui — la frise n'affiche que cinq étapes :
+   il se rattache à la décision, d'où la transmission est partie. */
+function etapeAnnulable(d) {
+  if (!etapePrecedente(d.statut)) return null;   /* à la réception, rien à annuler */
+  return d.statut === 'TRANSMIS' ? 'DECISION' : d.statut;
+}
+
+function blocAnnulationEtape(d, cle) {
+  if (cle !== etapeAnnulable(d)) return '';
+  var vers = etapePrecedente(d.statut);
+  return '<div class="etape-suite">' +
+    '<span>Étape en vigueur<strong>' + ech(etiquetteEtape(d.statut)) + '</strong></span>' +
+    '<button class="btn btn-outline btn-sm" onclick="demanderAnnulationEtape(\'' + d.id + '\')">' +
+      'Annuler cette étape</button>' +
+  '</div>' +
+  '<p class="etape-note">Le dossier reviendrait à l\'étape <strong>' +
+    ech(etiquetteEtape(vers)) + '</strong>. Les actes déjà consignés sont conservés : ' +
+    'l\'annulation s\'ajoute au dossier, elle n\'en efface rien.</p>';
 }
 
 /* apercuConvocations() a ete retiree : l'onglet Convocations affiche
@@ -1317,7 +1488,7 @@ function ajouterEcrit(id) {
 
   /* Le message se rattache a l'etape ou en est le dossier : ce n'est pas
      une etape de plus dans la procedure. */
-  var dossier = mesDossiersActifs().find(function (x) { return x.id === id; });
+  var dossier = dossierParId(id);
   var etape = dossier ? dossier.statut : 'RECU';
 
   HISTORIQUE[id].push({
@@ -1364,7 +1535,7 @@ function navEnqTo(page) {
 }
 
 function cloturerDossier(id) {
-  var d = mesDossiersActifs().find(function (x) { return x.id === id; });
+  var d = dossierParId(id);
   if (!d) return;
 
   /* On ne clot pas un dossier dont l'instruction n'est pas allee a son
@@ -1460,7 +1631,7 @@ function majKPI() {
    l'attestation : il s'affiche dans le meme apercu et dans la meme
    visionneuse. */
 function htmlPV(id, audition) {
-  var d = mesDossiersActifs().find(function (x) { return x.id === id; });
+  var d = dossierParId(id);
   if (!d) return '';
 
   /* Un proces-verbal consigne une audition qui a eu lieu. Tant qu'elle
@@ -1542,7 +1713,7 @@ function htmlPV(id, audition) {
 
 function signerPVDossier(id) {
   if (typeof HISTORIQUE === 'undefined') return;
-  var d = mesDossiersActifs().find(function (x) { return x.id === id; });
+  var d = dossierParId(id);
   if (!d) return;
   var m = new Date(), dd = function (n) { return String(n).padStart(2, '0'); };
   HISTORIQUE[id].push({
@@ -1570,7 +1741,7 @@ var convDestinataire = 'plaignant';
 
 function changerDestinataireConvocation(valeur) {
   convDestinataire = valeur;
-  var d = mesDossiersActifs().find(function (x) { return x.id === dossierOuvert; });
+  var d = dossierParId(dossierOuvert);
   var zone = document.getElementById('dossier-conv-formulaire');
   if (d && zone) zone.innerHTML = formulaireConvocation(d);
 }
@@ -1686,7 +1857,7 @@ function majPrecisionCanal() {
   var el = document.getElementById('canal-precision');
   var choisi = document.querySelector('input[name="conv-canal"]:checked');
   if (!el || !choisi) return;
-  var d = mesDossiersActifs().find(function (x) { return x.id === dossierOuvert; });
+  var d = dossierParId(dossierOuvert);
   var contact = d ? contactDe(d, convDestinataire) : null;
   el.textContent =
     choisi.value === 'email' ? (contact && contact.email) || ''
@@ -1696,7 +1867,7 @@ function majPrecisionCanal() {
 
 /* Aperçu avant émission : le document tel qu'il sera envoyé ou remis. */
 function apercuConvocation(id) {
-  var d = mesDossiersActifs().find(function (x) { return x.id === id; });
+  var d = dossierParId(id);
   if (!d) return;
   var date = (document.getElementById('conv-date') || {}).value || '';
   if (!date) {
@@ -1747,7 +1918,9 @@ function rendreSuiviConvocations(id, cibleId) {
     html += '<div class="alert alert-warning" style="margin-top:14px"><div>' +
       '<strong>Trois absences injustifiées constatées.</strong><br>' +
       'Conformément à la procédure, le dossier doit être transmis au procureur de la République.' +
-      '<div style="margin-top:10px"><button class="btn btn-primary btn-sm" onclick="transmettreProcureur(\'' + id + '\')">Transmettre au procureur</button></div>' +
+      /* La saisine du parquet appartient à l'officier, pas au superviseur. */
+      (enConsultation() ? '' :
+        '<div style="margin-top:10px"><button class="btn btn-primary btn-sm" onclick="transmettreProcureur(\'' + id + '\')">Transmettre au procureur</button></div>') +
       '</div></div>';
   }
   zone.innerHTML = html;
@@ -1755,7 +1928,7 @@ function rendreSuiviConvocations(id, cibleId) {
 
 /* Le suivi et le formulaire vivent tous deux dans l'onglet du dossier. */
 function rafraichirConvocations(id) {
-  var d = mesDossiersActifs().find(function (x) { return x.id === id; });
+  var d = dossierParId(id);
   var form = document.getElementById('dossier-conv-formulaire');
   if (form && d) form.innerHTML = formulaireConvocation(d);
   if (document.getElementById('dossier-conv-suivi')) rendreSuiviConvocations(id, 'dossier-conv-suivi');
@@ -1771,7 +1944,7 @@ function marquerConvocation(id, ordre, statut) {
 }
 
 function emettreConvocation(id) {
-  var d = mesDossiersActifs().find(function (x) { return x.id === id; });
+  var d = dossierParId(id);
   var nom = (document.getElementById('conv-nom') || {}).value || '';
   var date = (document.getElementById('conv-date') || {}).value || '';
   var heure = (document.getElementById('conv-heure') || {}).value || '09:00';
@@ -1839,7 +2012,7 @@ function emettreConvocation(id) {
 }
 
 function transmettreProcureur(id) {
-  var d = mesDossiersActifs().find(function (x) { return x.id === id; });
+  var d = dossierParId(id);
   if (!d) return;
 
   /* L'evenement se rattache a l'etape ou etait le dossier — la decision —
@@ -1865,7 +2038,7 @@ function transmettreProcureur(id) {
    ============================================================ */
 function ajouterEvenementStatut(id, libelle, detail) {
   if (typeof HISTORIQUE === 'undefined' || !HISTORIQUE[id]) return;
-  var d = mesDossiersActifs().find(function (x) { return x.id === id; });
+  var d = dossierParId(id);
   var m = new Date(), dd = function (n) { return String(n).padStart(2, '0'); };
   HISTORIQUE[id].push({
     etape: d ? d.statut : 'RECU', type: 'statut',
@@ -1883,7 +2056,7 @@ var LIBELLE_ETAPE_SUIVANTE = {
 };
 
 function avancerStatut(id) {
-  var d = mesDossiersActifs().find(function (x) { return x.id === id; });
+  var d = dossierParId(id);
   if (!d) return;
   var suite = LIBELLE_ETAPE_SUIVANTE[d.statut];
   if (!suite) { toast('Ce dossier a atteint son terme', 'info'); return; }
@@ -1898,7 +2071,12 @@ function avancerStatut(id) {
   ouvrirDossier(id);   /* rafraichit la fiche ouverte */
 }
 
+/* Ce fichier sert aussi à l'espace commissaire, qui y prend la vue d'un
+   dossier. L'initialisation ne doit s'y déclencher que sur la page de
+   l'enquêteur : ailleurs, elle chercherait des éléments absents et
+   volerait l'affichage à la page hôte. */
 (function initEnqueteurPage() {
+  if (!document.getElementById('mes-dossiers-tbody')) return;
   showPage('page-dashboard');
   renderMesDossiers();
   majCompteurDossiers();

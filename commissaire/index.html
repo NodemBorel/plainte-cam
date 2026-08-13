@@ -25,8 +25,8 @@
   <div class="navbar-links">
     <a href="#" class="active" onclick="showPage('page-dashboard');return false">Tableau de bord</a>
     <a href="#" onclick="showPage('page-dossiers');return false">Dossiers</a>
-    <a href="#" onclick="showPage('page-pv');return false">Procès-verbaux</a>
     <a href="#" onclick="showPage('page-stats');return false">Statistiques</a>
+    <a href="#" onclick="navAgent(null,'page-audit');return false">Journaux</a>
   </div>
   <div class="navbar-user">
     <div class="avatar" style="background:var(--green-lt)">NN</div>
@@ -58,23 +58,18 @@
   </div>
   <div class="sidebar-item" data-page="page-dossiers" onclick="navAgent(this,'page-dossiers')">
     Tous les dossiers
-    <span class="badge badge-red" style="margin-left:auto;font-size:10px">2</span>
-  </div>
-  <div class="sidebar-item" data-page="page-pv" onclick="navAgent(this,'page-pv')">
-    Procès-verbaux IA
+    <!-- Le badge annonçait « 2 » quel que soit le nombre de dossiers. -->
+    <span class="badge badge-red" style="margin-left:auto;font-size:10px" id="badge-dossiers"></span>
   </div>
   <div class="sidebar-section">Commissariat</div>
   <div class="sidebar-item" data-page="page-stats" onclick="navAgent(this,'page-stats')">
     Statistiques
   </div>
-  <div class="sidebar-item" onclick="toast('Gestion des agents','info')">
+  <div class="sidebar-item" data-page="page-agents" onclick="navAgent(this,'page-agents')">
     Gestion des agents
   </div>
-  <div class="sidebar-item" onclick="toast('Routage géographique configuré','success')">
-    Routage géographique
-  </div>
   <div class="sidebar-section">Système</div>
-  <div class="sidebar-item" onclick="toast('Journaux consultés','info')">
+  <div class="sidebar-item" data-page="page-audit" onclick="navAgent(this,'page-audit')">
     Journaux d'audit
   </div>
   <div class="sidebar-item" onclick="window.location.href='../enqueteur/index.html'" style="color:var(--green-lt);font-weight:600">
@@ -112,7 +107,7 @@
       <div class="table-wrap">
         <table>
           <thead><tr>
-            <th>N° Dossier</th><th>Plaignant</th><th>Type</th><th>Score IA</th><th>Action</th>
+            <th>N° Dossier</th><th>Plaignant</th><th>Type</th><th>Reçue le</th><th>Action</th>
           </tr></thead>
           <!-- La liste énumérait 2026-00451, pourtant affecté à KANA depuis
                le premier jour : elle est désormais tirée des dossiers sans
@@ -132,6 +127,19 @@
     </div>
   </div>
 
+  <!-- Où en sont les dossiers : les six statuts de la procédure, y
+       compris ceux qu'aucune vue ne montrait — transmis au parquet.
+       La répartition par type d'infraction, qui figurait à côté, relève
+       du bilan : elle est sur la page Statistiques et n'était ici qu'un
+       doublon. -->
+  <div class="card" style="margin-top:20px">
+    <div class="card-header">
+      <span class="card-title">Où en sont les dossiers</span>
+      <span class="text-muted" id="statuts-legende"></span>
+    </div>
+    <div id="chart-statuts"></div>
+  </div>
+
   <!-- Graphique plaintes -->
   <div class="card" style="margin-top:20px">
     <div class="card-header">
@@ -149,26 +157,49 @@
   <div class="page-title">Tous les dossiers</div>
   <div class="page-subtitle">Gestion complète des dossiers du commissariat.</div>
 
-  <!-- Filtres -->
-  <div class="card" style="padding:14px 20px;margin-bottom:16px">
-    <div style="display:flex;gap:12px;flex-wrap:wrap;align-items:center">
-      <select class="form-control" style="max-width:180px" onchange="filterDossiers(this.value)">
+  <!-- Recherche et filtres. Le sélecteur d'enquêteur et le champ date
+       n'avaient aucun gestionnaire : ils ne filtraient rien, et la liste
+       proposait NGUEMO, qui est le commissaire. « Réinitialiser » se
+       contentait d'un message. -->
+  <div class="card filtres" style="padding:14px 20px;margin-bottom:16px">
+    <div class="filtres-ligne">
+      <div class="champ-recherche">
+        <svg width="15" height="15" viewBox="0 0 16 16" fill="none" stroke="currentColor"
+             stroke-width="1.6" stroke-linecap="round" aria-hidden="true">
+          <circle cx="7" cy="7" r="4.75"/><path d="M10.5 10.5 14 14"/>
+        </svg>
+        <input type="search" class="form-control" id="recherche-dossiers"
+               placeholder="Numéro, plaignant, type, lieu…"
+               oninput="chercherDossiers(this.value)" aria-label="Rechercher un dossier">
+      </div>
+
+      <select class="form-control" id="filtre-statut" style="max-width:170px"
+              onchange="filtrerDossiers()" aria-label="Filtrer par statut">
         <option value="">Tous les statuts</option>
         <option value="RECU">Reçu</option>
-        <option value="EN_INSTRUCTION">En instruction</option>
         <option value="AUDITION">Audition</option>
+        <option value="EN_INSTRUCTION">En enquête</option>
         <option value="DECISION">Décision</option>
+        <option value="TRANSMIS">Transmis au parquet</option>
         <option value="CLOTURE">Clôturé</option>
       </select>
-      <select class="form-control" style="max-width:180px">
-        <option>Tous les enquêteurs</option>
-        <option>Insp. NGUEMO</option>
-        <option>Insp. KANA</option>
-        <option>Insp. BIYA</option>
+
+      <!-- Rempli depuis ENQUETEURS : la liste ne peut plus diverger. -->
+      <select class="form-control" id="filtre-enqueteur" style="max-width:190px"
+              onchange="filtrerDossiers()" aria-label="Filtrer par enquêteur"></select>
+
+      <select class="form-control" id="filtre-priorite" style="max-width:160px"
+              onchange="filtrerDossiers()" aria-label="Filtrer par priorité">
+        <option value="">Toutes priorités</option>
+        <option value="URGENTE">Urgente</option>
+        <option value="HAUTE">Haute</option>
+        <option value="NORMALE">Normale</option>
+        <option value="BASSE">Basse</option>
       </select>
-      <input type="date" class="form-control" style="max-width:160px" value="2026-05-15">
-      <button class="btn btn-outline btn-sm" onclick="toast('Filtre réinitialisé','info')">Réinitialiser</button>
+
+      <button class="btn btn-ghost btn-sm" onclick="reinitialiserFiltres()">Réinitialiser</button>
     </div>
+    <div class="filtres-bilan" id="filtres-bilan"></div>
   </div>
 
   <div class="card">
@@ -176,76 +207,12 @@
       <table>
         <thead><tr>
           <th>N° Dossier</th><th>Plaignant</th><th>Type</th><th>Date dépôt</th>
-          <th>Priorité</th><th>Score IA</th><th>Statut</th><th>Enquêteur</th><th>Actions</th>
+          <th>Priorité</th><th>Complétude</th><th>Statut</th><th>Enquêteur</th><th>Actions</th>
         </tr></thead>
         <tbody id="dossiers-tbody"></tbody>
       </table>
     </div>
-  </div>
-</div>
-
-<!-- ============================
-     PAGE : PV IA
-     ============================ -->
-<div id="page-pv" class="page" style="display:none">
-  <div class="page-title">Procès-verbal généré par IA</div>
-  <div class="page-subtitle">Document pré-rempli automatiquement — Dossier N° 2026-00451</div>
-
-  <div class="grid-1-2">
-    <div class="card">
-      <div class="card-title" style="margin-bottom:14px">Informations du dossier</div>
-      <div style="font-size:14px;line-height:2">
-        <div><strong>N° :</strong> 2026-00451</div>
-        <div><strong>Plaignant :</strong> Jean MBIDA</div>
-        <div><strong>Type :</strong> Vol simple</div>
-        <div><strong>Score :</strong> <span style="color:var(--green-lt)">82 %</span></div>
-        <div><strong>Enquêteur :</strong> Insp. NGUEMO</div>
-        <div><strong>Généré le :</strong> 15/05/2026 à 14h35</div>
-      </div>
-      <div class="divider"></div>
-      <div style="font-size:13px;color:var(--text-light);margin-bottom:12px">
-        Ce PV a été pré-rempli automatiquement par le module IA (CamemBERT) à partir de la déclaration du plaignant. Vérifiez et signez avant validation officielle.
-      </div>
-      <button class="btn btn-primary btn-full" onclick="signPV()">Signer le PV</button>
-      <button class="btn btn-outline btn-full" style="margin-top:8px" onclick="toast('PDF exporté','success')">Exporter en PDF</button>
-    </div>
-
-    <div>
-      <div class="pv-document">
-        <div class="pv-stamp">COMMISSARIAT<br>CITÉ VERTE<br>YAOUNDÉ</div>
-        <div class="pv-header">
-          <div style="font-size:12px;color:#666">RÉPUBLIQUE DU CAMEROUN · MINISTÈRE DE LA SÉCURITÉ</div>
-          <h2>PROCÈS-VERBAL D'AUDITION</h2>
-          <div class="ref">Réf. PV-2026-00451 · Dossier N° 2026-00451</div>
-        </div>
-        <div class="pv-body">
-          <p>L'an deux mille vingt-six, le <span class="field">quinze mai</span> à <span class="field">quatorze heures trente-deux</span>,</p>
-          <p>Nous, <span class="field">Inspecteur N. NGUEMO</span>, officier de police judiciaire au commissariat de Cité Verte, Yaoundé,</p>
-          <p>avons procédé à l'audition de :</p>
-          <p>
-            <strong>M. Jean MBIDA</strong>, né le XX/XX/XXXX à Yaoundé,<br>
-            de nationalité camerounaise, demeurant à Biyem-Assi,<br>
-            porteur de la CNI N° XXXXXXXXXXXXXXX,
-          </p>
-          <p>Lequel nous a déclaré ce qui suit, après avoir prêté serment de dire la vérité, toute la vérité, rien que la vérité :</p>
-          <p style="background:#f9f9f9;border-left:3px solid var(--primary);padding:12px;border-radius:4px;font-style:italic">
-            "Le 15 mai 2026 vers 14 heures, je me trouvais au Marché Mokolo à Yaoundé. Un individu inconnu, jeune homme d'environ 25 ans, vêtu d'un tee-shirt rouge, m'a arraché mon téléphone Samsung Galaxy de couleur noire alors que je consultais mes messages. Il a aussitôt pris la fuite en courant en direction de la rue principale. Je n'ai pas pu l'attraper. Un commerçant présent sur les lieux a partiellement observé la scène. La valeur du téléphone dérobé est estimée à cent cinquante mille (150 000) francs CFA."
-          </p>
-          <p>Lecture faite du présent procès-verbal, le comparant déclare qu'il est fidèle à ses déclarations et le signe.</p>
-          <div id="pv-ia-badge" style="display:none" class="alert alert-success">
-            PV signé électroniquement par Insp. NGUEMO le 15/05/2026 à 15h12
-          </div>
-        </div>
-        <div class="pv-signature">
-          <div style="text-align:center">
-            <div style="border-top:1px solid #999;width:160px;padding-top:6px;font-size:12px">Signature du plaignant<br>Jean MBIDA</div>
-          </div>
-          <div style="text-align:center">
-            <div id="sig-box" style="border-top:1px solid #999;width:180px;padding-top:6px;font-size:12px">Signature de l'enquêteur<br>Insp. N. NGUEMO</div>
-          </div>
-        </div>
-      </div>
-    </div>
+    <div id="pagination-dossiers"></div>
   </div>
 </div>
 
@@ -265,41 +232,177 @@
       <div class="card-title" style="margin-bottom:16px">Répartition par type d'infraction</div>
       <div id="pie-chart" style="padding:10px 0"></div>
     </div>
+    <!-- Ce tableau listait NGUEMO — le commissaire — parmi ses enquêteurs,
+         avec des charges et des délais écrits en dur. Il ne compte plus
+         les dossiers en cours : c'est la vue d'ensemble qui les suit. Ici
+         on regarde ce qui a été mené à terme, et en combien de temps. -->
     <div class="card">
-      <div class="card-title" style="margin-bottom:16px">Charge de travail par enquêteur</div>
+      <div class="card-title" style="margin-bottom:16px">Rendement par enquêteur</div>
       <div class="table-wrap">
-      <table style="font-size:13px">
-        <thead><tr>
-          <th>Enquêteur</th><th>Actifs</th><th>Clôturés</th><th>Délai moy.</th>
-        </tr></thead>
-        <tbody>
-          <tr><td><strong>Insp. NGUEMO</strong></td><td>5</td><td>6</td><td>5.8j</td></tr>
-          <tr><td><strong>Insp. KANA</strong></td><td>3</td><td>5</td><td>7.1j</td></tr>
-          <tr><td><strong>Insp. BIYA</strong></td><td>2</td><td>3</td><td>5.2j</td></tr>
-        </tbody>
-      </table>
-      </div>
-      <div class="divider"></div>
-      <div class="alert alert-info" style="margin-top:0">
-        <div>Canal SMS : <strong>92 % de livraison</strong> sur 47 notifications envoyées ce mois.</div>
+        <table style="font-size:13px">
+          <thead><tr>
+            <th>Enquêteur</th><th>Dossiers menés</th><th>Achevés</th><th>Délai moyen</th>
+          </tr></thead>
+          <tbody id="charge-detaillee"></tbody>
+        </table>
       </div>
     </div>
+  </div>
+
+  <!-- « Avancement des dossiers » reprenait la répartition par statut de
+       la vue d'ensemble : le même graphique deux fois. -->
+  <div class="card" style="margin-top:20px">
+    <div class="card-title" style="margin-bottom:16px">Priorité attribuée à la cotation</div>
+    <div id="chart-priorites"></div>
+  </div>
+</div>
+
+<!-- ============================
+     PAGE : GESTION DES AGENTS
+
+     L'entrée du menu se contentait d'un message. Le commissaire dirige
+     son unité : il doit voir qui la compose, ce que chacun porte, et
+     pouvoir mettre un agent hors service — un congé, une mutation.
+     ============================ -->
+<div id="page-agents" class="page" style="display:none">
+  <div class="page-title">Agents du commissariat</div>
+  <div class="page-subtitle" id="agents-soustitre"></div>
+
+  <div class="kpi-row" id="kpi-agents"></div>
+
+  <div class="card filtres" style="padding:14px 20px;margin:16px 0">
+    <div class="filtres-ligne">
+      <div class="champ-recherche">
+        <svg width="15" height="15" viewBox="0 0 16 16" fill="none" stroke="currentColor"
+             stroke-width="1.6" stroke-linecap="round" aria-hidden="true">
+          <circle cx="7" cy="7" r="4.75"/><path d="M10.5 10.5 14 14"/>
+        </svg>
+        <input type="search" class="form-control" id="recherche-agents"
+               placeholder="Nom, matricule, spécialité…"
+               oninput="chercherAgents(this.value)" aria-label="Rechercher un agent">
+      </div>
+
+      <select class="form-control" id="filtre-agent-role" style="max-width:180px"
+              onchange="filtrerAgents()" aria-label="Filtrer par fonction">
+        <option value="">Toutes les fonctions</option>
+        <option value="commissaire">Commissaire</option>
+        <option value="enqueteur">Enquêteur</option>
+        <option value="accueil">Accueil</option>
+      </select>
+
+      <select class="form-control" id="filtre-agent-etat" style="max-width:170px"
+              onchange="filtrerAgents()" aria-label="Filtrer par état">
+        <option value="">Tous les états</option>
+        <option value="actif">En service</option>
+        <option value="inactif">Hors service</option>
+      </select>
+
+      <button class="btn btn-ghost btn-sm" onclick="reinitialiserAgents()">Réinitialiser</button>
+      <button class="btn btn-primary btn-sm" onclick="ouvrirFicheAgent()">Ajouter un agent</button>
+    </div>
+    <div class="filtres-bilan" id="agents-bilan"></div>
+  </div>
+
+  <div class="card">
+    <div class="table-wrap">
+      <table>
+        <thead><tr>
+          <th>Agent</th><th>Fonction</th><th>Matricule</th><th>Spécialité</th>
+          <th>Dossiers en cours</th><th>État</th><th>Actions</th>
+        </tr></thead>
+        <tbody id="agents-tbody"></tbody>
+      </table>
+    </div>
+  </div>
+</div>
+
+<!-- ============================
+     PAGE : DÉTAIL D'UN DOSSIER
+
+     La même vue que celle de l'enquêteur — étapes, actes, documents,
+     procès-verbaux, convocations — servie par les mêmes fonctions. Le
+     commissaire n'y exécute rien : il supervise. Sa seule prise est le
+     retour sur une étape franchie à tort.
+     ============================ -->
+<div id="page-dossier" class="page" style="display:none">
+  <button type="button" class="back-link" onclick="retourDossiers()">Retour aux dossiers</button>
+  <div id="dossier-zone"></div>
+</div>
+
+<!-- ============================
+     PAGE : JOURNAUX D'AUDIT
+
+     L'entrée du menu se contentait d'un message « Journaux consultés ».
+     Le journal existe pourtant : chaque acte de procédure est déjà
+     horodaté et signé dans l'historique des dossiers. Il suffisait de les
+     réunir en une seule chronologie.
+     ============================ -->
+<div id="page-audit" class="page" style="display:none">
+  <div class="page-title">Journaux d'audit</div>
+  <div class="page-subtitle" id="audit-soustitre"></div>
+
+  <div class="card filtres" style="padding:14px 20px;margin-bottom:16px">
+    <div class="filtres-ligne">
+      <div class="champ-recherche">
+        <svg width="15" height="15" viewBox="0 0 16 16" fill="none" stroke="currentColor"
+             stroke-width="1.6" stroke-linecap="round" aria-hidden="true">
+          <circle cx="7" cy="7" r="4.75"/><path d="M10.5 10.5 14 14"/>
+        </svg>
+        <input type="search" class="form-control" id="recherche-audit"
+               placeholder="Dossier, acte, auteur, contenu…"
+               oninput="chercherAudit(this.value)" aria-label="Rechercher dans le journal">
+      </div>
+
+      <select class="form-control" id="filtre-audit-type" style="max-width:200px"
+              onchange="filtrerAudit()" aria-label="Filtrer par nature d'acte">
+        <option value="">Tous les actes</option>
+        <option value="depot">Dépôt de plainte</option>
+        <option value="attestation">Attestation</option>
+        <option value="reception">Réception</option>
+        <option value="affectation">Affectation</option>
+        <option value="convocation">Convocation</option>
+        <option value="audition">Audition</option>
+        <option value="pv">Procès-verbal</option>
+        <option value="statut">Changement de statut</option>
+        <option value="message">Message au plaignant</option>
+        <option value="note">Note interne</option>
+      </select>
+
+      <select class="form-control" id="filtre-audit-auteur" style="max-width:190px"
+              onchange="filtrerAudit()" aria-label="Filtrer par auteur"></select>
+
+      <!-- Période : les bornes min/max sont posées sur l'étendue réelle du
+           journal, pour qu'on ne choisisse pas un intervalle où rien ne
+           s'est passé. Les deux dates sont incluses. -->
+      <div class="champ-periode">
+        <label for="filtre-audit-du">Du</label>
+        <input type="date" class="form-control" id="filtre-audit-du"
+               onchange="filtrerAudit()" aria-label="Date de début">
+        <label for="filtre-audit-au">au</label>
+        <input type="date" class="form-control" id="filtre-audit-au"
+               onchange="filtrerAudit()" aria-label="Date de fin">
+      </div>
+
+      <button class="btn btn-ghost btn-sm" onclick="reinitialiserAudit()">Réinitialiser</button>
+    </div>
+    <div class="filtres-bilan" id="audit-bilan"></div>
+  </div>
+
+  <div class="card">
+    <div class="table-wrap">
+      <table>
+        <thead><tr>
+          <th>Horodatage</th><th>Dossier</th><th>Acte</th><th>Détail</th><th>Auteur</th>
+        </tr></thead>
+        <tbody id="audit-tbody"></tbody>
+      </table>
+    </div>
+    <div id="pagination-audit"></div>
   </div>
 </div>
 
 </main>
 </div><!-- page-wrapper -->
-
-<!-- MODAL DOSSIER -->
-<div class="modal-overlay" id="modal-dossier">
-  <div class="modal-box" style="max-width:760px">
-    <div class="modal-header">
-      <span class="card-title" id="modal-dossier-title">Dossier</span>
-      <button class="modal-close" onclick="closeModal('modal-dossier')">✕</button>
-    </div>
-    <div class="modal-body" id="modal-dossier-body"></div>
-  </div>
-</div>
 
 <!-- MODAL AFFECTATION -->
 <div class="modal-overlay" id="modal-affectation">
@@ -327,7 +430,17 @@
 
       <div class="divider"></div>
       <div style="font-size:14px;margin-bottom:14px"><strong>Sélectionner un enquêteur :</strong></div>
+      <!-- Le clic choisit l'enquêteur ; l'affectation part au bouton, après
+           confirmation — comme pour le transfert. Le premier clic saisissait
+           l'enquêteur sans retour possible. -->
       <div id="enqueteur-list"></div>
+      <div class="field-error" id="err-affectation"></div>
+
+      <div style="display:flex;gap:10px;justify-content:flex-end;flex-wrap:wrap;margin-top:16px">
+        <button class="btn btn-outline btn-sm" onclick="closeModal('modal-affectation')">Annuler</button>
+        <button class="btn btn-primary btn-sm" id="btn-affecter"
+                onclick="demanderAffectation()" disabled>Affecter</button>
+      </div>
     </div>
   </div>
 </div>
@@ -357,8 +470,165 @@
 
       <div class="form-group">
         <label class="form-label">Nouvel enquêteur</label>
+        <!-- Cliquer sur un enquêteur le choisit ; le transfert ne part
+             qu'au bouton, et après confirmation. Auparavant le premier
+             clic dessaisissait l'enquêteur en place, sans retour possible. -->
         <div id="transfert-liste"></div>
         <div class="field-error" id="err-transfert"></div>
+      </div>
+
+      <div style="display:flex;gap:10px;justify-content:flex-end;flex-wrap:wrap">
+        <button class="btn btn-outline btn-sm" onclick="closeModal('modal-transfert')">Annuler</button>
+        <button class="btn btn-primary btn-sm" id="btn-transferer"
+                onclick="demanderTransfert()" disabled>Transférer</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- FICHE D'UN AGENT : création ou modification -->
+<div class="modal-overlay" id="modal-agent">
+  <div class="modal-box" style="max-width:520px">
+    <div class="modal-header">
+      <span class="card-title" id="agent-titre">Nouvel agent</span>
+      <button class="modal-close" onclick="closeModal('modal-agent')" aria-label="Fermer">✕</button>
+    </div>
+    <div class="modal-body">
+      <div class="form-row">
+        <div class="form-group">
+          <label class="form-label" for="agent-prenom">Prénom</label>
+          <input class="form-control" id="agent-prenom" autocomplete="off">
+        </div>
+        <div class="form-group">
+          <label class="form-label" for="agent-nom">Nom</label>
+          <input class="form-control" id="agent-nom" autocomplete="off">
+        </div>
+      </div>
+
+      <div class="form-row">
+        <div class="form-group">
+          <label class="form-label" for="agent-role">Fonction</label>
+          <select class="form-control" id="agent-role">
+            <option value="enqueteur">Enquêteur</option>
+            <option value="accueil">Accueil</option>
+            <option value="commissaire">Commissaire</option>
+          </select>
+        </div>
+        <div class="form-group">
+          <label class="form-label" for="agent-matricule">Matricule</label>
+          <input class="form-control" id="agent-matricule" placeholder="SN-2026001" autocomplete="off">
+        </div>
+      </div>
+
+      <div class="form-group">
+        <label class="form-label" for="agent-grade">Grade</label>
+        <input class="form-control" id="agent-grade" placeholder="Inspecteur de Police" autocomplete="off">
+      </div>
+
+      <div class="form-group">
+        <label class="form-label" for="agent-specialite">Spécialité</label>
+        <input class="form-control" id="agent-specialite" placeholder="Généraliste" autocomplete="off">
+      </div>
+
+      <div class="form-row">
+        <div class="form-group">
+          <label class="form-label" for="agent-telephone">Téléphone</label>
+          <input class="form-control" id="agent-telephone" placeholder="+237 6.. ... ..." autocomplete="off">
+        </div>
+        <div class="form-group">
+          <label class="form-label" for="agent-email">Adresse professionnelle</label>
+          <input class="form-control" id="agent-email" placeholder="p.nom@police.cm" autocomplete="off">
+        </div>
+      </div>
+
+      <div class="field-error" id="err-agent"></div>
+
+      <div style="display:flex;gap:10px;justify-content:flex-end;flex-wrap:wrap;margin-top:6px">
+        <button class="btn btn-outline btn-sm" onclick="closeModal('modal-agent')">Annuler</button>
+        <button class="btn btn-primary btn-sm" onclick="enregistrerAgent()">Enregistrer</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- MISE HORS SERVICE D'UN AGENT -->
+<div class="modal-overlay" id="modal-agent-etat">
+  <div class="modal-box" style="max-width:420px">
+    <div class="modal-header">
+      <span class="card-title" id="agent-etat-titre">Mettre hors service</span>
+      <button class="modal-close" onclick="closeModal('modal-agent-etat')" aria-label="Fermer">✕</button>
+    </div>
+    <div class="modal-body">
+      <div id="agent-etat-recap"></div>
+      <div class="form-group" id="agent-etat-champ">
+        <label class="form-label" for="agent-motif">Motif</label>
+        <input class="form-control" id="agent-motif"
+               placeholder="Congé annuel, mutation, formation…" autocomplete="off">
+        <div class="field-error" id="err-agent-etat"></div>
+      </div>
+      <div style="display:flex;gap:10px;justify-content:flex-end;flex-wrap:wrap">
+        <button class="btn btn-outline btn-sm" onclick="closeModal('modal-agent-etat')">Revenir</button>
+        <button class="btn btn-primary btn-sm" id="btn-agent-etat"
+                onclick="confirmerEtatAgent()">Confirmer</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ANNULATION D'UNE ÉTAPE -->
+<div class="modal-overlay" id="modal-annulation">
+  <div class="modal-box" style="max-width:440px">
+    <div class="modal-header">
+      <span class="card-title">Annuler une étape</span>
+      <button class="modal-close" onclick="closeModal('modal-annulation')" aria-label="Fermer">✕</button>
+    </div>
+    <div class="modal-body">
+      <div id="annulation-recapitulatif"></div>
+
+      <div class="form-group" style="margin-top:16px">
+        <label class="form-label" for="annulation-motif">Motif de l'annulation</label>
+        <textarea class="form-control" id="annulation-motif" rows="3"
+          placeholder="Pourquoi le dossier revient-il en arrière ? Ce motif est consigné au dossier."></textarea>
+        <div class="field-error" id="err-annulation"></div>
+      </div>
+
+      <div style="display:flex;gap:10px;justify-content:flex-end;flex-wrap:wrap">
+        <button class="btn btn-outline btn-sm" onclick="closeModal('modal-annulation')">Revenir</button>
+        <button class="btn btn-primary btn-sm" onclick="confirmerAnnulationEtape()">Confirmer l'annulation</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- CONFIRMATION DE L'AFFECTATION -->
+<div class="modal-overlay" id="modal-affectation-confirmation">
+  <div class="modal-box" style="max-width:400px">
+    <div class="modal-header">
+      <span class="card-title">Confirmer l'affectation</span>
+      <button class="modal-close" onclick="closeModal('modal-affectation-confirmation')" aria-label="Fermer">✕</button>
+    </div>
+    <div class="modal-body">
+      <div id="affectation-recapitulatif"></div>
+      <div style="display:flex;gap:10px;justify-content:flex-end;flex-wrap:wrap;margin-top:20px">
+        <button class="btn btn-outline btn-sm" onclick="closeModal('modal-affectation-confirmation')">Revenir</button>
+        <button class="btn btn-primary btn-sm" onclick="confirmAffectation()">Confirmer l'affectation</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- CONFIRMATION DU TRANSFERT -->
+<div class="modal-overlay" id="modal-transfert-confirmation">
+  <div class="modal-box" style="max-width:400px">
+    <div class="modal-header">
+      <span class="card-title">Confirmer le transfert</span>
+      <button class="modal-close" onclick="closeModal('modal-transfert-confirmation')" aria-label="Fermer">✕</button>
+    </div>
+    <div class="modal-body">
+      <div id="transfert-recapitulatif"></div>
+      <div style="display:flex;gap:10px;justify-content:flex-end;flex-wrap:wrap;margin-top:20px">
+        <button class="btn btn-outline btn-sm" onclick="closeModal('modal-transfert-confirmation')">Revenir</button>
+        <button class="btn btn-primary btn-sm" onclick="confirmerTransfert()">Confirmer le transfert</button>
       </div>
     </div>
   </div>
@@ -386,6 +656,12 @@
 <script src="../js/services/plaintes.js"></script>
 <script src="../js/modules/utils.js"></script>
 <script src="../js/modules/data.js"></script>
+<!-- La vue d'un dossier est celle de l'enquêteur : mêmes documents, mêmes
+     étapes, mêmes procès-verbaux. Son initialisation ne se déclenche pas
+     ici, faute de la page à laquelle elle s'adresse. -->
+<script src="../js/modules/qrcode.js"></script>
+<script src="../js/modules/documents.js"></script>
+<script src="../js/pages/enqueteur-init.js"></script>
 <script src="../js/pages/agent.js"></script>
 <script src="../js/pages/commissaire-init.js"></script>
 </body>
