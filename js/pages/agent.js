@@ -159,12 +159,53 @@ function sendConvocation() {
   closeModal('modal-dossier');
 }
 
+/* Dépôts des quatorze derniers jours, comptés sur les dossiers réels.
+   Le graphique traçait [8,12,6,15,…] : des barres inventées, sans rapport
+   avec le commissariat, sur une carte qui annonce « plaintes reçues ».
+   Le dernier jour représenté est celui du dépôt le plus récent — le jeu
+   de données est daté, et se caler sur la date du jour donnerait un
+   graphique vide. */
+function depotsRecents(jours) {
+  const n = jours || 14;
+  const vide = new Array(n).fill(0);
+  if (typeof DOSSIERS === 'undefined' || !DOSSIERS.length) return { data: vide, fin: null };
+
+  const jour = (d) => {
+    const [j, m, a] = String(d.date || '').split('/').map(Number);
+    return (a && m && j) ? new Date(a, m - 1, j).getTime() : NaN;
+  };
+  const dates = DOSSIERS.map(jour).filter((t) => !isNaN(t));
+  if (!dates.length) return { data: vide, fin: null };
+
+  const fin = Math.max(...dates);
+  const JOUR = 86400000;
+  const data = vide.slice();
+  dates.forEach((t) => {
+    const recul = Math.round((fin - t) / JOUR);
+    if (recul >= 0 && recul < n) data[n - 1 - recul]++;
+  });
+  return { data, fin: new Date(fin) };
+}
+
 function drawMiniChart() {
   const c = document.getElementById('chart-plaintes');
   if (!c) return;
   const ctx = c.getContext('2d');
-  const data = [8, 12, 6, 15, 9, 18, 11, 14, 7, 20, 13, 16, 10, 19];
-  const max = Math.max(...data);
+  const recents = depotsRecents(14);
+  const data = recents.data;
+  /* Sans dépôt sur la période, toutes les barres valent zéro : diviser
+     par ce maximum donnerait des NaN et un graphique vide sans raison. */
+  const max = Math.max(1, ...data);
+
+  const legende = document.getElementById('chart-legende');
+  if (legende) {
+    const total = data.reduce((a, b) => a + b, 0);
+    const dernier = data[data.length - 1];
+    legende.textContent = recents.fin
+      ? total + ' dépôt' + (total > 1 ? 's' : '') + ' sur la période — ' +
+        dernier + ' le ' + recents.fin.toLocaleDateString('fr-FR')
+      : 'Aucun dépôt enregistré';
+  }
 
   /* Le canvas etait fige a 800px de large dans un conteneur plus etroit :
      il etait tout simplement coupe sur mobile. On le redimensionne sur la

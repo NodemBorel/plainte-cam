@@ -97,25 +97,9 @@
   <div class="page-title">Tableau de bord — Commissaire NGUEMO</div>
   <div class="page-subtitle">Vue en temps réel de l'activité du commissariat — Yaoundé</div>
 
-  <!-- KPIs -->
-  <div class="kpi-row">
-    <div class="kpi urgent">
-      <div class="num">2</div>
-      <div class="lbl">Non affectées (+48h)</div>
-    </div>
-    <div class="kpi en-cours">
-      <div class="num">8</div>
-      <div class="lbl">En instruction</div>
-    </div>
-    <div class="kpi ok">
-      <div class="num">14</div>
-      <div class="lbl">Clôturées ce mois</div>
-    </div>
-    <div class="kpi total">
-      <div class="num">24</div>
-      <div class="lbl">Total dossiers actifs</div>
-    </div>
-  </div>
+  <!-- KPIs : calculés sur les dossiers réels. Ils annonçaient
+       « 24 dossiers actifs » pour un commissariat qui en comptait sept. -->
+  <div class="kpi-row" id="kpi-commissaire"></div>
 
   <div class="grid-2-1">
 
@@ -123,66 +107,28 @@
     <div class="card">
       <div class="card-header">
         <span class="card-title">Plaintes en attente d'affectation</span>
-        <span class="badge badge-red">2 nouvelles</span>
+        <span class="badge badge-red" id="attente-compteur"></span>
       </div>
       <div class="table-wrap">
         <table>
           <thead><tr>
             <th>N° Dossier</th><th>Plaignant</th><th>Type</th><th>Score IA</th><th>Action</th>
           </tr></thead>
-          <tbody>
-            <tr>
-              <td><strong>2026-00451</strong></td>
-              <td>Jean MBIDA</td>
-              <td><span class="badge badge-orange">Vol simple</span></td>
-              <td>
-                <div style="display:flex;align-items:center;gap:6px">
-                  <div class="score-bar-wrap" style="width:70px"><div class="score-bar high" style="width:82%"></div></div>
-                  <span style="font-size:12px">82%</span>
-                </div>
-              </td>
-              <td>
-                <button class="btn btn-primary btn-sm" onclick="affecterDossier('2026-00451')">Affecter</button>
-              </td>
-            </tr>
-            <tr>
-              <td><strong>2026-00398</strong></td>
-              <td>Fatima BELLO</td>
-              <td><span class="badge badge-blue">Harcèlement</span></td>
-              <td>
-                <div style="display:flex;align-items:center;gap:6px">
-                  <div class="score-bar-wrap" style="width:70px"><div class="score-bar low" style="width:45%"></div></div>
-                  <span style="font-size:12px;color:var(--red)">45%</span>
-                </div>
-              </td>
-              <td>
-                <button class="btn btn-primary btn-sm" onclick="affecterDossier('2026-00398')">Affecter</button>
-              </td>
-            </tr>
-          </tbody>
+          <!-- La liste énumérait 2026-00451, pourtant affecté à KANA depuis
+               le premier jour : elle est désormais tirée des dossiers sans
+               enquêteur. -->
+          <tbody id="a-affecter"></tbody>
         </table>
       </div>
     </div>
 
-    <!-- Charge enquêteurs -->
+    <!-- Charge enquêteurs : NGUEMO y figurait comme enquêteur alors qu'il
+         est le commissaire, et les charges ne correspondaient à rien. -->
     <div class="card">
       <div class="card-header">
         <span class="card-title">Charge des enquêteurs</span>
       </div>
-      <div style="font-size:14px">
-        <div style="display:flex;justify-content:space-between;align-items:center;padding:10px 0;border-bottom:1px solid var(--gray-2)">
-          <div><strong>Insp. NGUEMO</strong><br><span class="text-muted">Vol, Agression</span></div>
-          <span class="badge badge-orange">5 dossiers</span>
-        </div>
-        <div style="display:flex;justify-content:space-between;align-items:center;padding:10px 0;border-bottom:1px solid var(--gray-2)">
-          <div><strong>Insp. KANA</strong><br><span class="text-muted">Escroquerie, Fraude</span></div>
-          <span class="badge badge-green">3 dossiers</span>
-        </div>
-        <div style="display:flex;justify-content:space-between;align-items:center;padding:10px 0">
-          <div><strong>Insp. BIYA</strong><br><span class="text-muted">Généraliste</span></div>
-          <span class="badge badge-green">2 dossiers</span>
-        </div>
-      </div>
+      <div style="font-size:14px" id="charge-enqueteurs"></div>
     </div>
   </div>
 
@@ -190,7 +136,7 @@
   <div class="card" style="margin-top:20px">
     <div class="card-header">
       <span class="card-title">Plaintes reçues — 14 derniers jours</span>
-      <span class="text-muted">Aujourd'hui : 3 nouvelles</span>
+      <span class="text-muted" id="chart-legende"></span>
     </div>
     <canvas id="chart-plaintes" width="800" height="160"></canvas>
   </div>
@@ -308,34 +254,11 @@
      ============================ -->
 <div id="page-stats" class="page" style="display:none">
   <div class="page-title">Statistiques du commissariat</div>
-  <div class="page-subtitle">Rapport mensuel — Mai 2026</div>
+  <div class="page-subtitle" id="stats-periode"></div>
 
-  <div class="stats-grid">
-    <div class="stat-card">
-      <div>
-        <div class="stat-num">47</div>
-        <div class="stat-label">Plaintes reçues ce mois</div>
-      </div>
-    </div>
-    <div class="stat-card green">
-      <div>
-        <div class="stat-num">14</div>
-        <div class="stat-label">Dossiers clôturés</div>
-      </div>
-    </div>
-    <div class="stat-card orange">
-      <div>
-        <div class="stat-num">6,2 j</div>
-        <div class="stat-label">Délai moyen de traitement</div>
-      </div>
-    </div>
-    <div class="stat-card" style="border-left-color:var(--gold)">
-      <div>
-        <div class="stat-num">91 %</div>
-        <div class="stat-label">Score IA moyen des dossiers</div>
-      </div>
-    </div>
-  </div>
+  <!-- Ces quatre chiffres étaient écrits en dur — 47 plaintes, 14 clôturées,
+       6,2 jours, 91 % — sans rapport avec les dossiers du commissariat. -->
+  <div class="stats-grid" id="stats-cartes"></div>
 
   <div class="grid-2">
     <div class="card">

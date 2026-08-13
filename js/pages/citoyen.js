@@ -487,11 +487,6 @@ function downloadAttestation() {
 
 /* Le contenu saisi par le plaignant est reinjecte dans le document via
    innerHTML : il doit etre neutralise (§8.2 — protection XSS). */
-function echapper(s) {
-  return String(s == null ? '' : s)
-    .replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;')
-    .replace(/"/g, '&quot;').replace(/'/g, '&#39;');
-}
 
 function tailleLisible(o) {
   if (o < 1024) return o + ' o';

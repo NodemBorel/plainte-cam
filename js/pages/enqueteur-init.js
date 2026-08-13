@@ -24,11 +24,6 @@ function mesDossiersActifs() {
 
 /* Les messages et notes sont saisis par l'agent puis reinjectes en
    innerHTML : ils doivent etre neutralises (§8.2 — protection XSS). */
-function ech(s) {
-  return String(s == null ? '' : s)
-    .replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;')
-    .replace(/"/g, '&quot;').replace(/'/g, '&#39;');
-}
 
 function badgeStatut(statut) {
   var l = (typeof STATUT_LABELS !== 'undefined' && STATUT_LABELS[statut]) || ['badge-gray', statut];

@@ -393,8 +393,14 @@ const HISTORIQUE = {
       texte: "Le numéro de téléphone que vous avez communiqué est enregistré au nom d'un tiers. Merci de me transmettre les captures d'écran de vos échanges ainsi que le reçu du transfert Mobile Money : ces pièces sont nécessaires à l'identification.",
       pieces: [] },
 
-    { etape: 'AUDITION', type: 'statut',      date: '18/05/2026', heure: '11h00', libelle: 'Audition programmée', detail: 'Convocation des parties' },
-    { etape: 'AUDITION', type: 'convocation', date: '18/05/2026', heure: '11h10', libelle: 'Convocation émise',   detail: 'Personne mise en cause convoquée' },
+    { etape: 'AUDITION', type: 'convocation', date: '18/05/2026', heure: '10h50', libelle: 'Convocation du plaignant',
+      detail: 'Audition fixée au 20/05/2026 à 10h00 — par e-mail à m.essomba@gmail.com' },
+    { etape: 'AUDITION', type: 'statut',      date: '18/05/2026', heure: '11h00', libelle: 'Audition programmée', detail: 'Convocation du plaignant émise' },
+    /* L'intitulé disait « Convocation émise » alors qu'il s'agit du mis en
+       cause : l'acte auquel l'évènement se rattache se lit sur le libellé,
+       si bien qu'il se rangeait sous l'audition du plaignant. */
+    { etape: 'AUDITION', type: 'convocation', date: '18/05/2026', heure: '11h10', libelle: 'Convocation du mis en cause',
+      detail: 'NKOLO Bertrand convoqué pour le 22/05/2026 à 09h00' },
     { etape: 'AUDITION', type: 'message', date: '19/05/2026', heure: '08h30', auteur: 'Insp. KANA',
       texte: "Votre audition est fixée. Présentez-vous au commissariat muni de votre pièce d'identité et de tout justificatif du virement. La convocation est jointe.",
       pieces: [{ nom: 'convocation-2026-00438.pdf', taille: '78 Ko' }] },

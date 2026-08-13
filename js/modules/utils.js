@@ -2,6 +2,18 @@
    Utilitaires globaux : navigation, tiroir mobile, toast, modales
    ============================================================ */
 
+/* Échappement HTML. La même fonction existait en trois exemplaires — ech()
+   côté enquêteur, ech() côté commissaire, echapper() côté citoyen — avec
+   le risque qu'une correction n'en atteigne qu'une. Elle est ici, dans le
+   fichier que toutes les pages chargent. */
+function ech(s) {
+  return String(s == null ? '' : s)
+    .replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;')
+    .replace(/"/g, '&quot;').replace(/'/g, '&#39;');
+}
+/* Ancien nom, conservé pour l'espace citoyen. */
+function echapper(s) { return ech(s); }
+
 function showPage(id) {
   document.querySelectorAll('.page').forEach(p => p.style.display = 'none');
   const el = document.getElementById(id);

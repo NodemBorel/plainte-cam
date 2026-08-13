@@ -6,8 +6,19 @@ function navAgent(el, page) {
   document.querySelectorAll('.sidebar-item').forEach(function(i) { i.classList.remove('active'); });
   el.classList.add('active');
   showPage(page);
-  if (page === 'page-dashboard') drawMiniChart();
-  if (page === 'page-dossiers') initDashboard();
+  if (page === 'page-dashboard') rafraichirTableauDeBord();
+  if (page === 'page-dossiers')  initDashboard();
+  if (page === 'page-stats')     majStatistiques();
+}
+
+/* Une affectation change les quatre indicateurs, la liste d'attente et la
+   charge des enquêteurs : on redessine l'ensemble plutôt que de tenir à
+   jour chaque morceau séparément. */
+function rafraichirTableauDeBord() {
+  majKPICommissaire();
+  majAffectations();
+  majChargeEnqueteurs();
+  drawMiniChart();
 }
 
 var dossierAAffecter = null;
@@ -66,6 +77,7 @@ function confirmAffectation(enqueteur) {
   closeModal('modal-affectation');
   toast('Dossier affecté à ' + enqueteur + ' (priorité ' + priorite.toLowerCase() + ')', 'success');
   initDashboard();
+  rafraichirTableauDeBord();
 }
 
 /* Le filtre comparait la valeur brute de l'option (EN_INSTRUCTION) au texte
@@ -76,25 +88,202 @@ function filterDossiers(val) {
   initDashboard(val ? DOSSIERS.filter(function (d) { return d.statut === val; }) : null);
 }
 
-function buildPieChart() {
-  /* Palette prise dans 01-tokens.css. Les valeurs precedentes
-     (#0d2a6e, #e67e22, #c0392b, #8e44ad, #7f8c8d) etaient etrangeres a la
-     charte, sur le seul graphique colore de l'application. */
-  var data = [
-    { label: 'Vol simple',   pct: 38, color: 'var(--primary)' },
-    { label: 'Escroquerie',  pct: 24, color: 'var(--orange)' },
-    { label: 'Agression',    pct: 17, color: 'var(--red)' },
-    { label: 'Harcèlement',  pct: 13, color: 'var(--gold)' },
-    { label: 'Autre',        pct:  8, color: 'var(--gray-3)' },
+/* ============================================================
+   TABLEAU DE BORD
+
+   Les quatre indicateurs, la liste des plaintes à affecter, la charge des
+   enquêteurs et les statistiques étaient écrits dans le HTML : « 24
+   dossiers actifs » pour un commissariat qui en comptait sept, une plainte
+   « à affecter » qui l'était depuis le premier jour, et NGUEMO — le
+   commissaire — compté parmi ses propres enquêteurs. Tout se calcule.
+   ============================================================ */
+
+
+function nonAffectes() {
+  if (typeof DOSSIERS === 'undefined') return [];
+  return DOSSIERS.filter(function (d) { return !d.enqueteur; })
+    .slice()
+    .sort(function (a, b) { return horodatage(b) - horodatage(a); });
+}
+
+function majKPICommissaire() {
+  var zone = document.getElementById('kpi-commissaire');
+  if (!zone || typeof DOSSIERS === 'undefined') return;
+
+  var attente   = nonAffectes().length;
+  var instruits = DOSSIERS.filter(function (d) { return d.statut === 'EN_INSTRUCTION'; }).length;
+  var clos      = DOSSIERS.filter(function (d) {
+    return d.statut === 'CLOTURE' || d.statut === 'TRANSMIS';
+  }).length;
+  var actifs    = DOSSIERS.filter(function (d) {
+    return d.statut !== 'CLOTURE' && d.statut !== 'TRANSMIS';
+  }).length;
+
+  var cases = [
+    ['urgent',   attente,   'En attente d\'affectation'],
+    ['en-cours', instruits, 'En enquête'],
+    ['ok',       clos,      'Dossiers achevés'],
+    ['total',    actifs,    'Dossiers actifs']
   ];
-  return data.map(function(d) {
+  zone.innerHTML = cases.map(function (c) {
+    return '<div class="kpi ' + c[0] + '">' +
+      '<div class="num">' + c[1] + '</div>' +
+      '<div class="lbl">' + c[2] + '</div>' +
+    '</div>';
+  }).join('');
+}
+
+function majAffectations() {
+  var corps = document.getElementById('a-affecter');
+  var compteur = document.getElementById('attente-compteur');
+  if (!corps) return;
+
+  var liste = nonAffectes();
+  if (compteur) {
+    compteur.textContent = liste.length
+      ? liste.length + (liste.length > 1 ? ' en attente' : ' en attente')
+      : 'aucune';
+    compteur.className = 'badge ' + (liste.length ? 'badge-red' : 'badge-green');
+  }
+
+  if (!liste.length) {
+    corps.innerHTML = '<tr><td colspan="5" style="text-align:center;color:var(--text-light);padding:22px">' +
+      'Toutes les plaintes reçues ont été affectées.</td></tr>';
+    return;
+  }
+
+  corps.innerHTML = liste.map(function (d) {
+    var cls = d.score >= 80 ? 'high' : d.score >= 50 ? 'med' : 'low';
+    var teinte = d.score >= 50 ? '' : ';color:var(--red)';
+    var badge = d.priorite === 'URGENTE' ? 'badge-red'
+              : d.priorite === 'HAUTE'   ? 'badge-orange' : 'badge-blue';
+    return '<tr>' +
+      '<td><strong>' + ech(d.id) + '</strong></td>' +
+      '<td>' + ech(d.plaignant) + '</td>' +
+      '<td><span class="badge ' + badge + '">' + ech(d.type) + '</span></td>' +
+      '<td><div style="display:flex;align-items:center;gap:6px">' +
+        '<div class="score-bar-wrap" style="width:70px">' +
+          '<div class="score-bar ' + cls + '" style="width:' + d.score + '%"></div></div>' +
+        '<span style="font-size:12px' + teinte + '">' + d.score + '%</span>' +
+      '</div></td>' +
+      '<td><button class="btn btn-primary btn-sm" onclick="affecterDossier(\'' + d.id + '\')">' +
+        'Affecter</button></td>' +
+    '</tr>';
+  }).join('');
+}
+
+function majChargeEnqueteurs() {
+  var zone = document.getElementById('charge-enqueteurs');
+  if (!zone) return;
+  zone.innerHTML = ENQUETEURS.map(function (e, i) {
+    var n = chargeDe(e.nom);
+    var couleur = n >= 5 ? 'badge-red' : n >= 3 ? 'badge-orange' : 'badge-green';
+    var bord = i < ENQUETEURS.length - 1 ? ';border-bottom:1px solid var(--gray-2)' : '';
+    return '<div style="display:flex;justify-content:space-between;align-items:center;padding:10px 0' + bord + '">' +
+      '<div><strong>' + ech(e.nom) + '</strong><br>' +
+        '<span class="text-muted">' + ech(e.specialite) + '</span></div>' +
+      '<span class="badge ' + couleur + '">' + n + ' dossier' + (n > 1 ? 's' : '') + '</span>' +
+    '</div>';
+  }).join('');
+}
+
+/* Statistiques : les mêmes dossiers, vus autrement. */
+function majStatistiques() {
+  var cartes = document.getElementById('stats-cartes');
+  var periode = document.getElementById('stats-periode');
+  if (!cartes || typeof DOSSIERS === 'undefined') return;
+
+  var recues = DOSSIERS.length;
+  var clos = DOSSIERS.filter(function (d) {
+    return d.statut === 'CLOTURE' || d.statut === 'TRANSMIS';
+  });
+  var score = Math.round(DOSSIERS.reduce(function (s, d) { return s + (d.score || 0); }, 0) / (recues || 1));
+
+  /* Délai réel : du dépôt au dernier évènement, sur les dossiers achevés.
+     Aucun dossier clos ne permettrait de le calculer — on le dit alors. */
+  var delais = clos.map(function (d) {
+    var h = (typeof HISTORIQUE !== 'undefined' && HISTORIQUE[d.id]) || [];
+    if (!h.length) return null;
+    var t = h.map(instantEvt).filter(function (x) { return !isNaN(x); });
+    if (!t.length) return null;
+    return (Math.max.apply(null, t) - Math.min.apply(null, t)) / 86400000;
+  }).filter(function (x) { return x !== null; });
+
+  var moyen = delais.length
+    ? (delais.reduce(function (a, b) { return a + b; }, 0) / delais.length)
+    : null;
+
+  if (periode) {
+    periode.textContent = 'Commissariat Cité Verte, Yaoundé — ' + recues +
+      ' dossier' + (recues > 1 ? 's' : '') + ' enregistré' + (recues > 1 ? 's' : '');
+  }
+
+  var stats = [
+    { classe: '',       style: '',                                  n: recues,      lbl: 'Plaintes enregistrées' },
+    { classe: 'green',  style: '',                                  n: clos.length, lbl: 'Dossiers achevés' },
+    { classe: 'orange', style: '',
+      n: moyen === null ? '—' : moyen.toFixed(1).replace('.', ',') + ' j',
+      lbl: 'Délai moyen de traitement' },
+    { classe: '',       style: 'border-left-color:var(--gold)',     n: score + ' %', lbl: 'Score de complétude moyen' }
+  ];
+  cartes.innerHTML = stats.map(function (s) {
+    return '<div class="stat-card ' + s.classe + '"' +
+      (s.style ? ' style="' + s.style + '"' : '') + '>' +
+      '<div><div class="stat-num">' + s.n + '</div>' +
+      '<div class="stat-label">' + s.lbl + '</div></div>' +
+    '</div>';
+  }).join('');
+}
+
+function instantEvt(e) {
+  var d = String(e.date || '').split('/');
+  var h = String(e.heure || '00h00').split('h');
+  if (d.length !== 3) return NaN;
+  return new Date(+d[2], +d[1] - 1, +d[0], +h[0] || 0, +h[1] || 0).getTime();
+}
+
+/* Répartition par type d'infraction. Les proportions étaient écrites en
+   dur — 38 % de vols pour un jeu de données qui n'en comptait pas autant.
+   Palette prise dans 01-tokens.css : les valeurs précédentes (#0d2a6e,
+   #e67e22, #c0392b, #8e44ad, #7f8c8d) étaient étrangères à la charte. */
+var TEINTES_TYPE = ['var(--primary)', 'var(--orange)', 'var(--red)',
+                    'var(--gold)', 'var(--primary-lt)', 'var(--gray-3)'];
+
+function repartitionParType() {
+  if (typeof DOSSIERS === 'undefined' || !DOSSIERS.length) return [];
+  var compte = {};
+  DOSSIERS.forEach(function (d) {
+    var t = d.type || 'Autre';
+    compte[t] = (compte[t] || 0) + 1;
+  });
+  return Object.keys(compte)
+    .map(function (t) {
+      return { label: t, n: compte[t], pct: Math.round(compte[t] * 100 / DOSSIERS.length) };
+    })
+    .sort(function (a, b) { return b.n - a.n || a.label.localeCompare(b.label); })
+    .map(function (x, i) {
+      x.color = TEINTES_TYPE[i % TEINTES_TYPE.length];
+      return x;
+    });
+}
+
+function buildPieChart() {
+  var data = repartitionParType();
+  if (!data.length) {
+    return '<p style="font-size:13px;color:var(--text-light);margin:0">Aucun dossier enregistré.</p>';
+  }
+  var max = data[0].pct || 1;
+  return data.map(function (d) {
     return '<div style="display:flex;align-items:center;gap:10px;margin-bottom:10px">' +
       '<div style="width:12px;height:12px;border-radius:var(--radius-sm);background:' + d.color + ';flex-shrink:0"></div>' +
-      '<div style="flex:1;font-size:13px">' + d.label + '</div>' +
+      '<div style="flex:1;font-size:13px">' + ech(d.label) +
+        ' <span class="text-muted">(' + d.n + ')</span></div>' +
       '<div style="width:120px;background:var(--gray-2);border-radius:var(--radius-sm);height:8px;flex-shrink:0">' +
-        '<div style="width:' + d.pct + '%;height:8px;background:' + d.color + ';border-radius:var(--radius-sm)"></div>' +
+        /* Barres proportionnées à la plus haute, sinon 7 % occupe un
+           liseré illisible à côté d'un 29 %. */
+        '<div style="width:' + Math.round(d.pct * 100 / max) + '%;height:8px;background:' + d.color + ';border-radius:var(--radius-sm)"></div>' +
       '</div>' +
-      '<div style="font-size:13px;font-weight:600;width:32px;text-align:right;font-variant-numeric:tabular-nums">' + d.pct + '%</div>' +
+      '<div style="font-size:13px;font-weight:600;width:36px;text-align:right;font-variant-numeric:tabular-nums">' + d.pct + '%</div>' +
     '</div>';
   }).join('');
 }
@@ -176,6 +365,7 @@ function confirmerTransfert(nouvelEnqueteur) {
   closeModal('modal-transfert');
   toast('Dossier ' + d.id + ' transféré à ' + nouvelEnqueteur, 'success');
   initDashboard();
+  rafraichirTableauDeBord();
 }
 
 /* Liste des enqueteurs a qui affecter un dossier. Elle annoncait
@@ -196,7 +386,8 @@ function remplirListeEnqueteurs() {
   remplirListeEnqueteurs();
   showPage('page-dashboard');
   initDashboard();
-  drawMiniChart();
+  rafraichirTableauDeBord();
+  majStatistiques();
   setTimeout(function() {
     var el = document.getElementById('pie-chart');
     if (el) el.innerHTML = buildPieChart();

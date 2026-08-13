@@ -34,7 +34,13 @@ INSERT INTO profils (id, role, nom, prenom, telephone, email, cni) VALUES
   ('b1000000-0000-0000-0000-000000000013', 'citoyen', 'BELLO',   'Fatima','+237677100004', 'f.bello@gmail.com',    'CM0012345681'),
   ('b1000000-0000-0000-0000-000000000014', 'citoyen', 'FOKO',    'Alain', '+237677100005', 'a.foko@gmail.com',     'CM0012345682'),
   ('b1000000-0000-0000-0000-000000000015', 'citoyen', 'NANA',    'Sylvie','+237677100006', 's.nana@gmail.com',     'CM0012345683'),
-  ('b1000000-0000-0000-0000-000000000016', 'citoyen', 'TCHOUMI', 'Georges','+237677100007','g.tchoumi@gmail.com',  'CM0012345684');
+  ('b1000000-0000-0000-0000-000000000016', 'citoyen', 'TCHOUMI', 'Georges','+237677100007','g.tchoumi@gmail.com',  'CM0012345684'),
+  ('b1000000-0000-0000-0000-000000000017', 'citoyen', 'ONANA',   'Clarisse','+237677100008','c.onana@gmail.com',   'CM0012345685'),
+  ('b1000000-0000-0000-0000-000000000018', 'citoyen', 'NJOYA',   'Emmanuel','+237677100009','e.njoya@gmail.com',   'CM0012345686'),
+  ('b1000000-0000-0000-0000-000000000019', 'citoyen', 'MEKA',    'Rachel', '+237677100010','r.meka@gmail.com',     'CM0012345687'),
+  ('b1000000-0000-0000-0000-00000000001a', 'citoyen', 'TALLA',   'Hervé',  '+237677100011','h.talla@gmail.com',    'CM0012345688'),
+  ('b1000000-0000-0000-0000-00000000001b', 'citoyen', 'MANGA',   'Brigitte','+237677100012','b.manga@gmail.com',   'CM0012345689'),
+  ('b1000000-0000-0000-0000-00000000001c', 'citoyen', 'EYENGA',  'Serge',  '+237677100013','s.eyenga@gmail.com',   'CM0012345690');
 
 -- ── PLAINTES ─────────────────────────────────────────────────
 
@@ -145,6 +151,91 @@ INSERT INTO plaintes (
     '{"Q1": "Sacoche contenant 180 000 FCFA", "Q2": "Soirée (18h-22h)", "Q3": "Oui, je l''ai reconnu", "Q4": "Oui, certificat médical"}',
     '2026-05-11 08:15:00+00',
     '2026-05-10 19:30:00+00'
+  ),
+
+  -- ── Le reste de l'activité du commissariat ────────────────
+  -- Quatre plaintes attendent une affectation, deux enquêteurs se
+  -- partagent le reste, et tous les statuts sont représentés.
+  (
+    'c1000000-0000-0000-0000-000000000008', '2026-00473',
+    'b1000000-0000-0000-0000-000000000010',
+    'a1000000-0000-0000-0000-000000000001', NULL,
+    'Escroquerie / Fraude', 'RECU', 'NORMALE', 71,
+    '2026-06-08', 'Centre', 'Mfoundi', 'Yaoundé 4ème', 'Mvog-Ada', NULL,
+    'J''ai commandé un téléphone sur une page de vente en ligne et versé 95 000 FCFA par Mobile Money à un vendeur qui s''est engagé à livrer sous deux jours. La livraison n''a jamais eu lieu et le vendeur a bloqué mon numéro.',
+    'Vendeur en ligne se présentant sous le nom « Tech Deals 237 ».',
+    '{"Q1": "95 000 FCFA", "Q2": "Par Mobile Money", "Q3": "Oui, reçu de transfert", "Q4": "Un numéro de téléphone et un pseudonyme"}',
+    NULL, '2026-06-08 08:50:00+00'
+  ),
+  (
+    'c1000000-0000-0000-0000-000000000009', '2026-00470',
+    'b1000000-0000-0000-0000-000000000017',
+    'a1000000-0000-0000-0000-000000000001', NULL,
+    'Vol avec violence', 'RECU', 'URGENTE', 88,
+    '2026-06-03', 'Centre', 'Mfoundi', 'Yaoundé 3ème', 'Ngoa-Ekelle', NULL,
+    'Le 3 juin vers 21h00, en rentrant du campus, deux individus m''ont bousculée à hauteur du carrefour Ngoa-Ekelle et arraché mon sac à dos contenant mon ordinateur portable. J''ai été tirée au sol et me suis blessée au poignet.',
+    'Deux individus à pied, non identifiés.',
+    '{"Q1": "Sac à dos et ordinateur portable, 240 000 FCFA", "Q2": "Soirée (18h-22h)", "Q3": "Non, il faisait sombre", "Q4": "Oui, certificat médical"}',
+    NULL, '2026-06-03 21:10:00+00'
+  ),
+  (
+    'c1000000-0000-0000-0000-00000000000a', '2026-00468',
+    'b1000000-0000-0000-0000-000000000018',
+    'a1000000-0000-0000-0000-000000000001', NULL,
+    'Accident de la route', 'RECU', 'NORMALE', 64,
+    '2026-06-01', 'Centre', 'Mfoundi', 'Yaoundé 3ème', 'Mvan', NULL,
+    'Le 1er juin au matin, un véhicule a grillé le feu au carrefour Mvan et heurté l''avant gauche du mien. Le conducteur a refusé le constat amiable et a quitté les lieux. J''ai relevé sa plaque d''immatriculation.',
+    'Conducteur d''un véhicule immatriculé LT 745 AB, non identifié à ce jour.',
+    '{"Q1": "Aile avant et portière gauche, 380 000 FCFA", "Q2": "Matin (6h-12h)", "Q3": "Non, mais j''ai la plaque", "Q4": "Photos des dégâts"}',
+    NULL, '2026-06-01 07:25:00+00'
+  ),
+  (
+    'c1000000-0000-0000-0000-00000000000b', '2026-00455',
+    'b1000000-0000-0000-0000-000000000019',
+    'a1000000-0000-0000-0000-000000000001',
+    'b1000000-0000-0000-0000-000000000003',
+    'Escroquerie / Fraude', 'EN_INSTRUCTION', 'NORMALE', 76,
+    '2026-05-20', 'Centre', 'Mfoundi', 'Yaoundé 1er', 'Emana', NULL,
+    'Une personne se présentant comme agent de recrutement d''un hôpital privé m''a réclamé 450 000 FCFA de frais de dossier pour un poste d''infirmière. Après le versement, elle a cessé de répondre et l''établissement m''a confirmé qu''aucun recrutement n''était ouvert.',
+    'AYISSI Léon, se présentant comme agent de recrutement.',
+    '{"Q1": "450 000 FCFA", "Q2": "Par Mobile Money", "Q3": "Oui, reçu de versement", "Q4": "Nom, numéro et adresse e-mail"}',
+    '2026-05-21 08:00:00+00', '2026-05-20 11:40:00+00'
+  ),
+  (
+    'c1000000-0000-0000-0000-00000000000c', '2026-00441',
+    'b1000000-0000-0000-0000-00000000001a',
+    'a1000000-0000-0000-0000-000000000001',
+    'b1000000-0000-0000-0000-000000000003',
+    'Degradation de biens', 'AUDITION', 'NORMALE', 69,
+    '2026-05-13', 'Centre', 'Mfoundi', 'Yaoundé 1er', 'Etoudi', NULL,
+    'Dans la nuit du 12 au 13 mai, la porte de mon atelier de menuiserie a été forcée et deux machines ont été détériorées. Du bois de commande a été répandu et rendu inutilisable. Un différend m''oppose depuis des mois à un voisin au sujet de la mitoyenneté.',
+    'MBALLA Didier, voisin mitoyen de l''atelier.',
+    '{"Q1": "Machines et stock de bois, 620 000 FCFA", "Q2": "Nuit (22h-6h)", "Q3": "Je le soupçonne", "Q4": "Oui, devis de réparation"}',
+    '2026-05-14 08:10:00+00', '2026-05-13 06:40:00+00'
+  ),
+  (
+    'c1000000-0000-0000-0000-00000000000d', '2026-00405',
+    'b1000000-0000-0000-0000-00000000001b',
+    'a1000000-0000-0000-0000-000000000001',
+    'b1000000-0000-0000-0000-000000000003',
+    'Harcelement', 'CLOTURE', 'NORMALE', 58,
+    '2026-05-06', 'Centre', 'Mfoundi', 'Yaoundé 4ème', 'Mimboman', NULL,
+    'Depuis mars, je reçois des appels et des messages répétés d''un ancien collègue, parfois en pleine nuit. Il se présente devant mon domicile et attend mon retour. J''ai changé de numéro sans que cela cesse.',
+    'ABEGA Cyrille, ancien collègue de la plaignante.',
+    '{"Q1": "Préjudice moral", "Q2": "Oui, c''est une personne de mon entourage", "Q3": "Oui, relevé d''appels", "Q4": "Nom et numéro de téléphone"}',
+    '2026-05-07 08:00:00+00', '2026-05-06 17:55:00+00'
+  ),
+  (
+    'c1000000-0000-0000-0000-00000000000e', '2026-00389',
+    'b1000000-0000-0000-0000-00000000001c',
+    'a1000000-0000-0000-0000-000000000001',
+    'b1000000-0000-0000-0000-000000000002',
+    'Vol avec violence', 'TRANSMIS', 'HAUTE', 84,
+    '2026-04-30', 'Centre', 'Mfoundi', 'Yaoundé 4ème', 'Nkoldongo', NULL,
+    'En quittant mon poste de garde le 30 avril vers 22h30, un individu que je connais de vue m''a menacé puis frappé à la tête avant d''emporter mon téléphone et la recette de la journée. J''ai été soigné à l''hôpital de district.',
+    'NDONGO Alphonse, connu du plaignant, domicilié au quartier Nkoldongo.',
+    '{"Q1": "Téléphone et recette, 310 000 FCFA", "Q2": "Nuit (22h-6h)", "Q3": "Oui, je le connais de vue", "Q4": "Oui, certificat médical"}',
+    '2026-05-02 08:00:00+00', '2026-04-30 22:30:00+00'
   );
 
 -- ── PROCES-VERBAUX ───────────────────────────────────────────
