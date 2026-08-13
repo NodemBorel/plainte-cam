@@ -188,6 +188,7 @@ function etiquettesValeurs(seuil) {
    ─────────────────────────────────────────────────────────── */
 function graphiqueDepots(idCanvas, jours, etiquettes) {
   var p = palette();
+  var dense = jours.filter(function (v) { return v; }).length > 15;
   var o = baseOptions(p);
   o.plugins.legend.display = false;
   o.interaction = { mode: 'nearest', intersect: false };
@@ -205,7 +206,8 @@ function graphiqueDepots(idCanvas, jours, etiquettes) {
     data: {
       labels: etiquettes,
       datasets: [{ label: 'Dépôts', data: jours,
-                   backgroundColor: p.marine, borderRadius: 4, maxBarThickness: 30 }]
+                   backgroundColor: p.marine, borderRadius: boutArrondi(false),
+                   maxBarThickness: 24 }]
     },
     options: Object.assign({}, o, {
       layout: { padding: { top: 18 } },
@@ -213,12 +215,16 @@ function graphiqueDepots(idCanvas, jours, etiquettes) {
         x: { grid: { display: false }, border: { display: false },
              ticks: { color: p.texte, font: { size: 11, family: 'inherit' },
                       maxRotation: 0, autoSkipPadding: 10 } },
-        /* L'axe des ordonnées disparaît : le chiffre est sur la barre. */
-        y: { display: false, beginAtZero: true, grace: '20%',
-             grid: { display: false } }
+        /* Sur une courte période le chiffre est sur la barre et l'axe ne
+           sert plus. Sur trois mois les étiquettes se chevaucheraient :
+           l'axe reprend alors son rôle. */
+        y: dense
+          ? Object.assign({ beginAtZero: true }, axeSimple(p))
+          : { display: false, beginAtZero: true, grace: '20%',
+              grid: { display: false } }
       }
     }),
-    plugins: [etiquettesValeurs]
+    plugins: [etiquettesValeurs(15)]
   });
 }
 
@@ -246,7 +252,8 @@ function graphiqueStatuts(idCanvas, libelles, valeurs, couleurs) {
     data: {
       labels: libelles,
       datasets: [{ label: 'Dossiers', data: valeurs,
-                   backgroundColor: couleurs, borderRadius: 4, maxBarThickness: 26 }]
+                   backgroundColor: couleurs, borderRadius: boutArrondi(true),
+                   maxBarThickness: 24 }]
     },
     options: Object.assign({}, o, {
       indexAxis: 'y',
@@ -260,7 +267,7 @@ function graphiqueStatuts(idCanvas, libelles, valeurs, couleurs) {
                       font: { size: 12.5, family: 'inherit' } } }
       }
     }),
-    plugins: [etiquettesValeurs]
+    plugins: [etiquettesValeurs(8)]
   });
 }
 
@@ -303,7 +310,7 @@ function graphiquePriorites(idCanvas, libelles, valeurs, couleurs) {
     data: {
       labels: libelles,
       datasets: [{ data: valeurs, backgroundColor: couleurs,
-                   borderRadius: 4, maxBarThickness: 44 }]
+                   borderRadius: boutArrondi(false), maxBarThickness: 24 }]
     },
     options: Object.assign({}, o, {
       scales: {
@@ -347,9 +354,9 @@ function graphiqueEnqueteurs(idCanvas, noms, enCours, acheves) {
       labels: noms,
       datasets: [
         { label: 'En cours', data: enCours, backgroundColor: p.orange,
-          borderRadius: 4, maxBarThickness: 40 },
+          borderRadius: boutArrondi(false), maxBarThickness: 24 },
         { label: 'Achevés', data: acheves, backgroundColor: p.vert,
-          borderRadius: 4, maxBarThickness: 40 }
+          borderRadius: boutArrondi(false), maxBarThickness: 24 }
       ]
     },
     options: Object.assign({}, o, {
@@ -362,7 +369,7 @@ function graphiqueEnqueteurs(idCanvas, noms, enCours, acheves) {
              grid: { display: false } }
       }
     }),
-    plugins: [etiquettesValeurs]
+    plugins: [etiquettesValeurs(12)]
   });
 }
 

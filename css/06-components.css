@@ -164,6 +164,34 @@ select.form-control { cursor: pointer; }
 .page-btn:focus-visible { outline: 2px solid var(--primary); outline-offset: 2px; }
 .page-ellipse { padding: 0 4px; color: var(--text-light); }
 
+/* ── Sélecteur segmenté ──────────────────────────────────────
+   Des plages prédéfinies plutôt qu'un calendrier : personne ne se bat
+   avec une grille de dates pour obtenir « les 30 derniers jours ».
+   ─────────────────────────────────────────────────────────── */
+.segments {
+  display: inline-flex; flex-shrink: 0;
+  background: var(--gray-1);
+  border: 1px solid var(--gray-2);
+  border-radius: var(--radius-sm);
+  padding: 2px;
+}
+.segment {
+  padding: 5px 11px;
+  font-family: inherit; font-size: 12px; font-weight: 600;
+  font-variant-numeric: tabular-nums;
+  color: var(--text-light);
+  background: none; border: 0; border-radius: 4px;
+  cursor: pointer; white-space: nowrap;
+  transition: var(--transition);
+}
+/* Le survol reste un voile : il ne doit pas concurrencer la sélection. */
+.segment:hover:not(.actif) { color: var(--primary); background: rgba(11, 30, 69, .05); }
+.segment.actif {
+  color: var(--white); background: var(--primary);
+  cursor: default;
+}
+.segment:focus-visible { outline: 2px solid var(--primary); outline-offset: 2px; }
+
 /* Comment se lit un graphique. Une phrase sous le titre évite d'avoir à
    deviner ce que l'axe raconte. */
 .carte-note {

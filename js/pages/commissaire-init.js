@@ -396,10 +396,12 @@ function majGraphiques() {
   /* ── Vue d'ensemble ──────────────────────────────────── */
   var statuts = repartitionParStatut();
   if (avecChart) {
+    /* La rampe séquentielle remplace les six couleurs : plus la barre est
+       sombre, plus le dossier est avancé dans la procédure. */
     graphiqueStatuts('chart-statuts',
       statuts.map(function (s) { return s.libelle; }),
       statuts.map(function (s) { return s.n; }),
-      statuts.map(function (s) { return couleurJeton(s.couleur); }));
+      statuts.map(function (s, i) { return RAMPE_ETAPES[i] || RAMPE_ETAPES[RAMPE_ETAPES.length - 1]; }));
   }
   replier('chart-statuts', 'chart-statuts-repli', avecChart,
           function () { return barresHorizontales(statuts, total); });

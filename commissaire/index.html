@@ -148,11 +148,18 @@
   <!-- Graphique plaintes -->
   <div class="card" style="margin-top:20px">
     <div class="card-header">
-      <span class="card-title">Plaintes reçues — 14 derniers jours</span>
-      <span class="text-muted" id="chart-legende"></span>
+      <span class="card-title">Plaintes reçues</span>
+      <!-- La plage vit ici : c'est le seul graphique daté de la page. Une
+           barre de filtres globale laisserait croire qu'elle borne aussi
+           les indicateurs et les statuts, qui sont des instantanés. -->
+      <div class="segments" id="periode-depots" role="group"
+           aria-label="Période affichée"></div>
     </div>
-    <p class="carte-note">Une barre par jour : le nombre de plaintes déposées
-      ce jour-là. Un jour sans barre est un jour sans dépôt.</p>
+    <p class="carte-note">
+      Une barre par jour : le nombre de plaintes déposées ce jour-là. Un jour
+      sans barre est un jour sans dépôt.
+      <span class="text-muted" id="chart-legende"></span>
+    </p>
     <div class="graphique"><canvas id="chart-plaintes"></canvas></div>
   </div>
 </div>

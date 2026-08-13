@@ -337,17 +337,50 @@ function depotsRecents(jours) {
    La légende en HTML disparaît avec : Chart.js dessine la sienne, et
    deux légendes pour un graphique se contredisaient tôt ou tard.
    ============================================================ */
+/* Période affichée. Le contrôle vit dans l'en-tête de cette carte plutôt
+   que dans une barre de filtres globale : c'est le seul graphique daté du
+   tableau de bord. Une plage globale laisserait croire qu'elle borne aussi
+   les indicateurs et la répartition par statut, qui sont des instantanés —
+   elle mentirait. */
+var PERIODES_DEPOTS = [
+  { jours: 7,  libelle: '7 j' },
+  { jours: 14, libelle: '14 j' },
+  { jours: 30, libelle: '30 j' },
+  { jours: 90, libelle: '3 mois' }
+];
+var periodeDepots = 14;
+
+function changerPeriodeDepots(n) {
+  periodeDepots = parseInt(n, 10) || 14;
+  drawMiniChart();
+}
+
+function majSelecteurPeriode() {
+  const el = document.getElementById('periode-depots');
+  if (!el) return;
+  el.innerHTML = PERIODES_DEPOTS.map(p =>
+    '<button type="button" class="segment' + (p.jours === periodeDepots ? ' actif' : '') + '"' +
+    (p.jours === periodeDepots ? ' aria-current="true"' : '') +
+    ' onclick="changerPeriodeDepots(' + p.jours + ')">' + p.libelle + '</button>'
+  ).join('');
+}
+
 function drawMiniChart() {
-  const recents = depotsRecents(14);
+  majSelecteurPeriode();
+  const recents = depotsRecents(periodeDepots);
   const jours = recents.data;
   const total = jours.reduce((a, b) => a + b, 0);
 
   const legende = document.getElementById('chart-legende');
   if (legende) {
+    /* Une moyenne par semaine se compare d'une période à l'autre, ce qu'un
+       total seul ne permet pas : quatre dépôts sur sept jours et quatre sur
+       trois mois n'ont pas le même sens. */
+    const parSemaine = total ? (total / periodeDepots * 7) : 0;
     legende.textContent = recents.fin
-      ? total + ' dépôt' + (total > 1 ? 's' : '') + ' sur la période — ' +
-        'dernier le ' + recents.fin.toLocaleDateString('fr-FR')
-      : 'Aucun dépôt enregistré';
+      ? total + ' dépôt' + (total > 1 ? 's' : '') +
+        ' — ' + parSemaine.toFixed(1).replace('.', ',') + ' par semaine en moyenne'
+      : 'Aucun dépôt sur la période';
   }
 
   if (typeof graphiqueDepots !== 'function') return;
