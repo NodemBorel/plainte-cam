@@ -6,7 +6,9 @@
 -- ── TYPES ENUM ───────────────────────────────────────────────
 
 CREATE TYPE role_utilisateur AS ENUM ('citoyen', 'enqueteur', 'commissaire', 'admin');
-CREATE TYPE statut_plainte AS ENUM ('RECU', 'EN_INSTRUCTION', 'AUDITION', 'DECISION', 'TRANSMIS', 'CLOTURE');
+-- Ordre reel de la procedure : le plaignant est convoque et auditionne
+-- AVANT l'enquete. L'ordre precedent placait EN_INSTRUCTION avant AUDITION.
+CREATE TYPE statut_plainte AS ENUM ('RECU', 'AUDITION', 'EN_INSTRUCTION', 'DECISION', 'TRANSMIS', 'CLOTURE');
 CREATE TYPE priorite_plainte AS ENUM ('BASSE', 'NORMALE', 'HAUTE', 'URGENTE');
 CREATE TYPE type_infraction AS ENUM (
   'Vol simple',

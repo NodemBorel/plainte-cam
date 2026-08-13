@@ -21,11 +21,12 @@ function confirmAffectation(enqueteur) {
   initDashboard();
 }
 
+/* Le filtre comparait la valeur brute de l'option (EN_INSTRUCTION) au texte
+   affiche dans la ligne (« En instruction ») : aucune correspondance, donc
+   toute selection vidait le tableau. On refiltre les donnees, pas le DOM. */
 function filterDossiers(val) {
-  var rows = document.querySelectorAll('#dossiers-tbody tr');
-  rows.forEach(function(r) {
-    r.style.display = (!val || r.textContent.includes(val)) ? '' : 'none';
-  });
+  if (typeof DOSSIERS === 'undefined' || typeof initDashboard !== 'function') return;
+  initDashboard(val ? DOSSIERS.filter(function (d) { return d.statut === val; }) : null);
 }
 
 function buildPieChart() {

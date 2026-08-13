@@ -242,6 +242,8 @@ const ICON_PATHS = {
   horloge: '<circle cx="8" cy="8" r="5.75"/><path d="M8 4.75V8l2.5 1.5"/>',
   attente: '<path d="M4.5 2.5h7"/><path d="M4.5 13.5h7"/><path d="M5.5 2.5v2.25L8 7.5l2.5-2.75V2.5"/><path d="M5.5 13.5v-2.25L8 8.5l2.5 2.75v2.25"/>',
   document:'<path d="M9 2.5H4.5a1 1 0 0 0-1 1v9a1 1 0 0 0 1 1h7a1 1 0 0 0 1-1V6z"/><path d="M9 2.5V6h3.5"/>',
+  message: '<path d="M2.5 4.25a1 1 0 0 1 1-1h9a1 1 0 0 1 1 1v5.5a1 1 0 0 1-1 1H6.75L4 13.25V10.75h-.5a1 1 0 0 1-1-1z"/>',
+  etape:   '<circle cx="8" cy="8" r="5.75"/><path d="M8 5.25v5.5M5.25 8h5.5"/>',
   micro:   '<rect x="6.25" y="1.75" width="3.5" height="7" rx="1.75"/><path d="M4 7.25v1.25a4 4 0 0 0 8 0V7.25"/><path d="M8 12.5v1.75"/>',
   stop:    '<rect x="4" y="4" width="8" height="8" rx="1.25"/>',
 };
@@ -329,12 +331,14 @@ function initSuivi() {
         <div style="display: flex; flex-direction: column; gap: 10px; font-size: 14px;">
           <div style="display: flex; justify-content: space-between;">
             <span style="color: var(--text-light);">Commissariat</span>
-            <span style="font-weight: 600;">Cité Verte, Yaoundé</span>
+            <span style="font-weight: 600;">${echapper(d.commissariat || 'Non renseigné')}</span>
           </div>
           <div style="height: 1px; background: var(--gray-2);"></div>
           <div style="display: flex; justify-content: space-between;">
             <span style="color: var(--text-light);">Enquêteur assigné</span>
-            <span style="font-weight: 600;">OPJ Biloa</span>
+            <span style="font-weight: 600;">${d.enqueteur
+              ? echapper(d.enqueteur)
+              : '<span style="color:var(--text-light);font-weight:500">Pas encore affecté</span>'}</span>
           </div>
           <div style="height: 1px; background: var(--gray-2);"></div>
           <div style="display: flex; justify-content: space-between;">
@@ -352,62 +356,123 @@ function initSuivi() {
         Historique de traitement
       </div>
       <div style="position: relative;">
-        ${buildTimeline(statut)}
+        ${buildTimeline(d)}
       </div>
     </div>
   `;
 }
 
-function buildTimeline(statut) {
-  const steps = [
-    { key: 'RECU',           icon: 'recu',     label: 'Plainte déposée en ligne',        sub: 'Enregistrée sur PlainteCam',      date: '15/05/2026 à 14h32' },
-    { key: 'RECU',           icon: 'courriel', label: 'Attestation envoyée par e-mail',   sub: 'Numéro de dossier transmis',      date: '15/05/2026 à 14h33' },
-    { key: 'RECU',           icon: 'batiment', label: 'Reçue au Commissariat Cité Verte', sub: 'Prise en charge officielle',      date: '15/05/2026 à 14h35' },
-    { key: 'EN_INSTRUCTION', icon: 'agent',    label: 'Dossier affecté à un enquêteur',   sub: 'OPJ Biloa désigné',               date: '16/05/2026' },
-    { key: 'AUDITION',       icon: 'tribunal', label: 'Audition planifiée',               sub: 'Convocation à venir',             date: null },
-    { key: 'DECISION',       icon: 'balance',  label: 'Délibération en cours',            sub: 'Analyse des éléments du dossier', date: null },
-    { key: 'CLOTURE',        icon: 'valide',   label: 'Dossier clôturé',                  sub: 'Décision finale notifiée par e-mail', date: null },
-  ];
-  const order = ['RECU','EN_INSTRUCTION','AUDITION','DECISION','TRANSMIS','CLOTURE'];
-  const cur = order.indexOf(statut);
+/* Ordre chronologique. Les dates sont au format JJ/MM/AAAA et HHhMM. */
+function horodatage(e) {
+  const [j, m, a] = (e.date || '01/01/1970').split('/');
+  const [hh, mm]  = (e.heure || '00h00').split('h');
+  return new Date(+a, +m - 1, +j, +hh || 0, +mm || 0).getTime();
+}
 
-  return steps.map((s, i) => {
-    const si = order.indexOf(s.key);
-    const isDone    = si < cur;
-    const isActive  = si === cur;
-    const isPending = si > cur;
+/* Construit la frise par étapes de la procédure.
+   Les messages de l'enquêteur ne sont pas des étapes : ils se rattachent à
+   l'étape en cours au moment où ils ont été écrits, et se déplient à la
+   demande pour ne pas noyer le fil de la procédure. */
+function buildTimeline(dossier) {
+  const evts = (typeof historiqueCitoyen === 'function' ? historiqueCitoyen(dossier.id) : []);
+  if (!evts.length) {
+    return `<p style="font-size:13px;color:var(--text-light);margin:0">
+      Aucun évènement enregistré pour ce dossier.</p>`;
+  }
 
-    /* --green vaut #0a3018, presque noir : le vert lisible de la charte
-       est --green-lt. Les teintes reprennent les canaux des jetons. */
-    const dotColor   = isDone ? 'var(--green-lt)' : isActive ? 'var(--primary)' : 'var(--gray-3)';
-    const dotBg      = isDone ? 'rgba(20,94,46,.08)' : isActive ? 'rgba(11,30,69,.07)' : 'var(--gray-1)';
-    const lineColor  = isDone ? 'var(--green-lt)' : 'var(--gray-2)';
-    const labelColor = isPending ? 'var(--text-light)' : 'var(--primary)';
-    const isLast     = i === steps.length - 1;
+  const etapes = (typeof ETAPES !== 'undefined') ? ETAPES : [];
+  const ordre  = (typeof ORDRE_ETAPES !== 'undefined') ? ORDRE_ETAPES : [];
+  const rang   = ordre.indexOf(dossier.statut);
+  const clos   = dossier.statut === 'CLOTURE';
+
+  return etapes.map((et, i) => {
+    const r        = ordre.indexOf(et.cle);
+    const franchie = clos || r < rang;
+    const courante = !clos && r === rang;
+    const dernier  = i === etapes.length - 1;
+
+    const dedans   = evts.filter(e => e.etape === et.cle)
+                         .sort((a, b) => horodatage(a) - horodatage(b));
+    const actes    = dedans.filter(e => e.type !== 'message');
+    const messages = dedans.filter(e => e.type === 'message');
+
+    const couleur = franchie ? 'var(--green-lt)' : courante ? 'var(--primary)' : 'var(--gray-3)';
+    const fond    = franchie ? 'rgba(20,94,46,.08)' : courante ? 'rgba(11,30,69,.07)' : 'var(--gray-1)';
+    const filet   = (franchie || courante) ? 'var(--green-lt)' : 'var(--gray-2)';
+    const ic      = icone(franchie ? 'valide' : et.icon, 17);
 
     return `
-      <div style="display: flex; gap: 16px; align-items: flex-start;">
-        <!-- Pastille + filet -->
-        <div style="display: flex; flex-direction: column; align-items: center; flex-shrink: 0;">
-          <div style="width: 36px; height: 36px; border-radius: 50%; background: ${dotBg}; border: 1.5px solid ${dotColor}; color: ${dotColor}; display: flex; align-items: center; justify-content: center; z-index: 1;">
-            ${icone(isDone ? 'valide' : s.icon, 17)}
-          </div>
-          ${!isLast ? `<div style="width: 1.5px; flex: 1; min-height: 32px; background: ${lineColor}; margin: 4px 0;"></div>` : ''}
+      <div style="display:flex;gap:16px;align-items:flex-start">
+        <div style="display:flex;flex-direction:column;align-items:center;flex-shrink:0">
+          <div style="width:36px;height:36px;border-radius:50%;background:${fond};border:1.5px solid ${couleur};color:${couleur};display:flex;align-items:center;justify-content:center;z-index:1">${ic}</div>
+          ${dernier ? '' : `<div style="width:1.5px;flex:1;min-height:34px;background:${filet};margin:4px 0"></div>`}
         </div>
-        <!-- Contenu -->
-        <div style="flex: 1; padding-bottom: ${isLast ? '0' : '24px'};">
-          <div style="display: flex; align-items: center; gap: 10px; flex-wrap: wrap;">
-            <span style="font-size: 14px; font-weight: 600; color: ${labelColor};">${s.label}</span>
-            ${isActive ? '<span class="badge badge-blue">En cours</span>' : ''}
+        <div style="flex:1;min-width:0;padding-bottom:${dernier ? '0' : '24px'}">
+          <div style="display:flex;align-items:center;gap:9px;flex-wrap:wrap">
+            <span style="font-size:14.5px;font-weight:700;color:${courante || franchie ? 'var(--primary)' : 'var(--text-light)'}">${et.libelle}</span>
+            ${courante ? '<span class="badge badge-blue">En cours</span>' : ''}
           </div>
-          <div style="font-size: 13px; color: var(--text-light); margin-top: 2px;">${s.sub}</div>
-          <div style="font-size: 12px; margin-top: 5px; font-weight: 500; display: inline-flex; align-items: center; gap: 5px; color: ${s.date ? (isDone ? 'var(--green-lt)' : 'var(--primary)') : 'var(--text-light)'};">
-            ${s.date ? icone('horloge', 12) + s.date : icone('attente', 12) + 'En attente'}
-          </div>
+          ${actes.length ? `<ul class="fil-actes">${actes.map(acteHtml).join('')}</ul>`
+                         : `<div style="font-size:13px;color:var(--text-light);margin-top:3px">${et.attente}</div>
+                            <div style="font-size:12px;margin-top:5px;font-weight:500;display:inline-flex;align-items:center;gap:5px;color:var(--text-light)">${icone('attente', 12)}À venir</div>`}
+          ${messages.length ? blocMessages(messages) : ''}
         </div>
-      </div>
-    `;
+      </div>`;
   }).join('');
+}
+
+/* Acte de procédure : une ligne, son intitulé et son horodatage. */
+function acteHtml(e) {
+  return `<li>
+    <span class="fil-acte-txt">
+      <strong>${echapper(e.libelle)}</strong>
+      ${e.detail ? `<span>${echapper(e.detail)}</span>` : ''}
+    </span>
+    <span class="fil-acte-date">${echapper(e.date)}${e.heure ? ' · ' + echapper(e.heure) : ''}</span>
+  </li>`;
+}
+
+/* Messages repliés par défaut, sauf s'il n'y en a qu'un : le plaignant ne
+   doit pas avoir à chercher la seule chose qu'on lui a écrite.
+   <details> plutôt qu'un accordéon en JS : accessible au clavier, et le
+   contenu reste présent à l'impression. */
+function blocMessages(messages) {
+  const n = messages.length;
+  return `
+    <details class="fil-messages" ${n === 1 ? 'open' : ''}>
+      <summary>
+        ${icone('message', 14)}
+        <span>${n} message${n > 1 ? 's' : ''} de votre enquêteur</span>
+        <span class="fil-chevron" aria-hidden="true"></span>
+      </summary>
+      <div class="fil-messages-corps">
+        ${messages.map(messageHtml).join('')}
+      </div>
+    </details>`;
+}
+
+function messageHtml(e) {
+  const pieces = (e.pieces && e.pieces.length) ? `
+    <div class="fil-pieces">
+      ${e.pieces.map(p => `
+        ${p.url
+          ? `<a class="fil-piece" href="${p.url}" download="${echapper(p.nom)}">`
+          : `<span class="fil-piece">`}
+          ${icone('document', 13)}
+          <span class="fil-piece-nom">${echapper(p.nom)}</span>
+          <span class="fil-piece-taille">${echapper(p.taille || '')}</span>
+        ${p.url ? '</a>' : '</span>'}`).join('')}
+    </div>` : '';
+
+  return `
+    <article class="fil-message">
+      <header>
+        <span class="badge badge-gold">${echapper(e.auteur || 'Enquêteur')}</span>
+        <span class="fil-message-date">${echapper(e.date)}${e.heure ? ' à ' + echapper(e.heure) : ''}</span>
+      </header>
+      <p>${echapper(e.texte)}</p>
+      ${pieces}
+    </article>`;
 }
 
 function downloadAttestation() {

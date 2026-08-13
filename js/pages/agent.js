@@ -2,10 +2,16 @@
    Espace Commissaire — tableau de bord, dossiers, PV
    ============================================================ */
 
-function initDashboard() {
+function initDashboard(liste) {
   const tbody = document.getElementById('dossiers-tbody');
   if (!tbody) return;
-  tbody.innerHTML = DOSSIERS.map(d => {
+  const lignes = liste || DOSSIERS;
+  if (!lignes.length) {
+    tbody.innerHTML = '<tr><td colspan="9" style="text-align:center;color:var(--text-light);padding:22px">'
+      + 'Aucun dossier ne correspond à ce filtre.</td></tr>';
+    return;
+  }
+  tbody.innerHTML = lignes.map(d => {
     const [cls, lbl] = STATUT_LABELS[d.statut];
     const scoreClass = d.score >= 80 ? 'high' : d.score >= 50 ? 'med' : 'low';
     const prioColor = d.priorite === 'URGENTE' ? 'red' : d.priorite === 'HAUTE' ? 'orange' : 'gray';
