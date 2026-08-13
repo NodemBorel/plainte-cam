@@ -138,7 +138,11 @@
       <span class="card-title">Où en sont les dossiers</span>
       <span class="text-muted" id="statuts-legende"></span>
     </div>
-    <div id="chart-statuts"></div>
+    <p class="carte-note">Les six étapes de la procédure, dans l'ordre où un
+      dossier les traverse. Chaque barre compte les dossiers qui s'y trouvent
+      aujourd'hui.</p>
+    <div class="graphique"><canvas id="chart-statuts"></canvas></div>
+    <div id="chart-statuts-repli"></div>
   </div>
 
   <!-- Graphique plaintes -->
@@ -147,8 +151,9 @@
       <span class="card-title">Plaintes reçues — 14 derniers jours</span>
       <span class="text-muted" id="chart-legende"></span>
     </div>
-    <canvas id="chart-plaintes" width="800" height="210"></canvas>
-    <div class="series" id="chart-series"></div>
+    <p class="carte-note">Une barre par jour : le nombre de plaintes déposées
+      ce jour-là. Un jour sans barre est un jour sans dépôt.</p>
+    <div class="graphique"><canvas id="chart-plaintes"></canvas></div>
   </div>
 </div>
 
@@ -232,7 +237,8 @@
   <div class="grid-2">
     <div class="card">
       <div class="card-title" style="margin-bottom:16px">Répartition par type d'infraction</div>
-      <div id="pie-chart" style="padding:10px 0"></div>
+      <div class="graphique"><canvas id="pie-chart"></canvas></div>
+      <div id="pie-chart-repli"></div>
     </div>
     <!-- Ce tableau listait NGUEMO — le commissaire — parmi ses enquêteurs,
          avec des charges et des délais écrits en dur. Il ne compte plus
@@ -252,11 +258,30 @@
     </div>
   </div>
 
+  <div class="grid-2" style="margin-top:20px">
+    <!-- Charge et délai sur deux axes : les barres empilées donnent le
+         portefeuille de chacun, la courbe son délai moyen. -->
+    <div class="card">
+      <div class="card-title" style="margin-bottom:4px">Dossiers par enquêteur</div>
+      <p class="carte-note">Ce qu'il instruit en ce moment, et ce qu'il a mené
+        à terme. Le délai moyen se lit dans le tableau ci-dessus.</p>
+      <div class="graphique"><canvas id="chart-enqueteurs"></canvas></div>
+    </div>
+    <div class="card">
+      <div class="card-title" style="margin-bottom:4px">Activité du commissariat par mois</div>
+      <p class="carte-note">Ici la ligne a un sens : les mois se suivent.</p>
+      <div class="graphique"><canvas id="chart-activite"></canvas></div>
+    </div>
+  </div>
+
   <!-- « Avancement des dossiers » reprenait la répartition par statut de
        la vue d'ensemble : le même graphique deux fois. -->
   <div class="card" style="margin-top:20px">
-    <div class="card-title" style="margin-bottom:16px">Priorité attribuée à la cotation</div>
-    <div id="chart-priorites"></div>
+    <div class="card-title" style="margin-bottom:4px">Priorité attribuée à la cotation</div>
+    <p class="carte-note">La cotation décidée par le commissaire au moment
+      d'affecter le dossier.</p>
+    <div class="graphique"><canvas id="chart-priorites"></canvas></div>
+    <div id="chart-priorites-repli"></div>
   </div>
 </div>
 
@@ -676,6 +701,10 @@
 <!-- La vue d'un dossier est celle de l'enquêteur : mêmes documents, mêmes
      étapes, mêmes procès-verbaux. Son initialisation ne se déclenche pas
      ici, faute de la page à laquelle elle s'adresse. -->
+<!-- Chart.js embarqué plutôt que chargé d'un CDN : la démonstration
+     ne doit pas dépendre d'une connexion. -->
+<script src="../js/vendor/chart.umd.min.js"></script>
+<script src="../js/modules/graphiques.js"></script>
 <script src="../js/modules/qrcode.js"></script>
 <script src="../js/modules/documents.js"></script>
 <script src="../js/pages/enqueteur-init.js"></script>

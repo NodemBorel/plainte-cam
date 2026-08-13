@@ -164,6 +164,24 @@ select.form-control { cursor: pointer; }
 .page-btn:focus-visible { outline: 2px solid var(--primary); outline-offset: 2px; }
 .page-ellipse { padding: 0 4px; color: var(--text-light); }
 
+/* Comment se lit un graphique. Une phrase sous le titre évite d'avoir à
+   deviner ce que l'axe raconte. */
+.carte-note {
+  font-size: 12.5px; line-height: 1.55;
+  color: var(--text-light);
+  margin: 0 0 14px;
+}
+
+/* Un graphique a besoin d'une hauteur : Chart.js en mode responsive prend
+   celle de son conteneur, et sans elle le canvas s'effondre à zéro. */
+.graphique { position: relative; height: 260px; }
+.graphique.haut { height: 300px; }
+.graphique > canvas { display: block; }
+@media (max-width: 640px) {
+  .graphique { height: 220px; }
+  .graphique.haut { height: 250px; }
+}
+
 /* Légende d'un graphique : en HTML plutôt que tracée au canvas, pour que
    le texte reste sélectionnable et lisible par un lecteur d'écran. */
 .series {

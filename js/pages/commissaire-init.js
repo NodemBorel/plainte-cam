@@ -384,14 +384,25 @@ function repartitionParPriorite() {
    fois, avec le risque d'en corriger un seul. La vue d'ensemble montre où
    en sont les dossiers, les statistiques ce qu'ils sont et ce qu'ils ont
    coûté en temps. */
+/* Les graphiques passent par Chart.js. Si la bibliothèque manque — fichier
+   absent, script bloqué — on retombe sur les barres en HTML plutôt que de
+   laisser des cadres vides : un graphique dégradé vaut mieux qu'une page
+   qui paraît cassée. */
 function majGraphiques() {
   if (typeof DOSSIERS === 'undefined') return;
   var total = DOSSIERS.length;
+  var avecChart = (typeof chartjsPresent === 'function') && chartjsPresent();
 
-  /* Vue d'ensemble : où en sont les dossiers. */
+  /* ── Vue d'ensemble ──────────────────────────────────── */
   var statuts = repartitionParStatut();
-  var st = document.getElementById('chart-statuts');
-  if (st) st.innerHTML = barresHorizontales(statuts, total);
+  if (avecChart) {
+    graphiqueStatuts('chart-statuts',
+      statuts.map(function (s) { return s.libelle; }),
+      statuts.map(function (s) { return s.n; }),
+      statuts.map(function (s) { return couleurJeton(s.couleur); }));
+  }
+  replier('chart-statuts', 'chart-statuts-repli', avecChart,
+          function () { return barresHorizontales(statuts, total); });
 
   var lg = document.getElementById('statuts-legende');
   if (lg) {
@@ -401,12 +412,102 @@ function majGraphiques() {
     lg.textContent = actifs + ' en cours sur ' + total;
   }
 
-  /* Statistiques : ce que sont les dossiers, et comment ils sont cotés. */
-  var pr = document.getElementById('chart-priorites');
-  if (pr) pr.innerHTML = barresHorizontales(repartitionParPriorite(), total);
+  /* ── Statistiques ────────────────────────────────────── */
+  var types = repartitionParType();
+  if (avecChart) {
+    graphiqueTypes('pie-chart',
+      types.map(function (t) { return t.label; }),
+      types.map(function (t) { return t.n; }));
+  }
+  replier('pie-chart', 'pie-chart-repli', avecChart, buildPieChart);
 
-  var pie = document.getElementById('pie-chart');
-  if (pie) pie.innerHTML = buildPieChart();
+  var prio = repartitionParPriorite();
+  if (avecChart) {
+    graphiquePriorites('chart-priorites',
+      prio.map(function (p) { return p.libelle; }),
+      prio.map(function (p) { return p.n; }),
+      prio.map(function (p) { return couleurJeton(p.couleur); }));
+  }
+  replier('chart-priorites', 'chart-priorites-repli', avecChart,
+          function () { return barresHorizontales(prio, total); });
+
+  if (avecChart) {
+    majGraphiqueEnqueteurs();
+    majGraphiqueActivite();
+  }
+}
+
+/* Chart.js ne comprend pas « var(--gold) » : il lui faut une couleur
+   résolue. Les jetons sont donc traduits ici, à partir du document. */
+function couleurJeton(v) {
+  var m = /^var\((--[\w-]+)\)$/.exec(String(v || ''));
+  if (!m) return v;
+  try {
+    return (getComputedStyle(document.documentElement)
+      .getPropertyValue(m[1]) || '').trim() || '#0b1e45';
+  } catch (e) { return '#0b1e45'; }
+}
+
+/* Montre le canvas ou son repli, jamais les deux. */
+function replier(idCanvas, idRepli, avecChart, rendu) {
+  var toile = document.getElementById(idCanvas);
+  var repli = document.getElementById(idRepli);
+  if (toile && toile.parentNode && toile.parentNode.style) {
+    toile.parentNode.style.display = avecChart ? '' : 'none';
+  }
+  if (repli) repli.innerHTML = avecChart ? '' : rendu();
+}
+
+function majGraphiqueEnqueteurs() {
+  var agents = enqueteursActifs();
+  graphiqueEnqueteurs('chart-enqueteurs',
+    agents.map(function (e) { return e.nom.replace(/^Insp\.\s*/, ''); }),
+    agents.map(function (e) {
+      return DOSSIERS.filter(function (d) {
+        return d.enqueteur === e.nom && !estAcheve(d);
+      }).length;
+    }),
+    agents.map(function (e) {
+      return DOSSIERS.filter(function (d) {
+        return d.enqueteur === e.nom && estAcheve(d);
+      }).length;
+    }));
+}
+
+/* Trois séries par mois : ce qui entre, ce qui s'instruit, ce qui sort.
+   Les mois viennent des actes eux-mêmes — le jeu de données est daté, se
+   caler sur le calendrier courant donnerait un graphique vide. */
+function majGraphiqueActivite() {
+  var MOIS = ['janv.', 'févr.', 'mars', 'avr.', 'mai', 'juin',
+              'juil.', 'août', 'sept.', 'oct.', 'nov.', 'déc.'];
+  var seaux = {};
+  var clef = function (e) {
+    var p = String(e.date || '').split('/');
+    return p.length === 3 ? p[2] + '-' + p[1] : null;
+  };
+
+  journalComplet().forEach(function (l) {
+    var k = clef(l);
+    if (!k) return;
+    if (!seaux[k]) seaux[k] = { depots: 0, actes: 0, acheves: 0 };
+    if (l.type === 'depot') seaux[k].depots++;
+    else seaux[k].actes++;
+    if (/clôturé|transmis au procureur/i.test(l.libelle || '')) seaux[k].acheves++;
+  });
+
+  var cles = Object.keys(seaux).sort();
+  if (!cles.length) return;
+
+  graphiqueActivite('chart-activite',
+    cles.map(function (k) {
+      var p = k.split('-');
+      return MOIS[parseInt(p[1], 10) - 1] + ' ' + p[0];
+    }),
+    [
+      { nom: 'Plaintes déposées', valeurs: cles.map(function (k) { return seaux[k].depots; }) },
+      { nom: 'Actes de procédure', valeurs: cles.map(function (k) { return seaux[k].actes; }) },
+      { nom: 'Dossiers achevés',  valeurs: cles.map(function (k) { return seaux[k].acheves; }) }
+    ]);
 }
 
 var vueRendement = { page: 1, parPage: 8 };
