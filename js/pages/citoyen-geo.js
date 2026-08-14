@@ -81,15 +81,26 @@ function updateLieuFaits() {
   showCommissariat(arrond, quart);
 }
 
+/* Le commissariat compétent, retenu au moment où il est déterminé.
+
+   Le récapitulatif de l'étape 5 le redéduisait de son côté, en découpant la
+   chaîne du lieu sur ses virgules (`lieu.split(',')[1]`). Cette chaîne change
+   de forme selon que l'adresse précise est renseignée ou non, et une adresse
+   contenant elle-même une virgule — « Marché Mokolo, allée des commerçants » —
+   donnait « Commissariat de allée des commerçants » sur le document que le
+   plaignant signe. Une seule valeur, calculée une fois, ne peut pas diverger. */
+var commissariatCompetent = '';
+
 function showCommissariat(arrond, quartier) {
-  var commissariat = 'Commissariat de ' + arrond;
+  commissariatCompetent = 'Commissariat de ' + arrond;
   document.getElementById('commissariat-info-text').innerHTML =
-    'Commissariat compétent : <strong>' + commissariat + '</strong> — dossier transmis automatiquement à la réception.';
+    'Commissariat compétent : <strong>' + commissariatCompetent + '</strong> — dossier transmis automatiquement à la réception.';
   document.getElementById('commissariat-info').style.display = '';
   document.getElementById('commissariat-default').style.display = 'none';
 }
 
 function resetCommissariat() {
+  commissariatCompetent = '';
   document.getElementById('lieu-faits').value = '';
   document.getElementById('commissariat-info').style.display = 'none';
   document.getElementById('commissariat-default').style.display = '';

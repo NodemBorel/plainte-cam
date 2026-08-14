@@ -88,7 +88,7 @@ function buildRecap() {
         <tr><td style="padding:6px 10px;border:1px solid #ddd;font-weight:600;background:#f8f8f8;width:35%">Type d'infraction</td><td style="padding:6px 10px;border:1px solid #ddd">${nature}</td></tr>
         <tr><td style="padding:6px 10px;border:1px solid #ddd;font-weight:600;background:#f8f8f8">Date des faits</td><td style="padding:6px 10px;border:1px solid #ddd">${dateFait || 'Non precisee'}</td></tr>
         <tr><td style="padding:6px 10px;border:1px solid #ddd;font-weight:600;background:#f8f8f8">Lieu des faits</td><td style="padding:6px 10px;border:1px solid #ddd">${lieu}</td></tr>
-        <tr><td style="padding:6px 10px;border:1px solid #ddd;font-weight:600;background:#f8f8f8">Commissariat competent</td><td style="padding:6px 10px;border:1px solid #ddd">Commissariat de ${lieu.split(',')[1] || lieu}</td></tr>
+        <tr><td style="padding:6px 10px;border:1px solid #ddd;font-weight:600;background:#f8f8f8">Commissariat competent</td><td style="padding:6px 10px;border:1px solid #ddd">${echapper(commissariatCompetent || 'Non renseigné')}</td></tr>
         <tr><td style="padding:6px 10px;border:1px solid #ddd;font-weight:600;background:#f8f8f8">Plaignant</td><td style="padding:6px 10px;border:1px solid #ddd">${
           typeof citoyenCourant === 'function' ? nomCitoyen(citoyenCourant()) : ''
         }</td></tr>
@@ -934,10 +934,14 @@ function majCompteCitoyen() {
   }).length));
 
   /* Le résumé de dépôt citait une date figée. Il porte celle du dossier
-     le plus récent du compte. */
-  var dernier = miens[0];
-  poser('moi-depot-resume', dernier
-    ? 'Déposée le ' + dernier.date + ' à ' + (dernier.heure || '—') + ' — ' + nom
+     affiché sur l'attestation — et non celle du dossier le plus récent du
+     compte : l'écran de confirmation annonce un numéro précis, et le voir
+     surmonté de la date d'un autre dossier faisait douter du document. */
+  var elNum = document.querySelector('#page-confirmation .big-num');
+  var numAffiche = elNum ? elNum.textContent.replace(/^\s*N°\s*/, '').trim() : '';
+  var affiche = miens.filter(function (d) { return d.id === numAffiche; })[0] || miens[0];
+  poser('moi-depot-resume', affiche
+    ? 'Déposée le ' + affiche.date + ' à ' + (affiche.heure || '—') + ' — ' + nom
     : 'Aucune plainte déposée pour l\'instant.');
 }
 

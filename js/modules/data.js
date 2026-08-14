@@ -235,7 +235,7 @@ const DOSSIERS = [
     misEnCause: "Jeune homme, environ 25 ans, taille moyenne, tee-shirt rouge, jean bleu."
   },
   {
-    id: '2026-00438', citoyen: 'CIT-002', type: 'Escroquerie', plaignant: 'Marie ESSOMBA',
+    id: '2026-00438', citoyen: 'CIT-002', type: 'Escroquerie / Fraude', plaignant: 'Marie ESSOMBA',
     date: '12/05/2026', heure: '09h15', statut: 'AUDITION', score: 67,
     enqueteur: 'Insp. KANA', priorite: 'NORMALE',
     commissariat: 'Commissariat Cité Verte, Yaoundé',
@@ -251,7 +251,7 @@ const DOSSIERS = [
               { nom: 'captures-conversation.pdf',   taille: '2,1 Mo' }]
   },
   {
-    id: '2026-00412', citoyen: 'CIT-003', type: 'Agression', plaignant: 'Paul ATANGANA',
+    id: '2026-00412', citoyen: 'CIT-003', type: 'Agression physique', plaignant: 'Paul ATANGANA',
     date: '08/05/2026', heure: '11h20', statut: 'DECISION', score: 91,
     enqueteur: 'Insp. BIYA', priorite: 'URGENTE',
     commissariat: 'Commissariat Cité Verte, Yaoundé',
@@ -279,7 +279,7 @@ const DOSSIERS = [
     misEnCause: null
   },
   {
-    id: '2026-00377', citoyen: 'CIT-005', type: 'Dégradation', plaignant: 'Alain FOKO',
+    id: '2026-00377', citoyen: 'CIT-005', type: 'Dégradation de biens', plaignant: 'Alain FOKO',
     date: '28/04/2026', heure: '07h00', statut: 'CLOTURE', score: 88,
     enqueteur: 'Insp. KANA', priorite: 'NORMALE',
     commissariat: 'Commissariat Cité Verte, Yaoundé',
@@ -297,7 +297,7 @@ const DOSSIERS = [
      chaine complete — convocation, audition tenue, proces-verbal — sans
      rien avoir a preparer. */
   {
-    id: '2026-00462', citoyen: 'CIT-006', type: 'Escroquerie', plaignant: 'Sylvie NANA',
+    id: '2026-00462', citoyen: 'CIT-006', type: 'Escroquerie / Fraude', plaignant: 'Sylvie NANA',
     date: '02/06/2026', heure: '10h15', statut: 'RECU', score: 79,
     enqueteur: 'Insp. KANA', priorite: 'NORMALE',
     commissariat: 'Commissariat Cité Verte, Yaoundé',
