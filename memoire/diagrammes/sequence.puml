@@ -1,0 +1,100 @@
+@startuml sequence
+' ==============================================================
+'  PlainteCam — Diagramme de sequence
+'  Du depot de la plainte a la validation du proces-verbal.
+'
+'  COMPILATION
+'    En ligne : https://www.plantuml.com/plantuml/uml/
+'    En local : java -jar plantuml.jar sequence.puml
+'               (les diagrammes de sequence n'exigent PAS Graphviz)
+'
+'  INSERTION : renommer le PNG en  sequence.png  dans memoire/images/
+' ==============================================================
+
+skinparam dpi 150
+skinparam backgroundColor #FFFFFF
+skinparam shadowing false
+skinparam defaultFontName Helvetica
+skinparam defaultFontSize 12
+skinparam ArrowColor #24405E
+skinparam sequenceMessageAlign left
+
+skinparam participant {
+  BorderColor #24405E
+  BackgroundColor #FFFFFF
+  FontColor #14243A
+}
+skinparam actor {
+  BorderColor #24405E
+  BackgroundColor #FFFFFF
+}
+skinparam note {
+  BorderColor #C9A227
+  BackgroundColor #FFF7E8
+}
+
+actor       "Plaignant"        as CIT
+participant "Frontend\nReact"  as FE
+participant "API\nFlask"       as API
+database    "PostgreSQL"       as DB
+participant "Llama 3.1\n(via Groq)" as IA
+actor       "Commissaire"      as COM
+actor       "Enqueteur"        as ENQ
+
+== 1. Depot de la plainte ==
+
+CIT -> FE  : choisit la nature de l'infraction\net le lieu des faits
+FE  -> API : GET /api/commissariats?quartier=...
+API -> DB  : SELECT sur le ressort territorial
+DB  --> API : commissariat competent
+API --> FE : commissariat competent
+FE  --> CIT : affiche l'unite de rattachement
+
+CIT -> FE  : redige le recit des faits
+loop a chaque frappe
+  FE -> FE : analyse les signaux attendus\npour cette nature
+  FE --> CIT : jauge de completude (%)\net elements manquants
+end
+
+note right of FE
+  Le taux de completude est calcule
+  cote client : il guide le plaignant,
+  il ne quitte pas son navigateur.
+end note
+
+FE  --> CIT : pose les seules questions\nnon couvertes par le recit
+CIT -> FE  : repond, signe et valide
+FE  -> API : POST /api/plaintes
+API -> DB  : INSERT plainte (statut = RECU)
+API -> DB  : INSERT historique (action = DEPOT)
+DB  --> API : numero de dossier
+API --> FE : numero de dossier
+FE  --> CIT : recepisse PDF avec QR code
+
+== 2. Cotation par le commissaire ==
+
+COM -> API : PATCH /api/plaintes/{id}/cotation\n(enqueteur, priorite)
+API -> DB  : UPDATE plainte + INSERT historique
+API --> COM : dossier cote
+API --> ENQ : notification
+
+== 3. Redaction assistee du proces-verbal ==
+
+ENQ -> API : POST /api/plaintes/{id}/pv/proposition
+API -> IA  : chat.completions\n(consigne + declaration)
+IA  --> API : projet de PV structure
+API --> ENQ : proposition affichee dans l'editeur
+
+note over API, IA
+  Aucune ecriture en base a ce stade :
+  la proposition n'existe qu'a l'ecran.
+end note
+
+ENQ -> ENQ : relit, corrige, complete
+ENQ -> API : POST /api/plaintes/{id}/pv (contenu valide)
+API -> DB  : INSERT proces_verbal (signe = true)
+API -> DB  : INSERT historique (action = PV_VALIDE)
+API --> ENQ : PV enregistre et signe
+API --> CIT : notification de changement de statut
+
+@enduml

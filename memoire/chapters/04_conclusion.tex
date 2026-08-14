@@ -1,0 +1,62 @@
+% CONCLUSION GÉNÉRALE (2 pages)
+
+\chapter*{CONCLUSION GÉNÉRALE}
+\addcontentsline{toc}{chapter}{Conclusion Générale}
+\label{ch:conclusion}
+
+\section*{Synthèse des missions}
+\addcontentsline{toc}{section}{Synthèse des missions}
+
+Ce stage de six mois au sein de \textbf{KLIVAR} avait pour objectif de répondre à un défi concret : dématérialiser le dépôt et le traitement des plaintes citoyennes, qui reposaient jusqu'alors entièrement sur des échanges physiques et des pièces papier.
+
+La solution développée, \textbf{PlainteCam}, est une plateforme web full-stack intégrant un frontend React.js, un backend Flask exposant une API REST, et le modèle génératif Llama 3.1 servi par la plateforme d'inférence Groq. Elle couvre l'ensemble du cycle de vie d'un dossier : dépôt guidé par le citoyen, rattachement automatique au commissariat compétent, cotation de l'enquête par le commissaire, rédaction assistée du procès-verbal par l'enquêteur, convocation, suivi en ligne par le plaignant et clôture.
+
+Les objectifs fixés au départ ont été atteints sur le périmètre de la recette :
+
+\begin{itemize}
+    \item Suppression du déplacement obligatoire pour porter plainte
+    \item Rattachement automatique du dossier au commissariat territorialement compétent dès la saisie du lieu des faits, sans circulation de pièces papier
+    \item Procès-verbal proposé en moins de deux minutes, puis révisé et validé par l'enquêteur
+    \item Traçabilité horodatée de \textbf{100\%} des transitions de statut
+    \item Suivi du dossier accessible en ligne au plaignant
+\end{itemize}
+
+La confirmation de ces gains en exploitation réelle suppose toutefois un déploiement instrumenté, tel que recommandé au chapitre~\ref{ch:bilan}.
+
+\section*{Bilan personnel}
+\addcontentsline{toc}{section}{Bilan personnel}
+
+Cette expérience professionnelle a été enrichissante à plusieurs niveaux.
+
+\textbf{Compétences techniques (hard skills) acquises :}
+\begin{itemize}
+    \item Développement full-stack React.js / Flask en contexte professionnel
+    \item Intégration d'une API d'intelligence artificielle générative dans une application métier, et conception des garde-fous qui l'encadrent
+    \item Conception et modélisation d'architectures logicielles (UML, REST, modèle relationnel)
+    \item Sécurisation d'une API par jeton et cloisonnement des accès par rôle
+    \item Mise en place d'une démarche Agile Scrum avec livraisons itératives
+\end{itemize}
+
+\textbf{Compétences transversales (soft skills) développées :}
+\begin{itemize}
+    \item Capacité à reformuler un besoin métier réglementé en exigences techniques claires
+    \item Conduite d'entretiens terrain avec des personnels de commissariat et restitution des constats
+    \item Gestion de projet en autonomie avec reporting régulier au maître de stage
+    \item Adaptabilité face aux imprévus et aux changements de priorité en cours de projet
+    \item Esprit de synthèse pour la documentation et la rédaction du présent mémoire
+\end{itemize}
+
+\section*{Perspectives d'évolution}
+\addcontentsline{toc}{section}{Perspectives d'évolution}
+
+PlainteCam, dans sa version actuelle, constitue une base opérationnelle. Plusieurs axes d'évolution ont été identifiés pour la suite du projet :
+
+\textbf{À court terme :} Instrumentation des indicateurs, test de charge, puis déploiement sur un commissariat pilote avec formation des personnels et dispositif de support.
+
+\textbf{À moyen terme :} Transcription vocale côté serveur, afin d'affranchir la dictée des limites du navigateur et d'ouvrir la voie au traitement des langues nationales. Ajout de la géolocalisation du lieu des faits pour affiner le rattachement territorial.
+
+\textbf{À long terme :} Analyse des données consolidées pour identifier les zones et les périodes de forte sinistralité et adapter l'allocation des effectifs. Interconnexion avec les systèmes d'information judiciaires pour la transmission dématérialisée des dossiers au parquet.
+
+\medskip
+
+En définitive, cette mission a montré qu'une technologie bien choisie peut transformer une procédure administrative lourde en un parcours lisible pour le citoyen, sans rien retirer aux garanties qui l'entourent. Elle a aussi rappelé qu'en matière régalienne, la valeur d'une plateforme se juge autant à la confiance qu'elle inspire qu'aux minutes qu'elle fait gagner. C'est cette double exigence qui a guidé l'ensemble du travail réalisé durant ce stage.

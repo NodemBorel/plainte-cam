@@ -1,0 +1,64 @@
+@startuml organigramme_klivar
+' ==============================================================
+'  Organigramme de l'entreprise KLIVAR — mémoire PlainteCam
+'  Correspond au texte du chapitre 1, section « Organigramme ».
+'
+'  COMPILATION
+'    - En ligne  : https://www.plantuml.com/plantuml/uml/
+'                  (coller ce fichier, puis télécharger le PNG)
+'    - En local  : java -jar plantuml.jar organigramme_klivar.puml
+'
+'  INSERTION DANS LE MÉMOIRE
+'    Renommer le PNG obtenu en  org2.png  et le déposer dans
+'    memoire/images/  — la figure du chapitre 1 se met à jour seule,
+'    aucune modification LaTeX n'est nécessaire.
+' ==============================================================
+
+' 150 dpi : le PNG par défaut (72 dpi) donne un texte flou à l'impression.
+skinparam dpi 150
+skinparam backgroundColor #FFFFFF
+skinparam shadowing false
+skinparam defaultFontName Helvetica
+skinparam defaultFontSize 13
+skinparam linetype ortho
+skinparam ArrowColor #24405E
+skinparam ArrowThickness 1.3
+skinparam nodesep 45
+skinparam ranksep 45
+
+skinparam rectangle {
+  BackgroundColor #FFFFFF
+  BorderColor #24405E
+  BorderThickness 1.5
+  FontColor #14243A
+  RoundCorner 12
+}
+
+' ── Niveau 1 : direction ──────────────────────────────────────
+rectangle "**DIRECTION GÉNÉRALE**\n//Dirigeante//\n<size:10>Stratégie · Relation clients</size>" as DG #EDF2FA
+
+' ── Niveau 2 : directions opérationnelles ─────────────────────
+' Attention : une balise <size> ne peut pas enjamber un \n.
+' Chaque ligne doit ouvrir et refermer la sienne.
+rectangle "**DIRECTION TECHNIQUE**\n//CTO//\n<size:10>Architecture · Technologies · Qualité</size>" as CTO #F5F9FF
+rectangle "**ÉQUIPE COMMERCIALE**\n<size:10>Prospection · Consultations</size>\n<size:10>Suivi de la relation client</size>" as COM
+
+' ── Niveau 3 : encadrement technique et design ────────────────
+rectangle "**TECH LEAD**\n<size:10>Découpage des tâches · Revues de code</size>\n<size:10>Accompagnement des développeurs</size>" as TL
+rectangle "**DESIGN UX/UI**\n<size:10>Maquettage des écrans</size>\n<size:10>Ergonomie des parcours</size>" as UX
+
+' ── Niveau 4 : équipe de développement ────────────────────────
+rectangle "**DÉVELOPPEUR SENIOR**\n<size:10>Référent projets complexes</size>" as SENIOR
+' La boîte teintée signale le rattachement du stage : une « note »
+' PlantUML tirerait un connecteur qui traverse le schéma.
+rectangle "**DÉVELOPPEURS**\n<size:10>Implémentation des solutions</size>\n<size:10>—— rattachement du stage ——</size>" as DEV #FFF7E8
+
+' ── Liens hiérarchiques ───────────────────────────────────────
+DG   --> CTO
+DG   --> COM
+CTO  --> TL
+CTO  --> UX
+TL   --> SENIOR
+TL   --> DEV
+
+@enduml

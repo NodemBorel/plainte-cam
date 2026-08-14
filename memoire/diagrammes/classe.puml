@@ -1,0 +1,205 @@
+@startuml classe
+' ==============================================================
+'  PlainteCam — Diagramme de classes
+'  Transcription fidele du schema relationnel (supabase/schema.sql) :
+'  8 entites metier et 5 types enumeres.
+'
+'  COMPILATION
+'    En ligne : https://www.plantuml.com/plantuml/uml/
+'    En local : java -jar plantuml.jar classe.puml
+'               (necessite Graphviz ; sinon ajouter -Playout=smetana)
+'
+'  INSERTION : renommer le PNG en  classe.png  dans memoire/images/
+' ==============================================================
+
+skinparam dpi 150
+skinparam backgroundColor #FFFFFF
+skinparam shadowing false
+skinparam defaultFontName Helvetica
+skinparam defaultFontSize 11
+skinparam linetype ortho
+skinparam ArrowColor #24405E
+
+skinparam class {
+  BorderColor #24405E
+  BackgroundColor #FFFFFF
+  FontColor #14243A
+  AttributeFontSize 10
+}
+hide methods
+hide circle
+
+' ── Referentiel ──────────────────────────────────────────────
+class Commissariat #EDF2FA {
+  + id : UUID
+  --
+  nom : Text
+  region : Text
+  departement : Text
+  arrondissement : Text
+  adresse : Text
+  telephone : Text
+}
+
+' ── Utilisateurs ─────────────────────────────────────────────
+class Profil #EDF2FA {
+  + id : UUID
+  --
+  role : RoleUtilisateur
+  nom, prenom : Text
+  telephone : Text
+  email : Text
+  cni : Text
+  matricule : Text
+  grade : Text
+  specialite : Text
+}
+
+' ── Dossier central ──────────────────────────────────────────
+class Plainte #FFF7E8 {
+  + id : UUID
+  --
+  numero_dossier : Text
+  type_infraction : TypeInfraction
+  statut : StatutPlainte
+  priorite : PrioritePlainte
+  date_faits : Date
+  lieu_region : Text
+  lieu_departement : Text
+  lieu_arrondissement : Text
+  lieu_quartier : Text
+  declaration : Text
+  score_ia : Integer
+  mis_en_cause_nom : Text
+  mis_en_cause_prenom : Text
+  mis_en_cause_adresse : Text
+  reponses_questionnaire : JSONB
+  date_affectation : Timestamp
+  date_cloture : Timestamp
+}
+
+' ── Pieces du dossier ────────────────────────────────────────
+class PieceJointe {
+  + id : UUID
+  --
+  nom_fichier : Text
+  type_mime : Text
+  taille : Integer
+  storage_path : Text
+}
+
+note bottom of PieceJointe
+  Seules les metadonnees sont en base.
+  Le fichier reside dans le bucket prive
+  "pieces-jointes" (Supabase Storage),
+  designe par storage_path.
+end note
+
+class ProcesVerbal #F1FBF4 {
+  + id : UUID
+  --
+  contenu : Text
+  genere_par_ia : Boolean
+  signe : Boolean
+  date_signature : Timestamp
+}
+
+class Convocation {
+  + id : UUID
+  --
+  nom_convoque : Text
+  date_convocation : Date
+  heure_convocation : Time
+  motif : Text
+  numero_ordre : Integer
+  statut : StatutConvocation
+}
+
+class Historique {
+  + id : UUID
+  --
+  action : Text
+  detail : Text
+  created_at : Timestamp
+}
+
+class Notification {
+  + id : UUID
+  --
+  telephone : Text
+  message : Text
+  envoye : Boolean
+}
+
+' ── Types enumeres ───────────────────────────────────────────
+enum RoleUtilisateur #F5F5F5 {
+  citoyen
+  enqueteur
+  commissaire
+  admin
+}
+
+enum StatutPlainte #F5F5F5 {
+  RECU
+  AUDITION
+  EN_INSTRUCTION
+  DECISION
+  TRANSMIS
+  CLOTURE
+}
+
+enum PrioritePlainte #F5F5F5 {
+  BASSE
+  NORMALE
+  HAUTE
+  URGENTE
+}
+
+enum TypeInfraction #F5F5F5 {
+  Vol simple
+  Vol avec violence
+  Agression physique
+  Escroquerie / Fraude
+  Harcelement
+  Degradation de biens
+  Accident de la route
+  Autre
+}
+
+enum StatutConvocation #F5F5F5 {
+  EN_ATTENTE
+  COMPARU
+  ABSENT
+}
+
+' ── Associations ─────────────────────────────────────────────
+Commissariat "1" -- "0..*" Profil        : affecte >
+Commissariat "1" -- "0..*" Plainte       : instruit >
+
+Profil "1"    -- "0..*" Plainte          : depose (plaignant) >
+Profil "0..1" -- "0..*" Plainte          : cote a (enqueteur) >
+
+Plainte "1" *-- "0..*" PieceJointe
+Plainte "1" *-- "0..*" ProcesVerbal
+Plainte "1" *-- "0..*" Convocation
+Plainte "1" *-- "0..*" Historique
+Plainte "0..1" -- "0..*" Notification
+
+Profil "1" -- "0..*" Convocation         : emet >
+Profil "1" -- "0..*" Notification        : destinataire >
+Profil "0..1" -- "0..*" ProcesVerbal     : signe >
+Profil "0..1" -- "0..*" Historique        : auteur >
+
+Profil        ..> RoleUtilisateur
+Plainte       ..> StatutPlainte
+Plainte       ..> PrioritePlainte
+Plainte       ..> TypeInfraction
+Convocation   ..> StatutConvocation
+
+note right of Plainte
+  Le cycle de vie est contraint par
+  le type enumere StatutPlainte :
+  l'audition precede l'instruction.
+end note
+
+@enduml

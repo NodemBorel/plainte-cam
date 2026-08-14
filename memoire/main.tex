@@ -1,0 +1,235 @@
+\pdfobjcompresslevel 0
+\documentclass[12pt,a4paper,oneside]{extbook}
+
+% ── Encodage et langue ───────────────────────────────────────
+\usepackage[utf8]{inputenc}
+\usepackage[T1]{fontenc}
+\usepackage[french]{babel}
+
+% ── Mise en page ─────────────────────────────────────────────
+\usepackage[left=1in, right=1in, top=1in, bottom=1in, includefoot, headheight=28pt]{geometry}
+\usepackage{fancyhdr}          % \pagestyle{fancy}, \cfoot — utilisé plus bas
+\usepackage[Lenny]{fncychap}
+% C'est fncychap — et non titlesec — qui compose les titres de chapitre.
+% \huge plutôt que le \Huge par défaut : « Méthodologie et Réalisation
+% des Missions » dépassait la justification de 7,3 pt.
+\ChTitleVar{\raggedleft\huge\bfseries}
+
+% ── Tableaux ─────────────────────────────────────────────────
+\usepackage{array}             % spécificateurs >{...} des colonnes
+\usepackage{tabularx}          % colonnes X à largeur élastique
+\usepackage{adjustbox}         % max width sur les tableaux larges
+\usepackage[table]{xcolor}
+
+% ── Figures ──────────────────────────────────────────────────
+\usepackage{graphicx}
+\usepackage{float}             % placement [H]
+\usepackage[section]{placeins}
+\usepackage{caption}
+\usepackage{pdfpages}          % \includepdf de la couverture
+
+% Figure optionnelle : s'affiche dès que le fichier existe dans images/,
+% sinon laisse un marqueur discret et le document compile quand même.
+% Usage : \figopt{fichier.png}{largeur relative}{Légende}{label}
+\newcommand{\figopt}[4]{%
+  \IfFileExists{images/#1}{%
+    \begin{figure}[H]
+      \centering
+      \includegraphics[width=#2\textwidth]{images/#1}
+      \caption{#3}\label{#4}
+    \end{figure}%
+  }{%
+    \begin{center}\small\itshape
+      [Capture à insérer : \texttt{\detokenize{#1}} — #3]
+    \end{center}%
+  }%
+}
+
+% ── Divers ───────────────────────────────────────────────────
+\usepackage{amsmath}
+\usepackage{pifont}            % environnement dinglist
+\usepackage{listings}          % extraits de code en annexe
+\usepackage[hidelinks]{hyperref}
+\usepackage{xurl}              % césure des URL longues en bibliographie
+
+% ── Style des extraits de code (Annexe C) ────────────────────
+\definecolor{codegris}{RGB}{245,245,245}
+\definecolor{codecom}{RGB}{100,120,100}
+\definecolor{codekey}{RGB}{20,60,140}
+\lstset{
+  basicstyle=\ttfamily\scriptsize,
+  keywordstyle=\color{codekey}\bfseries,
+  commentstyle=\color{codecom}\itshape,
+  stringstyle=\color{codecom},
+  backgroundcolor=\color{codegris},
+  numbers=left, numberstyle=\tiny, numbersep=6pt,
+  frame=single, framesep=4pt, rulecolor=\color{gray},
+  breaklines=true, showstringspaces=false,
+  captionpos=b, xleftmargin=14pt,
+  literate={é}{{\'e}}1 {è}{{\`e}}1 {ê}{{\^e}}1 {à}{{\`a}}1 {ç}{{\c c}}1 {û}{{\^u}}1 {ô}{{\^o}}1 {î}{{\^i}}1
+}
+
+% Interligne : 1.15 pour tenir le format 25-30 pages de la consigne.
+% Repasser à 1.3 si le règlement de la filière impose un interligne plus large.
+\linespread{1.15}
+
+% Sommaire détaillé : chapitre, section et sous-section (1.1.1, 1.1.2…).
+% Les \subsubsection restent exclues. Note : le fichier .toc contient
+% toujours tous les niveaux ; c'est \@dottedtocline qui filtre à
+% l'impression selon tocdepth. Les entrées posées à la main par
+% \addcontentsline (Dédicace, Résumé, sections de l'introduction)
+% s'affichent quant à elles quoi qu'il arrive.
+\setcounter{tocdepth}{2}
+
+\begin{document}
+
+\includepdf[pages={1}]{images/couverture_memoire.pdf}
+
+% Pages liminaires numérotées i, ii, iii… ; le corps repart à 1 en
+% chiffres arabes au \mainmatter, plus bas.
+\frontmatter
+\pagestyle{fancy}
+\fancyhf{}
+\cfoot{\thepage}
+\renewcommand{\headrulewidth}{0pt}
+\renewcommand{\footrulewidth}{0pt}
+\fancypagestyle{plain}{%
+  \fancyhf{}
+  \cfoot{\thepage}
+  \renewcommand{\headrulewidth}{0pt}
+  \renewcommand{\footrulewidth}{0pt}
+}
+
+% ── DÉDICACE ─────────────────────────────────────────────────
+\phantomsection
+\chapter*{Dédicace}
+\addcontentsline{toc}{chapter}{Dédicace}
+\vspace*{3cm}
+\begin{center}
+     \textit{
+``Je dédie ce travail à ma famille et à tous ceux qui ont cru en moi tout au long de ce parcours universitaire, pour leur soutien indéfectible et leurs encouragements constants.''}
+\end{center}
+
+% ── REMERCIEMENTS ────────────────────────────────────────────
+\phantomsection
+\chapter*{Remerciements}
+\addcontentsline{toc}{chapter}{Remerciements}
+Nous tenons à exprimer nos sincères remerciements à toutes les personnes qui ont contribué à la réussite de notre projet et de notre soutenance.
+
+\begin{itemize}
+
+\item À Dr. \textbf{NZEKON NZEKO'O Armel Jacques}, encadreur académique et coordinateur du projet \textbf{Plateforme numérique de gestion des plaintes citoyennes}. Nos travaux ont été effectués dans le cadre de ce projet et sous son encadrement, à travers ses remarques, ses orientations et ses suggestions.
+
+\item À M. \textbf{Samuel Dikongue}, encadreur professionnel chez \textbf{KLIVAR}, pour son accompagnement terrain, ses conseils avisés et sa disponibilité tout au long de la réalisation de ce projet.
+
+\item À l'ensemble des collaborateurs de \textbf{KLIVAR} pour leur accueil chaleureux et les conditions de travail offertes tout au long du stage.
+
+\item Aux Commissaires et aux personnels des commissariats de \textbf{Ngoa-Ekélé} et de \textbf{Mimboman}, à Yaoundé, pour l'accueil réservé à nos visites, le temps consacré aux entretiens et la franchise des échanges sur les difficultés du terrain. Ce travail leur doit l'essentiel de son ancrage dans la réalité du métier.
+
+\item À tous nos enseignants qui ont su nous transmettre les notions et le savoir nécessaires à la conduite de ce travail, de l'analyse jusqu'à son implémentation.
+
+\item À nos familles, pour leur soutien constant, leurs encouragements et leur compréhension durant les moments de doute et de stress.
+
+\item À nos camarades de promotion pour leur esprit collaboratif et leur aide précieuse dans la réalisation de ce travail.
+
+\end{itemize}
+Nous sommes fiers de ce que nous avons accompli et espérons que cette plateforme contribuera à améliorer concrètement l'accueil du plaignant et l'efficacité du traitement des plaintes.
+
+% ── RÉSUMÉ (≤300 mots, 4 axes) ───────────────────────────────
+\phantomsection
+\chapter*{Résumé}
+\addcontentsline{toc}{chapter}{Résumé}
+
+Le dépôt et le traitement des plaintes citoyennes représentent un enjeu majeur pour les services de sécurité publique, tant sur le plan de l'accueil du citoyen que de la charge documentaire des enquêteurs. La procédure existante, entièrement manuelle et papier, imposait au plaignant un déplacement au commissariat pour déposer comme pour s'informer, faisait reposer la qualité du dossier sur une retranscription manuscrite, et ne laissait aucune trace numérique permettant d'en mesurer le déroulement. Pour répondre à ce besoin, nous avons développé \textbf{PlainteCam}, une plateforme web construite selon une architecture trois-tiers découplée, combinant un frontend \textbf{React} pour le parcours de dépôt guidé et le suivi du dossier, un backend \textbf{Flask} exposant une API REST pour la logique métier et la persistance, et le modèle génératif \textbf{Llama 3.1} servi par \textbf{Groq} pour assister la rédaction des procès-verbaux sous le contrôle de l'officier de police judiciaire. La plateforme rattache automatiquement chaque plainte au commissariat territorialement compétent, permet au commissaire de coter l'enquête, à l'enquêteur de dresser ses procès-verbaux et ses convocations, et au plaignant de suivre l'avancement de son dossier en ligne, l'ensemble des actes étant horodaté dans un journal d'audit. Les mesures relevées en recette montrent un dépôt réalisé en moins de huit minutes sans déplacement et un procès-verbal proposé en moins de deux minutes. Cette solution ouvre des perspectives d'évolution vers la transcription vocale multilingue et l'interopérabilité avec les systèmes d'information judiciaires.
+
+\vspace{0.4cm}
+\noindent\textbf{Mots-clés :} plainte en ligne, procès-verbal, commissariat, intelligence artificielle générative, Flask, traçabilité.
+
+% ── ABSTRACT ─────────────────────────────────────────────────
+\phantomsection
+\chapter*{Abstract}
+\addcontentsline{toc}{chapter}{Abstract}
+
+Filing and processing citizen complaints is a major challenge for public security services, both in terms of how citizens are received and of the documentary workload placed on investigating officers. The existing procedure, entirely paper-based, required the complainant to travel to the police station both to file and to enquire, made the quality of the case file dependent on a handwritten transcript, and left no digital record from which its progress could be measured. To address this need, we developed \textbf{PlainteCam}, a web platform built on a decoupled three-tier architecture combining a \textbf{React} frontend for guided filing and case tracking, a \textbf{Flask} backend exposing a REST API for business logic and persistence, and the \textbf{Llama 3.1} generative model served by \textbf{Groq} to assist the drafting of statements of complaint under the control of the judicial police officer. The platform automatically routes each complaint to the territorially competent police station, allows the superintendent to assign the investigation, the investigating officer to draft statements and summonses, and the complainant to follow the progress of the case online, with every procedural act timestamped in an audit trail. Acceptance testing showed filing completed in under eight minutes with no travel and a draft statement produced in under two minutes. The solution opens prospects for multilingual speech transcription and interoperability with judicial information systems.
+
+\vspace{0.4cm}
+\noindent\textbf{Keywords:} online complaint filing, statement of complaint, police station, generative artificial intelligence, Flask, auditability.
+
+% ── SOMMAIRE ─────────────────────────────────────────────────
+\renewcommand{\contentsname}{Sommaire}
+\tableofcontents
+
+% ── LISTES DES TABLEAUX ET FIGURES ───────────────────────────
+\newpage
+\listoftables
+\renewcommand{\listfigurename}{Liste des figures}
+\listoffigures
+
+% ── SIGLES ET ABRÉVIATIONS ───────────────────────────────────
+\phantomsection
+\chapter*{Liste des Sigles et Abréviations}
+\addcontentsline{toc}{chapter}{Liste des Sigles et Abréviations}
+\begin{table}[H]
+   \centering
+   \begin{adjustbox}{max width=\textwidth}
+   \begin{tabularx}{1.0\textwidth}{|l|X|}
+     \hline
+     \textbf{Sigle} & \textbf{Définition} \\
+     \hline
+     AI  & Artificial Intelligence (Intelligence Artificielle) \\
+     \hline
+     API & Application Programming Interface \\
+     \hline
+     HTTP & HyperText Transfer Protocol \\
+     \hline
+     IA  & Intelligence Artificielle \\
+     \hline
+     JSON & JavaScript Object Notation \\
+     \hline
+     JWT & JSON Web Token \\
+     \hline
+     KPI & Key Performance Indicator (indicateur clé de performance) \\
+     \hline
+     ORM & Object-Relational Mapping (mapping objet-relationnel) \\
+     \hline
+     PV  & Procès-Verbal \\
+     \hline
+     REST & Representational State Transfer \\
+     \hline
+     SGBD & Système de Gestion de Base de Données \\
+     \hline
+     SIGL & Systèmes d'Information et Génie Logiciel \\
+     \hline
+     SMS & Short Message Service \\
+     \hline
+     SPA & Single Page Application \\
+     \hline
+     SQL & Structured Query Language \\
+     \hline
+     UML & Unified Modeling Language \\
+     \hline
+     UYI & Université de Yaoundé I \\
+     \hline
+     WSGI & Web Server Gateway Interface \\
+     \hline
+   \end{tabularx}
+   \end{adjustbox}
+\end{table}
+
+% ── CORPS DU MÉMOIRE ─────────────────────────────────────────
+\mainmatter
+\input{chapters/00_introduction}
+\input{chapters/01_diagnostic}   % Chapitre 1
+\input{chapters/02_realisation}  % Chapitre 2
+\input{chapters/03_bilan}        % Chapitre 3
+\input{chapters/04_conclusion}
+
+% ── POSTLIMINAIRES ───────────────────────────────────────────
+\appendix
+\input{chapters/05_annexes}
+\cleardoublepage
+\phantomsection
+\addcontentsline{toc}{chapter}{Bibliographie}
+\bibliographystyle{plain}
+\bibliography{bibli}
+\end{document}

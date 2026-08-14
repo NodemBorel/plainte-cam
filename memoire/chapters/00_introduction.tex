@@ -1,0 +1,89 @@
+% INTRODUCTION GÉNÉRALE (2-3 pages)
+
+\chapter*{INTRODUCTION GÉNÉRALE}
+\addcontentsline{toc}{chapter}{Introduction Générale}
+\label{ch:introduction}
+
+\section*{Contexte}
+\addcontentsline{toc}{section}{Contexte}
+
+Dans le contexte actuel de la transformation numérique des services au public~\cite{tic:cameroun}, les administrations en charge de l'accueil et du traitement des demandes citoyennes font face à une pression croissante pour moderniser leurs procédures. La dématérialisation, la réduction des délais et l'amélioration de la traçabilité constituent des enjeux stratégiques majeurs. Ces administrations doivent en parallèle gérer une charge documentaire élevée, réduire les erreurs de retranscription et garantir au citoyen un parcours lisible et transparent.
+
+Le dépôt de plainte occupe une place particulière dans ce paysage. Il s'agit d'un acte à la fois juridique et administratif, encadré par le Code de procédure pénale~\cite{cameroun:cpp}, qui engage le commissariat dès sa réception et ouvre la voie à une enquête. Sa dématérialisation ne peut donc se limiter à un formulaire en ligne : elle doit préserver la valeur probante des pièces produites et le rôle de l'officier de police judiciaire.
+
+C'est dans ce contexte que s'inscrit le présent stage, réalisé au sein de \textbf{KLIVAR}, entreprise spécialisée dans le développement de solutions numériques sur mesure à destination des organisations publiques et privées. KLIVAR se positionne comme un acteur de référence dans la conception d'applications web, l'intégration de systèmes d'information et le déploiement de solutions métier adaptées aux réalités locales.
+
+\section*{Problématique}
+\addcontentsline{toc}{section}{Problématique}
+
+Le traitement des plaintes citoyennes reposait, avant ce projet, sur un processus entièrement manuel et papier. Tout citoyen souhaitant porter plainte devait obligatoirement se déplacer au commissariat, exposer les faits à un agent disponible, puis attendre que son dossier soit coté à un enquêteur — sans disposer d'aucun moyen de connaître l'avancement de sa procédure autrement qu'en se déplaçant à nouveau.
+
+Les limites observées sont de trois ordres. Le \textbf{déplacement obligatoire} constitue une barrière à la déclaration, en particulier pour les personnes éloignées, à mobilité réduite ou hésitant à se présenter en personne. La \textbf{fiabilité du recueil des faits} dépend entièrement de la capacité du plaignant à s'exprimer et de la retranscription manuscrite qu'en fait l'agent, sans garde-fou méthodique contre les omissions. Enfin, l'\textbf{absence de traçabilité numérique} interdit tout suivi par le plaignant, tout audit a posteriori et toute mesure de l'activité du service.
+
+Ces limites se renforcent mutuellement : faute d'horodatage, les délais de traitement ne sont connus d'aucune source objective, ce qui prive la hiérarchie de tout outil de pilotage et le plaignant de toute visibilité.
+
+\section*{Question de recherche}
+\addcontentsline{toc}{section}{Question de recherche}
+
+La question principale à laquelle ce travail entend répondre est la suivante : \textbf{comment concevoir une plateforme numérique permettant à un citoyen de déposer une plainte de manière guidée, à un commissariat de coter et d'instruire l'enquête efficacement, et à l'ensemble de la procédure d'être suivie et tracée, tout en mobilisant l'intelligence artificielle pour alléger la rédaction des procès-verbaux sans dessaisir l'officier de police judiciaire de sa responsabilité ?}
+
+Cette question principale se décompose en plusieurs questions secondaires :
+
+\begin{itemize}
+    \item comment guider un plaignant non-technicien dans la constitution d'un dossier complet, sans le contraindre à maîtriser le vocabulaire juridique ?
+    \item comment déterminer automatiquement le commissariat territorialement compétent à partir du lieu des faits ?
+    \item comment exploiter l'IA générative pour assister la rédaction d'un procès-verbal tout en préservant la responsabilité de l'officier de police judiciaire ?
+    \item comment garantir le cloisonnement des accès entre plaignant, enquêteur et commissaire, et la traçabilité de chaque acte de procédure ?
+\end{itemize}
+
+\section*{Objectifs}
+\addcontentsline{toc}{section}{Objectifs}
+
+La mission confiée dans le cadre de ce stage consistait à concevoir et développer \textbf{PlainteCam}, une plateforme web complète de dépôt et de traitement des plaintes citoyennes. Les objectifs et livrables attendus étaient les suivants :
+
+\begin{table}[H]
+    \centering
+    \begin{tabularx}{\textwidth}{|l|>{\raggedright\arraybackslash}X|>{\raggedright\arraybackslash}X|}
+        \hline
+        \textbf{\#} & \textbf{Objectif / KPI} & \textbf{Livrable attendu} \\
+        \hline
+        1 & Supprimer le déplacement obligatoire pour déposer plainte & Parcours de dépôt guidé en ligne, avec récépissé \\
+        \hline
+        2 & Rattacher immédiatement le dossier au commissariat compétent & Cascade géographique et rattachement automatique \\
+        \hline
+        3 & Réduire la charge de rédaction des procès-verbaux & Rédaction assistée par IA, révisable par l'enquêteur \\
+        \hline
+        4 & Permettre au plaignant de suivre son dossier & Espace de suivi et notifications \\
+        \hline
+        5 & Garantir la traçabilité de la procédure & Journal d'audit de toutes les transitions de statut \\
+        \hline
+        6 & Couvrir 4 profils utilisateurs & Espaces citoyen, enquêteur, commissaire et administrateur \\
+        \hline
+    \end{tabularx}
+    \caption{Objectifs et livrables de la mission PlainteCam}
+    \label{tab:objectifs}
+\end{table}
+
+\section*{Méthodologie}
+\addcontentsline{toc}{section}{Méthodologie}
+
+La conduite du projet s'est appuyée sur une démarche en quatre temps.
+
+Le travail a débuté par un \textbf{audit de terrain} : observation directe de la procédure de dépôt au commissariat et entretiens avec les personnels, afin d'établir le déroulement réel des actes et d'en relever les points de friction. Cette phase a fourni les valeurs de référence utilisées plus loin pour apprécier les gains.
+
+A suivi une phase de \textbf{conception}, fondée sur la modélisation UML — cas d'utilisation, diagramme de classes et diagrammes de séquence — et sur la définition du modèle relationnel ainsi que des règles de cloisonnement des accès par rôle.
+
+Le \textbf{développement} a été mené selon la méthode \textbf{Agile Scrum}~\cite{agile:manifesto}, organisée en six sprints de trois à quatre semaines. Chaque sprint livrait un incrément utilisable, présenté au maître de stage et aux utilisateurs pour recueillir leurs retours et ajuster les priorités du sprint suivant.
+
+Enfin, une phase de \textbf{recette} a validé le fonctionnement de la plateforme sur un jeu de dossiers de test couvrant les huit natures d'infraction gérées, en vérifiant à la fois les parcours fonctionnels, le cloisonnement des accès et la production des pièces.
+
+\section*{Plan du mémoire}
+\addcontentsline{toc}{section}{Plan du mémoire}
+
+Le présent mémoire est structuré en trois chapitres principaux encadrés par une introduction et une conclusion :
+
+\begin{itemize}
+    \item Le \textbf{Chapitre 1} présente le diagnostic et l'analyse de l'existant : l'entreprise KLIVAR, l'audit de la procédure actuelle de dépôt et de traitement des plaintes, l'analyse SWOT et l'identification du besoin.
+    \item Le \textbf{Chapitre 2} décrit la méthodologie adoptée et la réalisation des missions : choix des outils, conception de la solution, architecture, diagrammes UML et mise en œuvre étape par étape.
+    \item Le \textbf{Chapitre 3} expose le bilan, les résultats obtenus, les apports concrets pour l'organisation, les préconisations et le bilan critique de la mission.
+\end{itemize}

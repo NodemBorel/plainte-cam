@@ -1,0 +1,141 @@
+\begin{thebibliography}{10}
+
+\bibitem{react:book}
+Alex Banks and Eve Porcello.
+\newblock {\em Learning React}.
+\newblock O'Reilly Media, 2nd edition, 2020.
+
+\bibitem{agile:manifesto}
+Kent Beck et~al.
+\newblock {\em Manifesto for Agile Software Development}.
+\newblock Agile Alliance, 2001.
+\newblock Disponible sur : \url{https://agilemanifesto.org/}.
+
+\bibitem{cameroun:cpp}
+Code de proc{\'e}dure p{\'e}nale du cameroun.
+\newblock Assembl{\'e}e Nationale du Cameroun, 2005.
+\newblock Loi n{\textdegree} 2005/007 du 27 juillet 2005 portant Code de
+  Proc{\'e}dure P{\'e}nale.
+
+\bibitem{cameroun:dgsn}
+Pr{\'e}sentation de la direction g{\'e}n{\'e}rale de la s{\^u}ret{\'e}
+  nationale.
+\newblock Minist{\`e}re de la S{\'e}curit{\'e} Publique, R{\'e}publique du
+  Cameroun, 2024.
+\newblock Disponible sur : \url{https://minsec.gov.cm/}. Consulté le 10 avril
+  2026.
+
+\bibitem{cameroun:dgsngiz}
+Le cameroun veut mettre en place une plateforme num{\'e}rique pour traiter les
+  plaintes des usagers contre la police.
+\newblock StopBlablaCam, 2022.
+\newblock Projet DGSN -- Coop{\'e}ration allemande (GIZ). Disponible sur :
+  \url{https://www.stopblablacam.com/societe/0803-8394-le-cameroun-veut-mettre-en-place-une-plateforme-numerique-pour-traiter-les-plaintes-des-usagers-contre-la-police}.
+  Consulté le 14 août 2026.
+
+\bibitem{wsgi:pep}
+Phillip~J. Eby.
+\newblock {PEP 3333 -- Python Web Server Gateway Interface v1.0.1}.
+\newblock Python Software Foundation, 2010.
+\newblock Disponible sur : \url{https://peps.python.org/pep-3333/}. Consulté
+  le 18 avril 2026.
+
+\bibitem{rest:fielding}
+Roy~Thomas Fielding.
+\newblock {\em Architectural Styles and the Design of Network-based Software
+  Architectures}.
+\newblock PhD thesis, University of California, Irvine, 2000.
+
+\bibitem{flask:web}
+Flask documentation (3.0.x).
+\newblock Pallets Projects, 2024.
+\newblock Disponible sur : \url{https://flask.palletsprojects.com/}. Consulté
+  le 15 avril 2026.
+
+\bibitem{tic:cameroun}
+Lionel Fotso.
+\newblock Transformation num{\'e}rique des services publics en afrique
+  subsaharienne : enjeux et perspectives.
+\newblock {\em Revue Africaine des Technologies de l'Information},
+  12(1):45--62, 2023.
+
+\bibitem{flask:book}
+Miguel Grinberg.
+\newblock {\em Flask Web Development: Developing Web Applications with Python}.
+\newblock O'Reilly Media, 2nd edition, 2018.
+
+\bibitem{groq:api}
+Groq api reference -- chat completions.
+\newblock Groq, Inc., 2025.
+\newblock Disponible sur : \url{https://console.groq.com/docs/api-reference}.
+  Consulté le 20 mars 2026.
+
+\bibitem{jwt:rfc}
+M.~Jones, J.~Bradley, and N.~Sakimura.
+\newblock {RFC 7519 -- JSON Web Token (JWT)}.
+\newblock Internet Engineering Task Force (IETF), 2015.
+\newblock Disponible sur : \url{https://datatracker.ietf.org/doc/html/rfc7519}.
+  Consulté le 1 avril 2026.
+
+\bibitem{llama:meta}
+Llama 3.1 -- model card and prompt formats.
+\newblock Meta AI, 2024.
+\newblock Disponible sur :
+  \url{https://www.llama.com/docs/model-cards-and-prompt-formats/llama3_1/}.
+  Consulté le 20 mars 2026.
+
+\bibitem{france:parcours}
+R{\'e}volutionner le parcours de plainte.
+\newblock Minist{\`e}re de l'Int{\'e}rieur, R{\'e}publique fran{\c c}aise,
+  2024.
+\newblock Disponible sur :
+  \url{https://www.interieur.gouv.fr/actualites/grands-dossiers/numerique-se-place-au-coeur-du-ministere/revolutionner-parcours-de}.
+  Consulté le 14 août 2026.
+
+\bibitem{postgresql:web}
+Postgresql 16 documentation.
+\newblock The PostgreSQL Global Development Group, 2024.
+\newblock Disponible sur : \url{https://www.postgresql.org/docs/16/}. Consulté
+  le 5 avril 2026.
+
+\bibitem{senegal:psic}
+La police lance une plateforme nationale de signalement des cyberinfractions
+  (psic).
+\newblock Police nationale du S{\'e}n{\'e}gal, 2026.
+\newblock Lanc{\'e}e le 12 f{\'e}vrier 2026,
+  \url{https://signalementcyber.dgpn.sn}. Consulté le 14 août 2026.
+
+\bibitem{react:web}
+React -- the library for web and native user interfaces.
+\newblock Meta Platforms, Inc., 2024.
+\newblock Disponible sur : \url{https://react.dev/}. Consulté le 10 avril
+  2026.
+
+\bibitem{sqlalchemy:web}
+Sqlalchemy 2.0 documentation -- the database toolkit for python.
+\newblock SQLAlchemy authors, 2024.
+\newblock Disponible sur : \url{https://docs.sqlalchemy.org/en/20/}. Consulté
+  le 18 avril 2026.
+
+\bibitem{supabase:storage}
+Supabase storage documentation -- buckets and access control.
+\newblock Supabase Inc., 2025.
+\newblock Disponible sur : \url{https://supabase.com/docs/guides/storage}.
+  Consulté le 5 avril 2026.
+
+\bibitem{france:visioplainte}
+D{\'e}poser une plainte {\`a} distance avec visioplainte.
+\newblock Service-Public.fr, R{\'e}publique fran{\c c}aise, 2024.
+\newblock G{\'e}n{\'e}ralis{\'e} {\`a} tout le territoire en octobre 2024.
+  Disponible sur :
+  \url{https://www.service-public.fr/particuliers/actualites/A17175}. Consulté
+  le 14 août 2026.
+
+\bibitem{webspeech:mdn}
+Web speech api -- mdn web docs.
+\newblock Mozilla Foundation, 2025.
+\newblock Disponible sur :
+  \url{https://developer.mozilla.org/fr/docs/Web/API/Web_Speech_API}. Consulté
+  le 2 mai 2026.
+
+\end{thebibliography}

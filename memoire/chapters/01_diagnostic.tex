@@ -1,0 +1,212 @@
+% CHAPITRE 1 — Diagnostic et Analyse de l'Existant (5-6 pages)
+
+\chapter{Diagnostic et Analyse de l'Existant}
+\label{ch:diagnostic}
+
+Ce chapitre présente l'environnement professionnel dans lequel s'est déroulé le stage, analyse la procédure existante de dépôt et de traitement des plaintes, et identifie le besoin auquel la plateforme PlainteCam doit répondre.
+
+\section{Présentation de l'entreprise KLIVAR}
+
+\subsection{Historique et positionnement}
+
+KLIVAR est une entreprise spécialisée dans le développement de solutions numériques sur mesure à destination des organisations publiques et privées. Fondée avec pour ambition de répondre aux défis croissants de la transformation digitale, l'entreprise a développé une expertise reconnue dans la conception d'applications web, l'intégration de systèmes d'information et le déploiement de solutions métier innovantes.
+
+L'entreprise se positionne comme un acteur incontournable dans son domaine, combinant expertise technique et connaissance approfondie du contexte institutionnel de ses clients. KLIVAR accompagne ses partenaires depuis la phase d'analyse des besoins jusqu'à la mise en production et la maintenance des solutions déployées.
+
+\subsection{Localisation et implantation}
+
+KLIVAR est stratégiquement implantée pour servir efficacement sa clientèle locale et régionale. L'entreprise dispose d'installations modernes équipées des technologies nécessaires au développement de logiciels de pointe.
+
+\begin{figure}[H]
+    \center
+    \includegraphics[width=0.6\textwidth, height=6cm]{images/localisation.jpg}
+    \caption{Localisation géographique de KLIVAR}
+    \label{fig:localisation}
+\end{figure}
+
+\subsection{Mission et vision}
+
+\textbf{Mission :} KLIVAR analyse les besoins de ses clients, propose des solutions numériques adaptées et pilote leur déploiement dans le respect des délais, de la qualité et des coûts.
+
+\textbf{Vision :} Devenir le partenaire de référence des organisations dans leur transformation numérique et l'optimisation de leurs processus métier.
+
+\subsection{Domaines d'activité}
+
+KLIVAR structure son offre autour de trois axes. Le \textbf{développement d'applications sur mesure} conduit les clients du cahier des charges à la mise en production : applications web, plateformes métier et systèmes d'information adaptés à chaque organisation. Le \textbf{conseil et l'audit numérique} portent sur l'évaluation des systèmes existants et la formulation de recommandations d'optimisation. Enfin, la \textbf{maintenance et le support} garantissent, par contrat, la continuité de service et l'évolution des solutions déployées.
+
+\subsection{Organigramme}
+
+KLIVAR fonctionne avec une structure resserrée, caractéristique des entreprises de services numériques à taille humaine : les circuits de décision sont courts et chaque intervenant couvre un périmètre large. L'organisation s'articule autour des rôles suivants :
+
+\begin{itemize}
+    \item \textbf{Direction générale} — assurée par la dirigeante de l'entreprise : orientation stratégique, relation avec les clients institutionnels et arbitrages d'engagement sur les projets.
+    \item \textbf{Direction technique (CTO)} — définition des choix d'architecture et de technologies, garantie de la qualité des livrables et encadrement de l'équipe de production.
+    \item \textbf{Tech Lead} — pilotage technique au quotidien : découpage des tâches, revues de code, accompagnement des développeurs et interface avec la direction technique.
+    \item \textbf{Équipe de développement} — un développeur senior, référent sur les projets les plus complexes, et les développeurs chargés de l'implémentation des solutions.
+    \item \textbf{Design UX/UI} — maquettage des écrans, ergonomie des parcours et cohérence visuelle des interfaces livrées.
+    \item \textbf{Équipe commerciale} — prospection, réponse aux consultations et suivi de la relation client.
+\end{itemize}
+
+Le présent stage s'est déroulé au sein de l'\textbf{équipe de développement}, sous la supervision de l'encadreur professionnel, avec des points réguliers auprès du Tech Lead pour les choix de conception.
+
+\begin{figure}[H]
+    \centering
+    \centerline{\includegraphics[width=0.72\linewidth]{diagrammes/organigramme_klivar.png}}
+    \caption{Organigramme de l'entreprise KLIVAR}
+    \label{fig:organigramme}
+\end{figure}
+
+\section{Analyse de la situation existante}
+
+\subsection{Déroulement du stage et missions effectuées}
+
+Mon intégration au sein de KLIVAR s'est déroulée de manière progressive. Dès les premiers jours, j'ai été présenté aux différents pôles de l'entreprise. Mon maître de stage, M.~\textbf{Samuel Dikongue}, a encadré l'ensemble de la mission avec rigueur et disponibilité.
+
+\begin{table}[H]
+    \centering
+    \begin{tabularx}{\textwidth}{|l|>{\raggedright\arraybackslash}X|>{\raggedright\arraybackslash}X|}
+        \hline
+        \textbf{PÉRIODE} & \textbf{TÂCHES} & \textbf{DESCRIPTION} \\
+        \hline
+        Semaines 1--2 & Audit et analyse de l'existant & Observation de la procédure aux commissariats de Ngoa-Ekélé et de Mimboman, entretiens, identification des points de friction \\
+        \hline
+        Semaines 3--4 & Conception de la solution & Architecture, modélisation UML, maquettage des interfaces \\
+        \hline
+        Mois 2--4 & Développement de PlainteCam & Implémentation frontend, backend et intégration de l'IA \\
+        \hline
+        Mois 5 & Tests et validation & Recette fonctionnelle, corrections, validation par les parties prenantes \\
+        \hline
+        Mois 6 & Documentation et transfert & Rédaction du mémoire \\
+        \hline
+    \end{tabularx}
+    \caption{Déroulement détaillé du stage}
+    \label{tab:deroulement}
+\end{table}
+
+\subsection{Description de la procédure manuelle actuelle}
+
+L'audit a été conduit dans deux commissariats de Yaoundé, celui de \textbf{Ngoa-Ekélé} et celui de \textbf{Mimboman}, selon une approche qualitative semi-directive : des entretiens avec des fonctionnaires de police de ces unités, menés sur guide structuré et anonymisés pour favoriser la franchise des réponses, complétés par l'observation directe du flux de travail sur place — réception des plaignants, circulation des dossiers papier, gestion des parafeurs. Le recours à deux unités distinctes permettait de distinguer ce qui relève de la procédure commune de ce qui tient aux habitudes propres à un service. La procédure reconstituée ci-dessous s'articule en quatre temps.
+
+\subsubsection*{Réception et enregistrement}
+
+Le plaignant se présente au commissariat \textbf{territorialement compétent}, c'est-à-dire celui du secteur où réside le mis en cause ou celui où les faits ont eu lieu — le maillage des unités étant fixé par l'organisation de la Sûreté nationale~\cite{cameroun:dgsn}. Sa plainte doit obligatoirement comporter la date, ses nom et adresse, l'objet de la plainte, l'identité du mis en cause et la destination de l'acte — commissaire ou procureur. Le secrétariat enregistre la plainte et la transmet au chef d'unité. Une \textbf{attestation de dépôt} est délivrée au plaignant et jointe au dossier : elle constitue la preuve officielle qu'il a bien porté plainte.
+
+\subsubsection*{Cotation à un enquêteur}
+
+Le chef d'unité \textbf{cote} ensuite la plainte à un enquêteur, lequel reçoit un \textbf{parafeur} regroupant l'ensemble des dossiers dont il a la charge. Le critère retenu est la compétence de l'enquêteur sur le type d'affaire concerné, mais \textbf{aucune procédure n'est formalisée} : l'arbitrage repose sur la connaissance qu'a le chef d'unité de son équipe. En cas d'indisponibilité de l'enquêteur désigné, le dossier est transféré à un autre.
+
+\subsubsection*{Auditions et procès-verbaux}
+
+Le plaignant est convoqué puis auditionné, et un \textbf{procès-verbal} est dressé. Le mis en cause est convoqué à son tour et auditionné, donnant lieu à un second procès-verbal. Lorsqu'il est identifié, il est convoqué \textbf{au minimum trois fois} ; en cas d'absence répétée et injustifiée, le dossier est transmis au procureur.
+
+La rédaction des procès-verbaux est \textbf{entièrement manuscrite}. L'enquêteur transcrit à la main les déclarations en suivant un \textbf{template institutionnel} normalisé : en-tête (commissariat, date, heure, numéro de dossier), identité complète de la personne auditionnée, corps de la déclaration, questions et réponses le cas échéant, clôture et mentions légales.
+
+\subsubsection*{Convocation et suivi}
+
+Un point particulier est apparu déterminant lors de l'entretien : c'est \textbf{en principe le plaignant lui-même qui remet la convocation au mis en cause}. Un policier ne l'assiste que s'il redoute des représailles. Quant au suivi, il n'existe \textbf{aucun dispositif} : pour connaître l'état d'avancement de son dossier, le plaignant doit se déplacer au commissariat.
+
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=0.62\textwidth]{images/problematique_flux.png}
+    \caption{Flux de traitement manuel — points de friction identifiés}
+    \label{fig:flux_manuel}
+\end{figure}
+
+Cette procédure ne laisse \textbf{aucune trace numérique}. Il en découle une conséquence que l'audit a jugée centrale : le délai qui sépare le dépôt de la cotation, comme celui du traitement complet d'une affaire, \textbf{n'est mesuré nulle part}. Il varie selon l'affluence, la nature des faits et la disponibilité des enquêteurs, et seul le commissariat en a une appréciation empirique. Ce n'est donc pas la longueur des délais qui constitue le problème documenté, mais l'\textbf{impossibilité de les connaître}, et par conséquent de les piloter.
+
+\subsection{Difficultés et limites identifiées lors de l'audit}
+
+L'entretien a permis de recenser quatre difficultés récurrentes, qui tiennent moins à l'organisation du service qu'aux situations concrètes rencontrées au guichet et en salle d'audition.
+
+\begin{table}[H]
+    \centering
+    \begin{tabularx}{\linewidth}{|c|>{\raggedright\arraybackslash}X|>{\raggedright\arraybackslash}X|}
+    \hline
+    \textbf{\#} & \textbf{Difficulté identifiée} & \textbf{Impact opérationnel} \\
+    \hline
+    1 & Le plaignant ne sait ni lire ni écrire et doit être assisté par une personne de son choix & Ralentissement de la procédure, dépendance à un tiers, confidentialité fragilisée \\
+    \hline
+    2 & Le plaignant peine à exposer les faits de façon claire et ordonnée & Dossier incomplet, procès-verbal lacunaire \\
+    \hline
+    3 & Le mis en cause refuse de signer le PV, contestant la fidélité de la retranscription & Contentieux procédural, risque de vice de forme \\
+    \hline
+    4 & La rédaction manuscrite des PV est longue et répétitive & Charge administrative lourde, temps soustrait à l'enquête \\
+    \hline
+    \end{tabularx}
+    \caption{Difficultés terrain relevées lors de l'entretien au commissariat}
+    \label{tab:difficultes}
+\end{table}
+
+À ces difficultés s'ajoutent trois limites structurelles relevées par l'observation : le \textbf{déplacement obligatoire} pour déposer comme pour s'informer, l'\textbf{absence de traçabilité} interdisant tout audit et toute mesure, et la \textbf{remise de la convocation par le plaignant lui-même}, qui fait peser sur la victime une démarche potentiellement risquée.
+
+Il est notable que trois de ces quatre difficultés — les points 1 à 3 — concernent la \textbf{qualité et la valeur juridique de la déclaration} plutôt que la lenteur du circuit. Ce constat a orienté la conception : la solution devait d'abord fiabiliser le recueil des faits, et non se contenter d'accélérer la circulation des dossiers.
+
+\section{Ce qui existe ailleurs}
+
+Avant d'envisager un développement, il fallait vérifier qu'aucune solution existante ne répondait déjà au besoin. Trois dispositifs comparables ont été examinés.
+
+\begin{table}[H]
+    \centering
+    \begin{tabularx}{\linewidth}{|>{\raggedright\arraybackslash}p{2.6cm}|>{\raggedright\arraybackslash}X|>{\raggedright\arraybackslash}X|}
+    \hline
+    \textbf{Dispositif} & \textbf{Périmètre couvert} & \textbf{Ce qu'il ne couvre pas} \\
+    \hline
+    \textbf{France} — plainte en ligne et \textit{Visioplainte}, généralisées en octobre 2024~\cite{france:visioplainte,france:parcours} & Dépôt à distance, y compris par visioconférence avec un officier, avec envoi puis signature du procès-verbal sans déplacement & Réservé aux \textbf{atteintes aux biens dont l'auteur est inconnu} ; les faits contre les personnes et les auteurs identifiés restent exclus \\
+    \hline
+    \textbf{Sénégal} — Plateforme de signalement des infractions cybercriminelles (PSIC), lancée en février 2026~\cite{senegal:psic} & Signalement en ligne sécurisé et confidentiel des cyberinfractions & Périmètre \textbf{thématique} : escroquerie en ligne, cyberharcèlement, usurpation d'identité. Aucune gestion de l'enquête en aval \\
+    \hline
+    \textbf{Cameroun} — projet DGSN / GIZ engagé en 2022~\cite{cameroun:dgsngiz} & Traitement automatisé des plaintes des usagers, en particulier les plaintes \textbf{dirigées contre la police} & Objet distinct : il s'agit du contrôle interne, non du dépôt d'une plainte pénale par une victime \\
+    \hline
+    \end{tabularx}
+    \caption{Dispositifs numériques comparables et leur périmètre}
+    \label{tab:benchmark}
+\end{table}
+
+Trois enseignements se dégagent. D'abord, les dispositifs existants sont \textbf{restreints}, soit par la nature des faits — atteintes aux biens, cyberinfractions —, soit par la qualité de l'auteur, qui doit demeurer inconnu. Ensuite, ils s'arrêtent au \textbf{dépôt} : aucun ne prend en charge la suite de la chaîne, c'est-à-dire la cotation à un enquêteur, la conduite des auditions, la rédaction des procès-verbaux et les convocations. Enfin, l'initiative camerounaise recensée poursuit un \textbf{objet différent} — recueillir les plaintes des usagers contre la police, dans une logique de contrôle interne — et ne se substitue donc pas au dépôt de plainte pénale. Le numéro vert 1500 qui la précédait était par ailleurs jugé peu efficace par le public.
+
+Aucun de ces dispositifs ne traite les difficultés relevées lors de notre audit : un plaignant qui ne sait ni lire ni écrire, une convocation remise par la victime elle-même, une cotation sans procédure formalisée. Ces constats justifient le développement d'une solution propre plutôt que la reprise d'un outil existant.
+
+Le dispositif français mérite toutefois d'être retenu comme \textbf{piste d'évolution} : en faisant dialoguer la victime avec un officier par visioconférence, il apporte au problème de l'illettrisme une réponse que PlainteCam traite autrement, par la dictée vocale et le questionnaire guidé. Les deux approches sont complémentaires plutôt que concurrentes.
+
+\section{Analyse SWOT liée à la mission}
+
+\begin{table}[H]
+    \centering
+    \begin{tabularx}{\linewidth}{|X|X|}
+    \hline
+    \textbf{Forces} & \textbf{Faiblesses} \\
+    \hline
+    Personnel expérimenté et formé & Procédure entièrement manuelle et papier \\
+    Connaissance approfondie du terrain & Absence de système d'information intégré \\
+    Maillage territorial des commissariats établi & Délais de traitement ni mesurés ni pilotés \\
+    Cadre juridique clair et stable & Aucun outil de reporting ou de pilotage \\
+    \hline
+    \textbf{Opportunités} & \textbf{Menaces} \\
+    \hline
+    Maturité des technologies web & Perte de confiance des citoyens \\
+    Accessibilité de l'IA générative & Risque d'égarement ou d'altération des dossiers \\
+    Fort taux d'équipement mobile des citoyens & Résistance au changement en interne \\
+    Réduction des coûts opérationnels & Contestation de la valeur probante du dossier numérique \\
+    \hline
+    \end{tabularx}
+    \caption{Analyse SWOT — traitement des plaintes avant PlainteCam}
+    \label{tab:swot}
+\end{table}
+
+\section{Identification du besoin}
+
+\subsection{Pourquoi les méthodes actuelles ne suffisent plus}
+
+L'analyse de l'existant a mis en évidence quatre problèmes fondamentaux qui rendent la procédure actuelle insuffisante :
+
+\textbf{Un problème d'accessibilité :} Le déplacement au commissariat constitue une barrière significative, en particulier pour les personnes éloignées, à mobilité réduite ou craignant de se présenter en personne. Il réduit le nombre de plaintes effectivement déposées et alourdit inutilement le parcours du citoyen.
+
+\textbf{Un problème de fiabilité du recueil :} La qualité du dossier dépend de la capacité du plaignant à exposer les faits et de la retranscription qu'en fait l'agent. Un plaignant illettré, intimidé ou peu à l'aise à l'oral produit une déclaration lacunaire, que la rédaction manuscrite du procès-verbal ne permet ni de compléter ni de contrôler méthodiquement.
+
+\textbf{Un problème de sécurité pour le plaignant :} La remise de la convocation au mis en cause incombe en principe à la victime elle-même. Cette exposition directe, dans une affaire où l'auteur présumé est souvent un proche ou un voisin, peut dissuader de poursuivre la procédure — voire de la déclencher.
+
+\textbf{Un problème de traçabilité :} L'absence de système d'information centralisé empêche tout suivi par le plaignant, tout audit a posteriori et toute mesure de l'activité du service. Faute d'horodatage, le commissariat ne dispose d'aucun élément objectif pour arbitrer l'affectation de ses moyens ni pour rendre compte de son activité.
+
+Trois contraintes encadrent la réponse à apporter. La première est juridique : le procès-verbal demeure un acte de l'officier de police judiciaire, et aucun dispositif automatique ne peut s'y substituer~\cite{cameroun:cpp}. La deuxième tient à la confidentialité : un dossier de plainte n'est consultable que par son plaignant, l'enquêteur qui en a la charge et sa hiérarchie. La troisième est matérielle : la plateforme doit rester utilisable depuis un terminal mobile d'entrée de gamme et une connexion instable.
+
+Enfin, une réserve de périmètre doit être posée d'emblée : la contestation par le mis en cause du contenu de son procès-verbal relève de la procédure, non du logiciel. La plateforme peut en conserver la trace horodatée, elle ne peut pas l'empêcher. Il ne sera donc pas prétendu qu'elle résout cette difficulté.

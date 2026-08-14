@@ -1,0 +1,197 @@
+% ANNEXES
+
+\chapter{Annexes}
+\label{ch:annexes}
+
+\section*{Annexe A — Manuel utilisateur (extrait)}
+
+\subsection*{A.1 — Déposer une plainte (espace citoyen)}
+
+\begin{enumerate}
+    \item Se connecter à l'espace citoyen avec son adresse électronique. Un code à usage unique est envoyé par courriel ; il est valable dix minutes.
+    \item Choisir \textbf{Déposer une plainte}, puis la \textbf{nature de l'infraction} dans la liste proposée.
+    \item Renseigner le lieu des faits par la cascade \textbf{Région $\rightarrow$ Département $\rightarrow$ Arrondissement $\rightarrow$ Quartier}. Le commissariat compétent s'affiche automatiquement.
+    \item Rédiger le \textbf{récit des faits}. Le bouton microphone permet de dicter la déclaration plutôt que de la saisir.
+    \item Indiquer l'\textbf{identité du mis en cause} si elle est connue ; cette étape peut être passée.
+    \item Répondre aux \textbf{questions complémentaires} propres à la nature déclarée. Les questions déjà couvertes par le récit ne sont pas posées.
+    \item Vérifier l'\textbf{aperçu}, signer, puis valider. Le \textbf{récépissé} au format PDF, portant le numéro de dossier et un QR code de vérification, est téléchargeable immédiatement.
+\end{enumerate}
+
+\figopt{ecran_depot_nature.png}{0.58}{Étape 1 — nature de l'infraction et cascade de localisation}{fig:man_depot_nature}
+
+\figopt{ecran_depot_apercu.png}{0.58}{Étape 5 — aperçu de la déclaration avant signature}{fig:man_depot_apercu}
+
+\subsection*{A.2 — Suivre son dossier}
+
+Depuis \textbf{Mes plaintes}, le plaignant consulte l'état de chacun de ses dossiers. Les statuts successifs sont : \textit{Reçu}, \textit{Audition}, \textit{En instruction}, \textit{Décision}, \textit{Transmis}, \textit{Clôturé}. Toute convocation reçue apparaît dans le dossier concerné.
+
+\figopt{ecran_suivi.png}{0.58}{Espace citoyen — suivi de l'avancement d'un dossier}{fig:man_suivi}
+
+\subsection*{A.3 — Coter un dossier (espace commissaire)}
+
+Depuis le tableau de bord, sélectionner un dossier au statut \textit{Reçu}, cliquer sur \textbf{Coter}, désigner l'enquêteur destinataire et confirmer la priorité proposée. La cotation est inscrite au journal d'audit et notifiée à l'enquêteur.
+
+\figopt{ecran_cotation.png}{0.58}{Espace commissaire — cotation d'un dossier à un enquêteur}{fig:man_cotation}
+
+\subsection*{A.4 — Dresser un procès-verbal (espace enquêteur)}
+
+Ouvrir un dossier coté, puis choisir \textbf{Nouveau PV} et sélectionner l'audition concernée. Une proposition rédigée à partir de la déclaration s'affiche dans l'éditeur. \textbf{La relecture est obligatoire} : corriger, compléter, puis valider et signer. Le PV n'est enregistré qu'après validation explicite.
+
+\figopt{ecran_pv.png}{0.58}{Espace enquêteur — éditeur de procès-verbal, proposition révisable}{fig:man_pv}
+
+\section*{Annexe B — Captures d'écran complémentaires}
+
+\figopt{ecran_connexion.png}{0.58}{Écran de connexion — choix du rôle et authentification}{fig:cap_connexion}
+
+\figopt{ecran_recepisse.png}{0.58}{Récépissé de dépôt de plainte généré au format PDF}{fig:cap_recepisse}
+
+\figopt{ecran_convocation.png}{0.58}{Convocation émise par l'enquêteur}{fig:cap_convocation}
+
+\figopt{ecran_qr.png}{0.58}{Vérification d'une pièce par son QR code}{fig:cap_qr}
+
+\section*{Annexe C — Extraits de code}
+
+\subsection*{C.1 — Dépôt d'une plainte et rattachement au commissariat}
+
+\begin{lstlisting}[language=Python,caption={Endpoint Flask de dépôt d'une plainte},label={lst:depot}]
+@app.route("/api/plaintes", methods=["POST"])
+@jwt_required()
+def deposer_plainte():
+    """Enregistre une plainte et la rattache au commissariat competent."""
+    donnees = PlainteSchema().load(request.get_json())
+    citoyen_id = get_jwt_identity()
+
+    # Le ressort territorial determine le commissariat : le quartier
+    # des faits, et non le domicile du plaignant, fait autorite.
+    commissariat = Commissariat.query.filter_by(
+        quartier=donnees["quartier"]
+    ).first_or_404(description="Aucun commissariat pour ce quartier")
+
+    plainte = Plainte(
+        citoyen_id=citoyen_id,
+        commissariat_id=commissariat.id,
+        nature=donnees["nature"],
+        recit=donnees["recit"],
+        statut=StatutPlainte.RECU,
+        score_completude=calculer_score(donnees),
+    )
+    db.session.add(plainte)
+    db.session.flush()          # obtient l'id avant l'ecriture du journal
+
+    journaliser(plainte.id, "DEPOT", auteur=citoyen_id)
+    db.session.commit()
+
+    return jsonify(PlainteSchema().dump(plainte)), 201
+\end{lstlisting}
+
+\subsection*{C.2 — Rédaction assistée du procès-verbal}
+
+\begin{lstlisting}[language=Python,caption={Appel au modèle génératif (Llama 3.1 via Groq), côté serveur},label={lst:ia}]
+from groq import Groq
+
+client = Groq(api_key=os.environ["GROQ_API_KEY"])   # jamais en dur
+
+def proposer_proces_verbal(plainte):
+    """Retourne une PROPOSITION de PV. La validation par l'enqueteur
+    reste obligatoire : cette fonction n'ecrit rien en base."""
+    consigne = (
+        "Tu rediges un projet de proces-verbal d'audition a partir de la "
+        "declaration ci-dessous. Style administratif, troisieme personne. "
+        "N'invente aucun fait absent de la declaration : en cas de donnee "
+        "manquante, ecris [A COMPLETER PAR L'ENQUETEUR]."
+    )
+    reponse = client.chat.completions.create(
+        model="llama-3.1-8b-instant",
+        messages=[
+            {"role": "system",  "content": consigne},
+            {"role": "user",    "content": f"Nature : {plainte.nature}\n"
+                                           f"Declaration : {plainte.recit}"},
+        ],
+        temperature=0.2,        # bas : on veut de la fidelite, pas du style
+    )
+    return reponse.choices[0].message.content
+\end{lstlisting}
+
+\subsection*{C.3 — Cloisonnement des accès au niveau du SGBD}
+
+\begin{lstlisting}[language=SQL,caption={Politique d'accès par ligne sur la table des plaintes},label={lst:rls}]
+-- Un plaignant ne voit que ses propres dossiers.
+CREATE POLICY plaintes_select_citoyen ON plaintes
+  FOR SELECT USING (citoyen_id = current_user_id());
+
+-- Un enqueteur ne voit que les dossiers qui lui ont ete cotes.
+CREATE POLICY plaintes_select_enqueteur ON plaintes
+  FOR SELECT USING (enqueteur_id = current_user_id());
+
+-- Un commissaire voit tous les dossiers de son commissariat.
+CREATE POLICY plaintes_select_commissaire ON plaintes
+  FOR SELECT USING (commissariat_id = current_user_commissariat());
+\end{lstlisting}
+
+\section*{Annexe D — Fiches de tests}
+
+\begin{table}[H]
+    \centering
+    \begin{tabularx}{\textwidth}{|l|>{\raggedright\arraybackslash}X|>{\raggedright\arraybackslash}X|l|}
+        \hline
+        \textbf{Réf.} & \textbf{Cas de test} & \textbf{Résultat attendu} & \textbf{Verdict} \\
+        \hline
+        T-01 & Dépôt d'une plainte pour vol simple, les 5 étapes renseignées & Dossier créé au statut \textit{Reçu}, récépissé PDF délivré & Conforme \\
+        \hline
+        T-02 & Dépôt avec identité du mis en cause laissée vide & Dépôt accepté, champ marqué « inconnu » & Conforme \\
+        \hline
+        T-03 & Sélection d'un quartier hors ressort couvert & Message d'erreur explicite, dépôt bloqué & Conforme \\
+        \hline
+        T-04 & Récit mentionnant déjà l'heure et les témoins & Questions correspondantes non posées & Conforme \\
+        \hline
+        T-05 & Cotation d'un dossier à un enquêteur, priorité \textit{Haute} & Dossier visible chez l'enquêteur, cotation journalisée & Conforme \\
+        \hline
+        T-06 & Consultation par un citoyen du dossier d'un tiers & Accès refusé & Refusé comme attendu \\
+        \hline
+        T-07 & Appel de l'API sans jeton d'authentification & Réponse HTTP 401 & Refusé comme attendu \\
+        \hline
+        T-08 & Proposition de PV puis validation sans relecture & Validation possible mais tracée au nom de l'enquêteur & Conforme, point de vigilance \\
+        \hline
+        T-09 & Vérification du QR code d'un récépissé & Renvoi vers le dossier correspondant & Conforme \\
+        \hline
+        T-10 & Déclaration dictée puis relue à l'écran & Texte transcrit, corrections manuelles nécessaires & Conforme, limite connue \\
+        \hline
+    \end{tabularx}
+    \caption{Fiches de tests de recette}
+    \label{tab:fiches_tests}
+\end{table}
+
+\section*{Annexe E — Glossaire technique}
+
+\begin{table}[H]
+    \centering
+    \begin{tabularx}{\textwidth}{|l|X|}
+        \hline
+        \textbf{Terme} & \textbf{Définition} \\
+        \hline
+        API REST & Interface de programmation suivant le style architectural REST, permettant au frontend et au backend de communiquer par requêtes HTTP standardisées. \\
+        \hline
+        Cotation & Acte par lequel le commissaire désigne l'enquêteur chargé d'une affaire et en fixe la priorité. \\
+        \hline
+        Procès-verbal (PV) & Acte écrit par lequel un officier de police judiciaire consigne des déclarations ou des constatations. \\
+        \hline
+        Récépissé & Document remis au plaignant attestant du dépôt de sa plainte et portant le numéro de dossier. \\
+        \hline
+        IA générative & Système capable de produire un texte structuré à partir d'une entrée en langage naturel. Dans PlainteCam, elle ne produit que des propositions soumises à validation. \\
+        \hline
+        Architecture trois-tiers & Modèle séparant la présentation (frontend), la logique métier (backend) et la persistance (base de données). \\
+        \hline
+        Jeton JWT & Jeton signé transmis à chaque requête pour vérifier l'identité et le rôle de l'appelant, sans session côté serveur. \\
+        \hline
+        ORM & Technique de mapping objet-relationnel permettant de manipuler la base via des objets Python plutôt que par du SQL écrit à la main. \\
+        \hline
+        WSGI & Interface standard entre un serveur web et une application Python, définie par la PEP 3333. \\
+        \hline
+        Politique d'accès par ligne & Règle appliquée par le SGBD lui-même, restreignant les lignes visibles selon l'utilisateur connecté. \\
+        \hline
+        Agile Scrum & Cadre de gestion de projet itératif organisant le développement en sprints de durée fixe. \\
+        \hline
+    \end{tabularx}
+    \caption{Glossaire des termes techniques et métier}
+    \label{tab:glossaire}
+\end{table}

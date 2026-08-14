@@ -1,0 +1,108 @@
+@startuml usecase
+' ==============================================================
+'  PlainteCam — Diagramme de cas d'utilisation
+'  Acteurs et cas repris des quatre espaces reellement implementes
+'  (citoyen, enqueteur, commissaire, administrateur).
+'
+'  COMPILATION
+'    En ligne : https://www.plantuml.com/plantuml/uml/
+'    En local : java -jar plantuml.jar usecase.puml
+'               (necessite Graphviz ; sinon ajouter -Playout=smetana)
+'
+'  INSERTION : renommer le PNG en  usecase.png  dans memoire/images/
+' ==============================================================
+
+skinparam dpi 150
+skinparam backgroundColor #FFFFFF
+skinparam shadowing false
+skinparam defaultFontName Helvetica
+skinparam defaultFontSize 12
+skinparam ArrowColor #24405E
+skinparam packageStyle rectangle
+
+skinparam actor {
+  BorderColor #24405E
+  BackgroundColor #FFFFFF
+}
+skinparam usecase {
+  BorderColor #24405E
+  BackgroundColor #FFFFFF
+  FontColor #14243A
+}
+
+left to right direction
+
+actor "Plaignant\n(citoyen)"  as CIT
+actor "Enqueteur"             as ENQ
+actor "Commissaire"           as COM
+actor "Administrateur"        as ADM
+
+rectangle "PlainteCam" {
+
+  ' ── Tronc commun ──────────────────────────────────────────
+  usecase "S'authentifier"                        as UC0
+
+  ' ── Espace citoyen ────────────────────────────────────────
+  usecase "Deposer une plainte"                   as UC1  #F4F8FF
+  usecase "Renseigner le lieu des faits\n(cascade geographique)" as UC1a
+  usecase "Consulter le taux de completude\nde sa declaration"   as UC1b
+  usecase "Repondre aux questions\ncomplementaires"              as UC1c
+  usecase "Dicter sa declaration"                 as UC1d
+  usecase "Suivre l'avancement\nde son dossier"   as UC2
+  usecase "Telecharger le recepisse"              as UC3
+
+  ' ── Espace commissaire ────────────────────────────────────
+  usecase "Coter un dossier\na un enqueteur"      as UC4  #FFF7E8
+  usecase "Consulter le tableau de bord\net les statistiques" as UC5
+  usecase "Gerer les agents de l'unite"           as UC6
+  usecase "Consulter le journal d'audit"          as UC7
+
+  ' ── Espace enqueteur ──────────────────────────────────────
+  usecase "Instruire un dossier cote"             as UC8  #F1FBF4
+  usecase "Emettre une convocation"               as UC9
+  usecase "Dresser un proces-verbal"              as UC10
+  usecase "Obtenir une proposition de PV\n(IA)"   as UC10a
+  usecase "Faire progresser le statut"            as UC11
+
+  ' ── Espace administrateur ─────────────────────────────────
+  usecase "Gerer les comptes\net les commissariats" as UC12
+}
+
+' ── Associations ─────────────────────────────────────────────
+CIT --> UC1
+CIT --> UC2
+CIT --> UC3
+
+COM --> UC4
+COM --> UC5
+COM --> UC6
+COM --> UC7
+
+ENQ --> UC8
+ENQ --> UC9
+ENQ --> UC10
+ENQ --> UC11
+
+ADM --> UC12
+
+' ── Inclusions et extensions ─────────────────────────────────
+UC1  ..> UC0  : <<include>>
+UC2  ..> UC0  : <<include>>
+UC4  ..> UC0  : <<include>>
+UC8  ..> UC0  : <<include>>
+UC12 ..> UC0  : <<include>>
+
+UC1  ..> UC1a : <<include>>
+UC1  ..> UC1b : <<include>>
+UC1  ..> UC1c : <<include>>
+UC1d ..> UC1  : <<extend>>
+
+UC10 ..> UC10a : <<include>>
+UC9  ..> UC8   : <<extend>>
+
+note bottom of UC10a
+  Le PV propose n'est jamais enregistre
+  sans validation explicite de l'enqueteur.
+end note
+
+@enduml

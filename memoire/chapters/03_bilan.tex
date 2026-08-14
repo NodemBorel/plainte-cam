@@ -1,0 +1,178 @@
+% CHAPITRE 3 — Bilan, Résultats et Préconisations (6-7 pages)
+
+\chapter{Bilan, Résultats et Préconisations}
+\label{ch:bilan}
+
+Ce chapitre présente les résultats obtenus après l'implémentation de la plateforme \textbf{PlainteCam}, analyse les apports concrets pour l'organisation, formule des préconisations pour la pérennisation du projet et dresse un bilan critique de la mission.
+
+\section{Résultats — Interfaces de la plateforme}
+
+\subsection{Tableau de bord du commissaire}
+
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=0.58\textwidth]{images/dashboard.png}
+    \caption{Tableau de bord du commissaire — vue générale}
+    \label{fig:dashboard}
+\end{figure}
+
+La figure~\ref{fig:dashboard} montre le tableau de bord du commissaire : quatre indicateurs-clés — plaintes enregistrées, dossiers achevés, délai moyen de traitement et \textbf{avancement moyen des dossiers} —, la liste des dossiers récents et l'accès direct à la cotation. Ce tableau de bord donne au commissaire une vision d'ensemble de l'activité de son unité, là où la procédure papier ne permettait aucun comptage sans dépouillement manuel du registre.
+
+\subsection{Dépôt d'une plainte}
+
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=0.58\textwidth]{images/modelisation.png}
+    \caption{Parcours de dépôt guidé — formulaire en 5 étapes}
+    \label{fig:soumission}
+\end{figure}
+
+La figure~\ref{fig:soumission} montre le parcours de dépôt : choix de la nature de l'infraction, cascade géographique déterminant le commissariat compétent, récit libre des faits avec dictée vocale optionnelle, identité du mis en cause et questions complémentaires.Cette interface confirme qu'une plainte peut être déposée intégralement en ligne, sans déplacement. Elle valide le besoin d'accessibilité et d'ergonomie pour un public non-technicien.
+
+\subsection{Instruction du dossier par l'enquêteur}
+
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=0.58\textwidth]{images/configuration.png}
+    \caption{Espace enquêteur — instruction d'un dossier et procès-verbal}
+    \label{fig:configuration}
+\end{figure}
+
+La figure~\ref{fig:configuration} présente l'espace de l'enquêteur : consultation du dossier coté, procès-verbal d'audition pré-rédigé par l'IA dans un éditeur, outils de révision et de validation, signature et émission de convocation.Cette vue démontre l'apport de l'IA : l'enquêteur part d'un document déjà structuré à partir de la déclaration du plaignant, qu'il corrige et valide, plutôt que d'une page blanche. La responsabilité de l'acte reste entière : aucun procès-verbal n'est enregistré sans validation explicite de l'enquêteur.
+
+\subsection{Gestion des dossiers cotés}
+
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=0.58\textwidth]{images/task.png}
+    \caption{Liste des dossiers cotés à l'enquêteur}
+    \label{fig:taches}
+\end{figure}
+
+La figure~\ref{fig:taches} illustre la liste de travail de l'enquêteur : dossiers par statut, filtres par priorité et actions rapides.Cet espace valide la capacité opérationnelle quotidienne : chaque enquêteur dispose de son portefeuille de dossiers et de leur état d'avancement, information auparavant dispersée entre le registre et les chemises papier.
+
+\subsection{Notifications}
+
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=0.58\textwidth]{images/notification.png}
+    \caption{Centre de notifications}
+    \label{fig:notifications}
+\end{figure}
+
+La figure~\ref{fig:notifications} présente les notifications adressées au plaignant et aux personnels : changement de statut, convocation émise, demande de pièce complémentaire, avec lien direct vers le dossier concerné.Les notifications répondent à l'exigence de transparence : le plaignant est informé de l'avancement de son dossier sans avoir à se déplacer ni à téléphoner au commissariat.
+
+\subsection{Historique et traçabilité}
+
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=0.58\textwidth]{images/historique.png}
+    \caption{Journal d'audit — traçabilité de la procédure}
+    \label{fig:historique}
+\end{figure}
+
+La figure~\ref{fig:historique} montre le journal d'audit : chaque transition de statut, cotation, audition et validation de procès-verbal y est horodatée et rattachée à son auteur.Cet historique est essentiel pour la conformité et le pilotage. Il valide les exigences non fonctionnelles de traçabilité et de gouvernance, et constitue la contrepartie numérique du registre de main courante.
+
+\subsection{Statistiques et pilotage}
+
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=0.58\textwidth]{images/avancee.png}
+    \caption{Module de statistiques — répartitions et indicateurs}
+    \label{fig:analyse}
+\end{figure}
+
+La figure~\ref{fig:analyse} illustre l'interface statistique : répartition des plaintes par statut, par nature d'infraction et par priorité, et indicateurs de charge par enquêteur.Ces outils confirment la valeur ajoutée de PlainteCam pour le commissaire : il dispose d'indicateurs objectifs pour répartir la charge et identifier les natures d'infraction dominantes sur son ressort.
+
+\section{Analyse des résultats}
+
+\subsection{Méthode de mesure}
+
+Les résultats présentés ci-dessous ont été relevés en \textbf{recette}, sur un jeu de dossiers de test couvrant les huit natures d'infraction gérées, et non en exploitation réelle. Les valeurs « avant » décrivent la procédure telle que l'audit l'a documentée ; les valeurs « après » ont été relevées sur la plateforme.
+
+Une précision de méthode s'impose ici. Le mémoire \textbf{n'avance aucun chiffre sur la durée de cotation d'un dossier ni sur celle de traitement d'une affaire}. Ces durées relèvent de la connaissance interne du commissariat, varient fortement selon l'affluence, la nature des faits et la disponibilité des enquêteurs, et aucune source ne permettait de les établir : c'est précisément l'absence de traçabilité qui les rend inconnaissables. Les avancer aurait été une extrapolation. Le tableau ne compare donc que ce qui a pu être constaté de part et d'autre, et signale explicitement, en dernière ligne, ce que la plateforme rend désormais \textbf{mesurable} sans prétendre en connaître la valeur.
+
+\begin{table}[H]
+    \centering
+    \begin{tabularx}{\textwidth}{|>{\raggedright\arraybackslash}X|>{\raggedright\arraybackslash}p{2.4cm}|>{\raggedright\arraybackslash}p{2.9cm}|>{\raggedright\arraybackslash}p{2.2cm}|}
+        \hline
+        \textbf{Indicateur} & \textbf{Avant} & \textbf{Après} & \textbf{Nature} \\
+        \hline
+        Déplacement pour déposer plainte & Obligatoire & Supprimé & Mesuré \\
+        \hline
+        Saisie de la déclaration par le plaignant & Au guichet, tributaire de l'affluence & $<$ 8 min en ligne & Mesuré \\
+        \hline
+        Détermination du commissariat compétent & Oralement au guichet & Automatique, par le lieu des faits & Mesuré \\
+        \hline
+        Mise en forme d'un procès-verbal & Manuscrite, sur template papier & Proposition structurée en $<$ 2 min, à réviser & Mesuré \\
+        \hline
+        Complétude de la déclaration & Variable selon l'aisance du plaignant & Questions ciblées + score de complétude & Mesuré \\
+        \hline
+        Traçabilité des actes de procédure & Registre papier & 100\% horodatée & Mesuré \\
+        \hline
+        Suivi du dossier par le plaignant & Déplacement nécessaire & Disponible en ligne & Mesuré \\
+        \hline
+        Remise de la convocation au mis en cause & À la charge du plaignant & Notification par la plateforme & Mesuré \\
+        \hline
+        Délai entre dépôt et cotation & \textbf{Non mesurable} & Horodaté, donc mesurable & Nouvelle capacité \\
+        \hline
+        Taux d'erreur dans les procès-verbaux & Non mesuré & Non mesuré & À instrumenter \\
+        \hline
+    \end{tabularx}
+    \caption{Comparaison des indicateurs avant et après PlainteCam}
+    \label{tab:resultats}
+\end{table}
+
+\subsection{Portée et limites des mesures}
+
+Trois réserves doivent accompagner la lecture de ce tableau. D'abord, les durées « après » sont celles d'un utilisateur accompagné en recette, non celles d'un citoyen livré à lui-même ; l'écart réel sera plus élevé. Ensuite, la proposition de procès-verbal produite en moins de deux minutes doit encore être relue et corrigée par l'enquêteur : le gain porte sur la mise en forme et la structuration, non sur l'appréciation juridique des faits. Enfin, aucun test de charge n'a été mené, faute d'environnement de production représentatif ; les temps de réponse observés ne préjugent pas du comportement de la plateforme en usage réel.
+
+Il faut ajouter que la plateforme n'agit pas sur ce que l'audit a identifié comme la principale source de contentieux : le refus, par le mis en cause, de signer un procès-verbal dont il conteste la fidélité. La plateforme en conserve la trace horodatée, mais la situation reste entière. Annoncer une réduction des délais de traitement serait donc doublement infondé : faute de mesure initiale, et parce que ce facteur de blocage échappe à l'outil.
+
+\section{Apports pour l'organisation}
+
+\textbf{Gain de temps :} La suppression du déplacement et le rattachement automatique au commissariat compétent retirent de la chaîne les étapes de circulation physique qui précédaient toute action d'enquête. La rédaction assistée libère par ailleurs l'enquêteur d'une part importante du travail de mise en forme. L'ampleur de ce gain reste à établir en exploitation : elle dépend de la charge du service, que seul le commissariat connaît.
+
+\textbf{Gain de qualité :} Le questionnaire complémentaire garantit qu'aucune information déterminante pour la nature d'infraction déclarée n'est omise au dépôt, là où la retranscription orale dépendait de la disponibilité et de l'expérience de l'agent de permanence.
+
+\textbf{Gain de visibilité :} Le commissaire dispose pour la première fois d'indicateurs consolidés — volumes, répartitions, charge par enquêteur — pour piloter l'activité de son unité.
+
+\textbf{Gain de traçabilité :} Chaque acte étant horodaté et attribué, la reconstitution d'une procédure devient immédiate, ce qui sert autant l'audit interne que la réponse aux demandes de l'autorité judiciaire.
+
+\section{Préconisations}
+
+Pour pérenniser et faire évoluer PlainteCam après la fin du stage, les préconisations suivantes sont formulées :
+
+\begin{itemize}
+    \item \textbf{Instrumenter la plateforme avant le déploiement :} enregistrer les durées réelles de dépôt, de cotation et de clôture afin de disposer d'indicateurs mesurés en exploitation, et non plus estimés en recette. C'est la condition pour objectiver le gain auprès de la hiérarchie.
+    \item \textbf{Conduire un test de charge} représentatif du volume d'un commissariat urbain avant la mise en service.
+    \item \textbf{Former les personnels}, en insistant sur la révision des procès-verbaux proposés par l'IA : le risque principal est la validation sans relecture d'un texte plausible mais inexact.
+    \item \textbf{Améliorer la fidélité de la transcription vocale}, aujourd'hui inégale sur les noms propres et les toponymes : une transcription côté serveur, entraînée ou adaptée au français parlé au Cameroun, corrigerait ce défaut. Tant qu'il subsiste, la relecture du texte dicté doit rester obligatoire avant validation.
+    \item \textbf{Vérifier les quotas du service d'inférence avant la mise en service :} le projet fonctionne sur le palier gratuit de Groq, dont les limites de requêtes conviennent à un pilote mais pas nécessairement au volume d'un commissariat urbain. Deux issues sont possibles selon l'arbitrage budgétaire — souscrire une offre payante, ou réhéberger Llama sur un serveur de l'institution, ce que ses poids ouverts autorisent.
+    \item \textbf{Désigner un référent technique interne} chargé des mises à jour, de la correction des anomalies et de l'évolution de la plateforme.
+    \item \textbf{Déployer progressivement}, en commençant par un commissariat pilote, avant extension au reste du ressort.
+\end{itemize}
+
+\section{Bilan critique de la mission}
+
+\subsection{Ce qui a fonctionné}
+
+\begin{itemize}
+    \item La méthodologie Agile a permis de livrer des fonctionnalités utilisables dès le deuxième sprint, facilitant les retours précoces des parties prenantes.
+    \item Le choix de Python pour le backend a supprimé toute friction dans l'intégration de l'IA générative, qui s'est faite plus vite que prévu.
+    \item L'architecture découplée frontend / backend a permis un développement parallèle efficace des deux couches.
+    \item Le questionnaire complémentaire, conçu avec les personnels du commissariat, s'est révélé mieux accepté que la génération automatique seule, parce qu'il laisse la main au plaignant.
+\end{itemize}
+
+\subsection{Ce qui a posé des défis}
+
+\begin{itemize}
+    \item La modélisation géographique en cascade a demandé plus de temps que prévu, les données de référence des quartiers étant incomplètes et hétérogènes.
+    \item La gestion des droits d'accès multi-rôles a nécessité plusieurs itérations avant d'atteindre un niveau de cloisonnement satisfaisant entre plaignant, enquêteur et commissaire.
+    \item La question de la valeur probante du dossier numérique a été sous-estimée au départ : elle relève autant du juridique que de la technique et aurait mérité d'être instruite dès la conception.
+    \item La conduite du changement auprès des personnels a demandé un effort de formation et de communication plus important que planifié.
+\end{itemize}
+
+\subsection{Enseignements tirés}
+
+Cette mission a confirmé l'importance d'impliquer les utilisateurs finaux dès la phase de conception pour éviter les allers-retours coûteux en fin de projet. Elle a également montré qu'un projet de dématérialisation dans un contexte régalien ne se réduit pas à un problème technique : les dimensions juridiques et organisationnelles conditionnent l'adoption autant que la qualité du logiciel. Enfin, elle a mis en évidence la nécessité d'instrumenter une plateforme dès sa conception, faute de quoi la démonstration de sa valeur repose sur des estimations plutôt que sur des mesures.

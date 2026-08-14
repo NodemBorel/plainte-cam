@@ -1,0 +1,53 @@
+REDACTION DU MEMOIRE DE MASTER PROFESIONNEL 
+ (Format ~25-30 pages)
+I.	Pages Préliminaires (3-4 pages)
+•	Page de Garde : (Thème, Organisme d'accueil/Entreprise, Maître de stage, Tuteur académique).
+•	Remerciements : (Indispensables en milieu pro).
+•	Sommaire : (Une seule page, clair et cliquable).
+•	Listes : Tableaux, Figures, Sigles et Abréviations.
+•	Résumé / Executive Summary: (Max 300 mots). Focus sur : Missions confiées, Problème rencontré, Actions menées, Résultats obtenus.
+II.	Introduction Générale (2-3 pages)
+•	Présentation du cadre : Secteur d'activité et enjeux actuels.
+•	Problématique professionnelle : Quelle difficulté ou quel défi l'entreprise doit-elle relever ?
+•	Objectifs du stage/mission : Ce que vous deviez accomplir (KPIs, livrables).
+•	Annonce du plan.
+III.	Chapitre 1 : Diagnostic et Analyse de l'Existant (5-6 pages)
+•	Présentation de l'entreprise : Structure, métier, positionnement sur le marché.
+•	Analyse de la situation : Audit de l'existant, forces/faiblesses (SWOT) liées à votre mission.
+•	Identification du besoin : Pourquoi les méthodes actuelles ne suffisent plus ?
+IV.	Chapitre 2 : Méthodologie et Réalisation des Missions (7-8 pages)
+•	Note : C'est la partie "Action".
+•	Démarche adoptée : Choix des outils, méthodes de gestion de projet (Agile, Cycle en V, etc.).
+•	Mise en œuvre : Étapes de réalisation, conception de la solution, tests effectués.
+•	Outils utilisés : Logiciels, frameworks, langages, ou outils de gestion.
+V.	Chapitre 3 : Bilan, Résultats et Préconisations (6-7 pages)
+•	Analyse des résultats : Comparaison entre l'objectif de départ et le résultat final (chiffres, performances).
+•	Apports pour l'entreprise : Gain de temps, d'argent, de sécurité ou de visibilité.
+•	Préconisations : Conseils pour pérenniser votre travail après votre départ.
+•	Bilan critique : Ce qui a fonctionné, ce qui a échoué et pourquoi.
+VI.	Conclusion Générale (2 pages)
+•	Synthèse des missions : Résumé de votre contribution.
+•	Bilan personnel : Compétences acquises (soft skills et hard skills).
+•	Perspectives : Évolution du poste ou du projet au sein de l'entreprise.
+VII.	Postliminaires
+•	Bibliographie / Sitographie : Sources techniques, documentations logicielles, articles métiers.
+•	Annexes : Manuel utilisateur, captures d'écran, extraits de code, fiches de tests.
+VIII.	Différences clés avec le master recherche
+Élément	Master Recherche	Master Professionnel
+Objectif	Apporter une nouvelle connaissance	Apporter une solution concrète
+Cœur du sujet	État de l'art et hypothèses	Diagnostic et mise en œuvre
+Résultats	Preuve scientifique	Valeur ajoutée pour l'entreprise
+Bibliographie	Articles académiques (IEEE, etc.)	Docs techniques, normes, cas métiers
+IX.	CONSEILS DE RÉDACTION "PRO"
+1.	Parlez en termes de "Valeur" : Ne dites pas seulement ce que vous avez fait, dites ce que cela a rapporté (ex: "réduction du temps de traitement de 20%").
+2.	Utilisez des Schémas de Flux : Montrez l'organisation (BPMN, Flowcharts) pour illustrer les processus métier.
+3.	Ton Professionnel : Soyez factuel et pragmatique. Évitez les longues digressions théoriques sans lien direct avec le terrain.
+4.	LaTeX pour le Pro : Utilisez des modèles de rapports d'ingénieur ou de stage sur Overleaf, souvent très sobres et élégants.
+X.	ORDRE D'ITÉRATION (MASTER PRO)
+1.	Chapitre 2 (Réalisation : écrivez pendant que vous agissez en entreprise).
+2.	Chapitre 1 (Analyse : une fois le contexte bien compris).
+3.	Chapitre 3 (Bilan : à la fin de la mission).
+4.	Conclusion & Introduction.
+5.	Executive Summary (Résumé).
+
+

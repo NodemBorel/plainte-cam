@@ -1,0 +1,58 @@
+@startuml architecture
+' ==============================================================
+'  PlainteCam — Architecture globale trois-tiers
+'
+'  COMPILATION
+'    java -jar plantuml.jar -tpng -charset UTF-8 architecture.puml
+'    (n'exige pas Graphviz)
+'
+'  INSERTION : la figure du §2.3.1 pointe vers
+'    diagrammes/architecture.png
+' ==============================================================
+
+skinparam dpi 150
+skinparam backgroundColor #FFFFFF
+skinparam shadowing false
+skinparam defaultFontName Helvetica
+skinparam defaultFontSize 12
+skinparam ArrowColor #24405E
+skinparam ArrowThickness 1.3
+skinparam nodesep 30
+skinparam ranksep 45
+skinparam packageStyle rectangle
+
+skinparam rectangle {
+  BorderColor #24405E
+  BorderThickness 1.4
+  FontColor #14243A
+  RoundCorner 10
+}
+
+' ── Service externe ───────────────────────────────────────────
+rectangle "**SERVICE EXTERNE**\n<size:11>Llama 3.1 via Groq</size>\n<size:10>Rédaction assistée du procès-verbal</size>" as IA #FFF7E8
+
+' ── Tier 1 : présentation ─────────────────────────────────────
+rectangle "**COUCHE PRÉSENTATION**\n<size:11>Frontend React.js</size>\n<size:10>Espace citoyen</size>\n<size:10>Espace enquêteur</size>\n<size:10>Espace commissaire</size>\n<size:10>Espace administrateur</size>" as FE #EDF2FA
+
+' ── Tier 2 : logique métier ───────────────────────────────────
+rectangle "**COUCHE MÉTIER**\n<size:11>Backend Flask (Python)</size>\n<size:10>API REST</size>\n<size:10>Authentification JWT</size>\n<size:10>Règles de la procédure</size>" as API #EDF2FA
+
+' ── Tier 3 : persistance ──────────────────────────────────────
+rectangle "**COUCHE PERSISTANCE**" as DATA #F7F9FC {
+  rectangle "**PostgreSQL**\n<size:10>Données structurées</size>\n<size:10>Politiques d'accès par ligne</size>" as PG #FFFFFF
+  rectangle "**Supabase Storage**\n<size:10>Pièces jointes</size>\n<size:10>Bucket privé</size>" as ST #FFFFFF
+}
+
+' ── Flux ──────────────────────────────────────────────────────
+FE  <--> API : <size:10>HTTPS / JSON</size>
+API <--> PG  : <size:10>SQL</size>
+API <--> ST  : <size:10>SDK</size>
+API <--> IA  : <size:10>API HTTPS</size>
+
+note right of API
+  La clé d'API du service
+  d'inférence ne quitte
+  jamais le serveur.
+end note
+
+@enduml

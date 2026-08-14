@@ -1,0 +1,86 @@
+@startuml technique
+' ==============================================================
+'  PlainteCam — Structure technique et organisation des composants
+'
+'  COMPILATION
+'    En ligne : https://www.plantuml.com/plantuml/uml/
+'    En local : java -jar plantuml.jar technique.puml
+'
+'  INSERTION : le PNG produit s'appelle technique.png
+' ==============================================================
+
+skinparam dpi 150
+skinparam backgroundColor #FFFFFF
+skinparam shadowing false
+skinparam defaultFontName Helvetica
+skinparam defaultFontSize 11
+skinparam ArrowColor #24405E
+skinparam packageStyle rectangle
+skinparam nodesep 25
+skinparam ranksep 35
+
+skinparam rectangle {
+  BorderColor #24405E
+  BackgroundColor #FFFFFF
+  FontColor #14243A
+}
+skinparam component {
+  BorderColor #24405E
+  BackgroundColor #FFFFFF
+}
+
+' ── FRONTEND ─────────────────────────────────────────────────
+rectangle "FRONTEND — React" as FRONT #F4F8FF {
+
+  rectangle "Espaces par rôle" as ESP {
+    component "Espace citoyen\n<size:9>dépôt · suivi · profil</size>"          as E1
+    component "Espace enquêteur\n<size:9>dossiers cotés · PV · convocations</size>" as E2
+    component "Espace commissaire\n<size:9>cotation · statistiques · audit</size>"  as E3
+    component "Espace administrateur\n<size:9>comptes · commissariats</size>"       as E4
+  }
+
+  rectangle "Modules partagés" as MOD {
+    component "Cascade géographique\n<size:9>région → quartier</size>"      as M1
+    component "Analyse de la déclaration\n<size:9>complétude · questions</size>" as M2
+    component "Dictée vocale"                                              as M3
+    component "Documents PDF\n<size:9>récépissé · PV · QR</size>"          as M4
+    component "Graphiques"                                                 as M5
+  }
+}
+
+' ── BACKEND ──────────────────────────────────────────────────
+rectangle "BACKEND — Flask (WSGI)" as BACK #F1FBF4 {
+
+  rectangle "Couche API REST" as APIL {
+    component "/api/plaintes"      as A1
+    component "/api/pv"            as A2
+    component "/api/convocations"  as A3
+    component "/api/commissariats" as A4
+    component "/api/auth"          as A5
+  }
+
+  rectangle "Services métier" as SRV {
+    component "Règles de procédure\n<size:9>transitions de statut</size>" as S1
+    component "Rattachement territorial"                                 as S2
+    component "Rédaction assistée du PV"                                 as S3
+    component "Journal d'audit"                                          as S4
+  }
+
+  rectangle "Persistance — SQLAlchemy" as ORM {
+    component "Modèles\n<size:9>8 entités</size>" as O1
+  }
+}
+
+' ── SOCLE ────────────────────────────────────────────────────
+rectangle "PostgreSQL" as DB #FDF4F4
+rectangle "Groq — Llama 3.1" as IA #FFF7E8
+
+' ── Liaisons ─────────────────────────────────────────────────
+ESP  -down->  MOD  : réutilise
+MOD  -down->  APIL : HTTPS / JWT
+APIL -down->  SRV
+SRV  -down->  ORM
+ORM  -down->  DB
+S3   -right-> IA
+
+@enduml
