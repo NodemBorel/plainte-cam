@@ -48,12 +48,15 @@ function affecterDossier(id) {
   var d = dossierParId(id);
   document.querySelector('#modal-affectation .card-title').textContent = 'Affecter le dossier ' + id;
 
-  /* La suggestion s'appuie sur le score de complétude et la nature des
-     faits : c'est ici, chez le commissaire, que ce score sert. */
+  /* La suggestion se fonde sur la nature des faits et sur l'ancienneté de
+     la plainte. Elle annonçait auparavant le score de complétude de la
+     déclaration : ce chiffre ne dit rien de l'enquêteur à désigner, et il
+     ne regarde que le citoyen qui rédige (voir avancementDossier()). */
   var sug = document.getElementById('affectation-suggestion');
   if (sug && d) {
     sug.innerHTML = '<div class="alert alert-info" style="margin-bottom:18px"><div>' +
-      '<strong>' + d.type + '</strong> — score de complétude ' + d.score + ' %.<br>' +
+      '<strong>' + ech(d.type) + '</strong> — en attente d\'affectation ' +
+      ech(attenteDepuis(d)) + '.<br>' +
       'Enquêteur suggéré selon la spécialité : <strong>' +
       (/escroquerie|fraude/i.test(d.type) ? 'Insp. KANA' : 'Insp. BIYA') + '</strong>.' +
       '</div></div>';
@@ -274,7 +277,12 @@ function majStatistiques() {
   var clos = DOSSIERS.filter(function (d) {
     return d.statut === 'CLOTURE' || d.statut === 'TRANSMIS';
   });
-  var score = Math.round(DOSSIERS.reduce(function (s, d) { return s + (d.score || 0); }, 0) / (recues || 1));
+  /* Moyenne d'avancement de la procédure. C'était la moyenne des scores de
+     complétude des déclarations : un indicateur de supervision ne se lit
+     pas sur la qualité des récits, mais sur ce qui a été fait des dossiers. */
+  var avanceMoyen = Math.round(
+    DOSSIERS.reduce(function (s, d) { return s + avancementDossier(d); }, 0) / (recues || 1)
+  );
 
   /* Délai réel : du dépôt au dernier évènement, sur les dossiers achevés.
      Aucun dossier clos ne permettrait de le calculer — on le dit alors. */
@@ -295,7 +303,7 @@ function majStatistiques() {
     { classe: 'orange', style: '',
       n: moyen === null ? '—' : moyen.toFixed(1).replace('.', ',') + ' j',
       lbl: 'Délai moyen de traitement' },
-    { classe: '',       style: 'border-left-color:var(--gold)',     n: score + ' %', lbl: 'Score de complétude moyen' }
+    { classe: '',       style: 'border-left-color:var(--gold)',     n: avanceMoyen + ' %', lbl: 'Avancement moyen des dossiers' }
   ];
   cartes.innerHTML = stats.map(function (s) {
     return '<div class="stat-card ' + s.classe + '"' +

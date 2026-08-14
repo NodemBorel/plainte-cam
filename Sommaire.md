@@ -31,7 +31,7 @@
 
 Le présent document constitue le cahier des charges de la plateforme **PlainteCam**, une application web permettant à tout citoyen camerounais de déposer une plainte auprès des services de police de manière entièrement dématérialisée, depuis n'importe quel appareil disposant d'une connexion Internet.
 
-La plateforme intègre des modules d'intelligence artificielle à plusieurs niveaux : transcription vocale pour les citoyens illettrés, questionnaire adaptatif pour compléter les déclarations incomplètes, et génération automatique de documents officiels (attestation de dépôt, procès-verbal).
+La plateforme assiste l'usager et l'enquêteur à trois endroits précis : **transcription vocale** de la déclaration puis de la déposition, **questionnaire d'approfondissement** qui réclame les éléments manquants selon la nature de l'infraction, et **génération des documents officiels** (attestation de dépôt, procès-verbal, convocation) à partir des données déjà saisies.
 
 Elle s'adresse à deux catégories d'utilisateurs : les citoyens souhaitant porter plainte, et les agents de police (enquêteurs, commissaires) chargés du traitement des dossiers.
 
@@ -41,7 +41,7 @@ Ce projet s'inscrit à l'intersection de la **sécurité publique** et de la **t
 
 ### 1.3 Objectif global du document
 
-Ce cahier des charges définit les exigences fonctionnelles et non fonctionnelles, l'architecture technique, les choix technologiques, la modélisation UML et des données, le planning de réalisation et les livrables attendus.
+Ce cahier des charges définit les exigences fonctionnelles et non fonctionnelles, l'architecture technique, les choix technologiques, la modélisation UML et des données, le planning de réalisation et les livrables attendus. Il décrit une **architecture distribuée** reposant sur une interface **React.js**, trois services applicatifs **Flask**, une base **PostgreSQL** et un stockage objet **MinIO**, l'ensemble étant **conteneurisé avec Docker** et orchestré par Docker Compose.
 
 ---
 
@@ -87,9 +87,9 @@ Facteurs aggravants :
 
 **Accessibilité universelle** : permettre à tout citoyen — illettré, éloigné, exposé à des risques — de déposer une plainte à distance depuis un smartphone, par saisie vocale.
 
-**Efficacité opérationnelle** : automatiser la rédaction des PV et l'affectation des dossiers pour libérer les enquêteurs des tâches administratives de faible valeur ajoutée.
+**Efficacité opérationnelle** : produire les documents de procédure à partir des données déjà saisies et structurer l'affectation des dossiers, pour libérer les enquêteurs des tâches de recopie.
 
-**Confiance institutionnelle** : un suivi en temps réel avec notifications SMS démontre que la plainte est prise en charge, renforçant la légitimité des services de police.
+**Confiance institutionnelle** : un suivi consultable en permanence, assorti de notifications par SMS et courrier électronique, démontre que la plainte est prise en charge et renforce la légitimité des services de police.
 
 ---
 
@@ -109,23 +109,23 @@ Facteurs aggravants :
 
 | Critère | THESEE | eCitizen | iReport | Police.uk | e-FIR | **Notre solution** |
 |---|:---:|:---:|:---:|:---:|:---:|:---:|
-| Saisie vocale pour illettrés | ✗ | ✗ | ✗ | ✗ | ✗ | **✓** |
-| Assistance IA (NLP, questionnaire) | ✗ | ✗ | ✗ | ✗ | ✗ | **✓** |
-| Suivi en temps réel | ✓ | Partiel | ✗ | ✓ | ✗ | **✓** |
+| Transcription vocale de la déclaration | ✗ | ✗ | ✗ | ✗ | ✗ | **✓** |
+| Questionnaire d'approfondissement par type d'infraction | ✗ | ✗ | ✗ | ✗ | ✗ | **✓** |
+| Suivi étape par étape | ✓ | Partiel | ✗ | ✓ | ✗ | **✓** |
 | Notifications SMS | ✗ | ✓ | ✓ | ✗ | ✗ | **✓** |
-| Routage automatique | ✗ | ✗ | ✗ | ✗ | ✗ | **✓** |
-| Génération automatique de PV | ✗ | ✗ | ✗ | ✗ | Partiel | **✓** |
-| Back-office enquêteurs | Partiel | ✗ | ✗ | ✓ | Partiel | **✓** |
+| Orientation territoriale automatique | ✗ | ✗ | ✗ | ✗ | ✗ | **✓** |
+| Génération automatique du procès-verbal | ✗ | ✗ | ✗ | ✗ | Partiel | **✓** |
+| Back-office enquêteurs et commissaire | Partiel | ✗ | ✗ | ✓ | Partiel | **✓** |
 | Adapté au contexte camerounais | ✗ | ✗ | ✗ | ✗ | ✗ | **✓** |
 | En français | ✓ | ✗ | ✗ | ✗ | ✗ | **✓** |
 
 ### 3.3 Limites des solutions existantes
 
-Aucune solution existante ne prend en charge la saisie vocale pour illettrés, n'est adaptée au cadre juridique camerounais, ne génère automatiquement des PV, ni ne guide le citoyen vers le commissariat compétent. Toutes sont conçues pour des systèmes policiers et des législations étrangers, ce qui les rend non transposables sans une refonte aussi coûteuse qu'un développement natif.
+Aucune solution existante ne prend en charge la déclaration vocale pour les usagers illettrés, n'est adaptée au cadre juridique camerounais, ne produit les documents de procédure, ni ne guide le citoyen vers le commissariat compétent. Toutes sont conçues pour des systèmes policiers et des législations étrangers, ce qui les rend non transposables sans une refonte aussi coûteuse qu'un développement natif.
 
 ### 3.4 Justification de la solution développée
 
-La plateforme proposée est la seule à répondre simultanément à l'ensemble des problèmes identifiés sur le terrain : accessibilité vocale, assistance IA, routage géographique, génération automatique de documents, et back-office complet — le tout en français et conforme aux procédures légales camerounaises.
+La plateforme proposée est la seule à répondre simultanément à l'ensemble des difficultés relevées sur le terrain (§2.3) : accessibilité vocale au dépôt comme à l'audition, approfondissement guidé de la déclaration, orientation territoriale, production automatique des documents, et back-office complet — le tout en français et calé sur l'enchaînement réel de la procédure camerounaise.
 
 ---
 
@@ -139,14 +139,15 @@ Concevoir et déployer une plateforme numérique inclusive permettant à tout ci
 
 | # | Objectif | Dysfonctionnement adressé |
 |---|---|---|
-| OS1 | Dépôt de plainte à distance, texte et vocal | Déplacement obligatoire, exclusion des illettrés |
-| OS2 | Assistance intelligente (questionnaire adaptatif IA) | Déclarations incomplètes ou incohérentes |
-| OS3 | Routage automatique vers le commissariat compétent | Méconnaissance des règles de compétence territoriale |
-| OS4 | Génération automatique des documents officiels (attestation, PV) | Rédaction manuelle chronophage |
-| OS5 | Suivi en temps réel du dossier avec notifications SMS | Opacité totale du processus pour le plaignant |
+| OS1 | Dépôt de plainte à distance, au clavier ou à la voix | Déplacement obligatoire, exclusion des illettrés |
+| OS2 | Questionnaire d'approfondissement par nature d'infraction | Déclarations incomplètes ou incohérentes |
+| OS3 | Orientation vers le commissariat territorialement compétent | Méconnaissance des règles de compétence |
+| OS4 | Production des documents officiels (attestation, PV, convocation) | Rédaction manuelle chronophage |
+| OS5 | Suivi du dossier étape par étape, avec notifications | Opacité totale du processus pour le plaignant |
 | OS6 | Back-office complet pour les agents de police | Gestion papier, absence de traçabilité |
-| OS7 | Affectation rationnelle des dossiers | Affectation informelle, charge inégale entre enquêteurs |
-| OS8 | Convocation numérique sécurisée du mis en cause | Risque de représailles lors de la remise physique |
+| OS7 | Affectation outillée des dossiers | Affectation informelle, charge inégale |
+| OS8 | Convocation numérique vérifiable du mis en cause | Risque de représailles lors de la remise physique |
+| OS9 | Transcription de la déposition à l'audition | Double travail : prise à la main puis ressaisie |
 
 ---
 
@@ -154,27 +155,33 @@ Concevoir et déployer une plateforme numérique inclusive permettant à tout ci
 
 ### 5.1 Ce qui est inclus
 
-- Application web responsive (citoyen + back-office police)
-- Dépôt de plainte par saisie texte guidée et saisie vocale (STT)
-- Questionnaire de pré-audition adaptatif (IA)
-- Upload de pièces jointes (photos, vidéos, documents)
-- Routage automatique vers le commissariat compétent
-- Génération automatique de l'attestation de dépôt (PDF) et du brouillon de PV
-- Tableau de bord et gestion complète des dossiers (enquêteurs, commissaire)
-- Affectation manuelle et assistée des dossiers
-- Émission de convocations numériques
-- Suivi en temps réel avec notifications SMS et email
-- Journalisation complète des actions (audit log)
-- Gestion des rôles et des droits d'accès (RBAC)
+- Application web responsive : espace citoyen, espace enquêteur, espace commissaire
+- Dépôt de plainte par saisie guidée en 5 écrans, avec déclaration vocale
+- Questionnaire d'approfondissement adapté à la nature de l'infraction
+- Dépôt de pièces jointes (photos, vidéos, documents), conservées en stockage objet
+- Sélection territoriale Région → Département → Arrondissement → Quartier et détermination du commissariat compétent
+- Attestation de dépôt, procès-verbal et convocation, générés en PDF
+- Convocation porteuse d'un QR code de vérification
+- Suivi citoyen en frise, avec les échanges et pièces de chaque étape
+- Progression du dossier en étapes et actes ordonnés, côté enquêteur
+- Transcription et conservation de l'enregistrement sonore de la déposition
+- Révision du procès-verbal avec conservation de chaque version, verrouillage à la signature
+- Tableau de bord commissaire, affectation et transfert avec confirmation
+- Statistiques et graphiques (dépôts, statuts, types, priorités, rendement)
+- Gestion des comptes agents (création, activation/désactivation, dossiers rattachés)
+- Journal d'audit filtrable par date, acteur et nature d'acte
+- Notifications par SMS et courrier électronique
+- Recherche, filtres et pagination sur l'ensemble des tableaux
 
 ### 5.2 Ce qui est exclu (hors périmètre v1)
 
 - Transmission électronique officielle au procureur de la République (intégration judiciaire — phase 2)
 - Gestion des gardes à vue et procédures post-enquête
-- Accès hors ligne par USSD (zones sans Internet — phase 2)
+- Accès hors ligne par USSD, pour les zones sans Internet (phase 2)
 - Support des langues nationales camerounaises (phase 2)
 - Reconnaissance biométrique ou faciale
 - Migration des archives papier antérieures à la mise en service
+- Application mobile native — l'interface web est responsive dès 320 px (phase 2)
 
 ---
 
@@ -187,14 +194,16 @@ Concevoir et déployer une plateforme numérique inclusive permettant à tout ci
 | **Citoyen / Plaignant** | Toute personne souhaitant déposer une plainte | Ses propres dossiers uniquement |
 | **Enquêteur** | Agent de police en charge de l'instruction | Dossiers qui lui sont affectés |
 | **Commissaire** | Officier responsable d'un commissariat | Tous les dossiers de son commissariat |
+| **Agent d'accueil** | Enregistre au guichet les plaintes déposées sur place | Dépôt et consultation, sans instruction |
+| **Administrateur** | Exploitation technique de la plateforme | Comptes, paramétrage, journaux |
 
 ### 6.2 Rôles et responsabilités
 
-**Citoyen** : créer un compte (vérification OTP SMS), déposer une plainte, répondre au questionnaire IA, joindre des preuves, suivre son dossier, télécharger l'attestation.
+**Citoyen** : créer un compte, déposer une plainte au texte ou à la voix, répondre au questionnaire d'approfondissement, joindre des preuves, suivre l'avancement étape par étape, lire les messages de l'enquêteur et télécharger l'attestation.
 
-**Enquêteur** : consulter ses dossiers affectés, accéder au détail complet, réviser et signer électroniquement le PV, émettre des convocations, mettre à jour les statuts.
+**Enquêteur** : consulter ses dossiers affectés, dérouler la procédure acte par acte, dicter la déposition, réviser puis signer le procès-verbal, émettre des convocations, écrire au plaignant et clore le dossier.
 
-**Commissaire** : superviser la file d'attente des nouvelles plaintes, affecter les dossiers aux enquêteurs, consulter le tableau de bord statistique, valider la transmission au procureur, gérer les comptes agents de son commissariat.
+**Commissaire** : superviser la file des plaintes non affectées, affecter et transférer les dossiers, consulter les tableaux de bord statistiques, ouvrir n'importe quel dossier en lecture, annuler une étape franchie à tort, gérer les comptes agents et consulter le journal d'audit.
 
 ---
 
@@ -202,58 +211,93 @@ Concevoir et déployer une plateforme numérique inclusive permettant à tout ci
 
 ### 7.1 Module authentification
 
-- **Inscription citoyen** : formulaire en 2 étapes (informations personnelles + vérification OTP SMS). Le compte est activé uniquement après saisie du code.
-- **Connexion citoyen** : par numéro de téléphone + mot de passe, ou par OTP SMS (sans mot de passe).
-- **Connexion agent** : par identifiant institutionnel + mot de passe, avec 2FA obligatoire (OTP SMS).
-- **Réinitialisation** : lien valable 15 minutes envoyé par SMS ou email.
-- **Gestion des sessions** : expiration après 30 min d'inactivité (citoyen) ou 8h (agents).
+- **Inscription citoyen** : formulaire en 2 étapes — informations personnelles, puis coordonnées et identification (CNI), suivie de la vérification du compte
+- **Connexion citoyen** : par code à usage unique à 6 chiffres, envoyé par courrier électronique ou par SMS, sans mot de passe à mémoriser
+- **Connexion agent** : par matricule institutionnel et mot de passe, avec sélection du rôle d'accès
+- **Second facteur pour les agents** : code à usage unique exigé en complément du mot de passe
+- **Réinitialisation** : lien ou code valable 15 minutes, adressé au courriel institutionnel
+- **Gestion des sessions** : jeton JWT de courte durée, renouvelé par jeton de rafraîchissement ; expiration après 30 min d'inactivité (citoyen) ou 8 h (agents)
+- **Blocage** après 5 tentatives échouées consécutives
 
 ### 7.2 Module dépôt de plainte
 
-**Saisie textuelle guidée** (7 étapes séquentielles) :
-1. Nature de l'infraction (liste + description libre)
-2. Date et lieu des faits (avec option carte)
-3. Description des faits (zone libre)
-4. Identité du mis en cause (ou case "inconnu")
-5. Préjudice subi
-6. Pièces jointes (JPG, PNG, PDF, MP4 — 20 Mo max/fichier)
-7. Récapitulatif et soumission
+**Saisie guidée en 5 écrans**, couvrant les sept rubriques exigées d'une plainte :
 
-**Saisie vocale** : enregistrement audio avec transcription en temps réel, correction manuelle possible, audio original conservé comme preuve.
+| Écran | Contenu |
+|---|---|
+| 1 — Nature de l'infraction | Type d'infraction, date des faits, localisation Région → Département → Arrondissement → Quartier, adresse précise |
+| 2 — Votre déclaration | Récit des faits (au clavier **ou à la voix**), nature et montant du préjudice, pièces jointes |
+| 3 — Identité du mis en cause | État civil, coordonnées, signalement, ou mention « inconnu » |
+| 4 — Questions complémentaires | Questionnaire d'approfondissement propre au type d'infraction (§7.3) |
+| 5 — Aperçu de votre déclaration | Récapitulatif intégral avant soumission |
 
-**À la soumission** : attribution d'un numéro de dossier unique, routage vers le commissariat compétent, génération de l'attestation PDF, envoi SMS + email au plaignant.
+**Déclaration vocale** : l'audio est capté puis transmis au service de transcription ; le texte revient dans un volet dédié, où il est relu et corrigé avant validation. **L'enregistrement original est conservé** en stockage objet et rattaché au dossier comme pièce.
 
-### 7.3 Module intelligence artificielle
+**Brouillon** : une déclaration interrompue est conservée et proposée à la reprise, avec son ancienneté.
 
-- **STT** : transcription audio français → texte, précision cible ≥ 85 %
-- **NLP** : extraction des entités (personnes, lieux, dates, objets, montants), qualification du type d'infraction, calcul d'un score de complétude (0–100)
-- **Questionnaire adaptatif** : génération de questions ciblées pour combler les informations manquantes, selon le type d'infraction détecté
-- **Routage géographique** : identification du commissariat compétent à partir du lieu des faits / domicile du mis en cause
-- **Génération de PV** : injection des données dans le template institutionnel camerounais, export PDF
+**À la soumission** : attribution d'un numéro de dossier au format `2026-NNNNN`, rattachement au commissariat compétent, génération de l'attestation de dépôt et notification du plaignant.
+
+### 7.3 Module d'assistance intelligente
+
+Les traitements d'assistance sont regroupés dans un service applicatif distinct (`service-ia`, §13.2), appelé par le service métier et remplaçable indépendamment de lui.
+
+| Fonction | Réalisation | Cible de qualité |
+|---|---|---|
+| **Transcription de la parole** | Modèle Whisper large-v3 exécuté localement, en français. L'audio est archivé en stockage objet et reste consultable comme pièce du dossier | Précision ≥ 85 % sur audio de qualité courante |
+| **Analyse de la déclaration** | Extraction des entités (personnes, lieux, dates, objets, montants) par spaCy et CamemBERT, qualification du type d'infraction, calcul d'un score de complétude de 0 à 100 | Qualification correcte ≥ 80 % |
+| **Questionnaire d'approfondissement** | Banque de questions par type d'infraction (8 types couverts), complétée par les éléments détectés comme absents. Présentation en fil de discussion : réponses fermées, listes ou texte libre. Les réponses sont jointes au dossier et reprises dans le procès-verbal | — |
+| **Orientation territoriale** | Arborescence administrative du Cameroun (régions, départements, arrondissements, quartiers) et requête spatiale PostGIS : le lieu des faits désigne le commissariat compétent | — |
+| **Établissement des documents** | Le procès-verbal, l'attestation et la convocation sont composés à partir des données du dossier dans les formes institutionnelles, puis rendus en PDF | Génération < 5 s |
+
+**Deux pourcentages distincts, à ne pas confondre.** L'application affiche deux indicateurs exprimés en pourcentage, qui ne mesurent pas la même chose, ne s'adressent pas aux mêmes personnes et ne se calculent pas de la même manière :
+
+| | **Complétude de la déclaration** | **Avancement du dossier** |
+|---|---|---|
+| **Ce qui est mesuré** | La richesse du récit du plaignant : les éléments attendus pour le type d'infraction sont-ils présents (montant, témoins, identification du suspect, preuves…) | La progression dans la procédure : quelle part des étapes et des actes obligatoires a été accomplie |
+| **Qui le voit** | **Le citoyen seul**, pendant la rédaction de sa déclaration | **Le commissaire seul**, dans son espace de supervision |
+| **À quoi il sert** | Inciter le déclarant à préciser avant de soumettre : rouge en deçà de 50 %, orange de 50 à 80 %, vert au-delà | Superviser : repérer les dossiers qui n'avancent plus, comparer les charges, décider d'une relance ou d'un transfert |
+| **Comment il est calculé** | Par le `service-ia` à partir de l'analyse du texte (§7.3) | **Dérivé des actes réellement enregistrés** : aucun agent ne le saisit, il ne peut donc pas être déclaré à tort |
+| **Quand il évolue** | Au fil de la frappe, puis après chaque réponse au questionnaire | À chaque acte de procédure accompli |
+
+Ce cloisonnement est délibéré. La complétude de la déclaration **n'est pas remontée comme note sur le dossier** dans les espaces professionnels : un chiffre synthétique accolé à une affaire orienterait le jugement de l'enquêteur sans qu'aucun de ses termes ne lui soit explicable. L'enquêteur voit à la place le détail des éléments manquants, qui est actionnable, et la frise de sa procédure, qui lui dit quoi faire ensuite. Le pourcentage d'avancement, lui, est un **instrument de supervision** : il n'a de sens que pour qui compare des dossiers entre eux, c'est-à-dire le commissaire.
 
 ### 7.4 Module gestion des dossiers (enquêteur)
 
-- Tableau de bord trié par urgence : numéro, nature, statut, score de complétude
-- Consultation du dossier complet en onglets : déclaration, entités IA, PV éditable, pièces jointes, historique
-- Révision et signature électronique horodatée du PV (toutes modifications tracées)
-- Mise à jour des statuts : `REÇU → EN_INSTRUCTION → AUDITION → DÉCISION → TRANSMIS/CLOS`
-- Émission de convocations numériques (pré-remplies, envoyées par SMS, accusé de réception enregistré)
-- Transfert de dossier à un collègue (avec validation du commissaire)
+- Tableau des dossiers affectés, avec recherche plein texte, filtres par statut et par priorité, et pagination
+- **Procédure en étapes et actes ordonnés** : chaque étape n'est ouverte qu'une fois la précédente franchie, et chaque acte d'une étape ne se fait qu'après le précédent
+- Ordre effectif du cycle de vie, conforme à la pratique relevée au commissariat — le plaignant est convoqué et auditionné **avant** l'ouverture de l'enquête :
+
+  `RECU → AUDITION → EN_INSTRUCTION → DECISION → TRANSMIS | CLOTURE`
+
+- **Transcription de la déposition** à l'audition, avec conservation de l'enregistrement sonore
+- Révision du procès-verbal : chaque correction conserve l'état antérieur, son auteur et son horodatage ; la signature électronique horodatée verrouille définitivement le document
+- Émission de convocations pré-remplies, numérotées par ordre de tentative (jusqu'à trois), porteuses d'un QR code de vérification, acheminées par SMS avec accusé
+- Commentaire possible sur chaque acte, qu'il soit fait, en cours ou en attente ; les écrits restent affichés dans le détail de l'acte
+- Transfert du dossier à un collègue, soumis à la validation du commissaire
+- Clôture proposée en tête de dossier, et **conditionnée au franchissement de toutes les étapes**
 
 ### 7.5 Module back-office commissariat
 
-- File d'attente en temps réel des plaintes non affectées (alerte si > 48h sans affectation)
-- Affectation des dossiers avec visualisation de la charge de chaque enquêteur
-- Suggestion automatique de l'enquêteur le plus approprié (type d'infraction / compétences)
-- Tableau de bord statistique : volumes, délais moyens, répartition par type, charge par enquêteur
-- Gestion des comptes agents (création, désactivation, attribution des spécialités)
+- File des plaintes non affectées, avec ancienneté d'attente signalée et alerte au-delà de 48 h
+- **Affectation** et **transfert** : l'enquêteur se choisit d'abord dans une liste indiquant sa charge courante, puis l'opération demande une confirmation explicite. Aucun enquêteur n'est imposé par défaut
+- L'enquêteur détenant déjà le dossier reste visible dans la liste de transfert, mais non sélectionnable, et la raison en est donnée
+- **Consultation de n'importe quel dossier** dans la même vue que l'enquêteur, en lecture seule — à une exception près : le commissaire peut **annuler une étape franchie à tort**
+- **Taux d'avancement du dossier**, exprimé en pourcentage, affiché en colonne des tableaux et en moyenne parmi les indicateurs du tableau de bord. Il est **calculé à partir des actes de procédure enregistrés**, non saisi par un agent, et **n'est visible que du commissaire** : ni le citoyen ni l'enquêteur n'y ont accès (§7.3)
+- Repérage des dossiers qui n'avancent plus : un faible taux d'avancement conjugué à une forte ancienneté désigne les affaires à relancer ou à transférer
+- Tableau de bord statistique : volumes, délais moyens, répartition par statut, par type et par priorité, rendement par enquêteur. Le détail par plainte s'ouvre au clic sur un enquêteur
+- Les indicateurs de la « Vue d'ensemble » et ceux des « Statistiques » ne se recouvrent pas
+- **Gestion des comptes agents** : création, modification, activation et désactivation avec motif, attribution des spécialités, consultation des dossiers rattachés à un agent
+- Suggestion de l'enquêteur le plus approprié selon ses spécialités et sa charge
+- Recherche, filtres et pagination sur les trois tableaux (file d'attente, tous les dossiers, charge détaillée)
 
 ### 7.6 Module suivi et notifications
 
-- **Espace citoyen** : frise chronologique du dossier avec horodatage de chaque étape
-- **SMS automatiques** : envoyés à chaque changement de statut significatif, rédigés en français accessible
-- **Email** : récapitulatif plus détaillé avec lien direct vers le dossier
-- **Audit log immuable** : toutes les actions enregistrées (qui, quoi, quand, IP), conservées 5 ans minimum
+- **Espace citoyen** : frise chronologique du dossier, chaque étape dépliable sur les actes qui la composent, les messages de l'enquêteur et les pièces jointes
+- **SMS automatiques** à chaque changement d'étape significatif, rédigés en français accessible
+- **Courrier électronique** : accusé de dépôt avec le numéro de dossier et l'attestation, puis avis détaillés avec lien direct vers le dossier
+- **File d'attente durable** : chaque notification est inscrite en base avec son état d'acheminement, puis prise en charge par le service de notification, qui la rejoue en cas d'échec de la passerelle opérateur
+- **Journal d'audit** : chaque acte de procédure est enregistré avec son auteur, sa nature, son horodatage, l'adresse IP et le dossier concerné. Le journal se filtre par période, par acteur et par nature d'acte, et se parcourt page par page. Le numéro de dossier y est cliquable et ouvre le dossier
+- Rétention réglementaire du journal : cinq ans minimum
 
 ---
 
@@ -263,43 +307,55 @@ Concevoir et déployer une plateforme numérique inclusive permettant à tout ci
 
 | Indicateur | Cible |
 |---|---|
-| Temps de réponse API (95 % des requêtes) | < 2 secondes |
-| Transcription STT (2 min d'audio) | < 10 secondes |
-| Génération PDF | < 5 secondes |
+| Temps de réponse des API (95 % des requêtes) | < 2 s |
+| Transcription d'un audio de 2 minutes | < 10 s |
+| Génération d'un document PDF | < 5 s |
+| Affichage d'un écran après interaction locale | < 200 ms |
+| Chargement initial d'un espace sur 3G (1 Mbps) | < 5 s |
 | Utilisateurs simultanés sans dégradation | 500 minimum |
-| Chargement initial sur 3G (1 Mbps) | < 5 secondes |
+
+La montée en charge s'obtient en dupliquant les services concernés : le `service-ia`, coûteux en calcul, se dimensionne indépendamment du service métier (§13.1).
 
 ### 8.2 Sécurité
 
-- HTTPS obligatoire avec TLS 1.3 ; redirection automatique depuis HTTP
-- Données sensibles chiffrées en base (AES-256) et fichiers chiffrés au repos
-- 2FA obligatoire pour tous les agents ; blocage après 5 tentatives échouées
-- RBAC strict : chaque utilisateur n'accède qu'aux données de son périmètre
-- Protection contre SQL injection, XSS, CSRF, force brute (rate limiting)
+- HTTPS obligatoire avec TLS 1.3, redirection automatique depuis HTTP
+- Mots de passe hachés en argon2 ; aucun mot de passe stocké en clair ni journalisé
+- Second facteur obligatoire pour tous les agents ; blocage après 5 tentatives échouées
+- **Sécurité au niveau ligne (RLS) dans PostgreSQL** : le citoyen ne lit que ses plaintes, l'enquêteur celles qui lui sont affectées, le commissaire celles de son commissariat. La règle s'applique à la ligne, quelle que soit l'origine de la requête
+- RBAC appliqué à chaque route par décorateur, en complément et non en substitution de la RLS
+- Requêtes paramétrées de bout en bout (aucune concaténation SQL), protection XSS et CSRF, limitation de débit
+- Données sensibles chiffrées en base ; pièces jointes chiffrées au repos et servies par URL présignée à durée limitée
+- Traçabilité de tous les actes de procédure et de toutes les corrections de PV
 - Conformité à la législation camerounaise sur la protection des données personnelles
 
 ### 8.3 Disponibilité
 
-- Disponibilité cible : **99,5 %** mensuel (≤ 3,6 h d'indisponibilité/mois)
-- Sauvegardes complètes quotidiennes + incrémentielles toutes les 6 heures
-- RTO < 4h, RPO < 6h en cas d'incident majeur
-- Monitoring 24h/24 avec alertes automatiques
+- Disponibilité cible : **99,5 %** mensuel (≤ 3,6 h d'indisponibilité par mois)
+- Sauvegardes complètes quotidiennes et incrémentielles toutes les 6 heures ; RTO < 4 h, RPO < 6 h
+- Supervision 24 h/24 avec alertes automatiques sur les trois services
+- **Redémarrage automatique** : chaque conteneur déclare une sonde d'état et une politique de relance ; un service qui cesse de répondre est relevé sans intervention humaine (§13.5)
+- **Dégradation partielle plutôt que panne totale** : l'indisponibilité du `service-ia` laisse le dépôt au clavier opérationnel ; celle du `service-notifs` diffère les envois sans bloquer l'instruction
 
 ### 8.4 Accessibilité et ergonomie
 
-- Interface 100 % en français, vocabulaire adapté au niveau collège
-- Design responsive (mobile dès 320px, boutons tactiles ≥ 44×44px)
-- Saisie vocale fonctionnelle sur Android 8+ et iOS 14+, sans installation d'app tierce
-- Compatibilité Chrome, Firefox, Edge, Safari récents
+- Interface intégralement en français, vocabulaire adapté au niveau collège
+- Responsive dès 320 px, cibles tactiles ≥ 44 × 44 px
+- Déclaration vocale utilisable sur Android 8+ et iOS 14+, sans installation d'application tierce
+- Repli clavier annoncé lorsque le microphone est indisponible ou refusé
+- Compatibilité Chrome, Firefox, Edge et Safari récents
+- Lisibilité des graphiques vérifiée pour les déficiences de la vision des couleurs
 - Conformité WCAG 2.1 niveau AA
 
 ### 8.5 Maintenabilité
 
-- Code source versionné sur Git (stratégie main / develop / feature/*)
-- Architecture en modules faiblement couplés ; remplacement d'un composant sans impact global
+- Code source versionné sur Git (stratégie `main` / `develop` / `feature/*`)
+- **Trois services faiblement couplés**, communiquant par contrats REST explicites : un service se remplace sans toucher aux autres
+- Migrations de schéma versionnées et réversibles (Alembic)
+- Documentation d'API générée depuis le code (OpenAPI / Swagger UI), couvrant 100 % des points d'entrée
 - Couverture de tests automatisés ≥ 70 % du code métier
-- Pipeline CI/CD (GitHub Actions) : tests → build → déploiement staging automatique
-- Documentation technique maintenue en parallèle du code
+- Chaîne d'intégration continue (GitHub Actions) : tests → construction des images Docker → déploiement de préproduction
+- **Déploiement reproductible** : `docker compose up` monte un environnement complet — services, base, stockage objet, supervision — sur une machine vierge, sans installation manuelle de dépendance (§13.5)
+- **Parité des environnements** : la même image est exécutée en développement, en préproduction et en production ; seules les variables d'environnement changent
 
 ---
 
@@ -307,27 +363,31 @@ Concevoir et déployer une plateforme numérique inclusive permettant à tout ci
 
 ### 9.1 Inscription et connexion (citoyen)
 
-Formulaire en 2 étapes : informations personnelles puis sécurisation (mot de passe + OTP SMS). La page de connexion propose deux onglets distincts : connexion par mot de passe et connexion par code SMS. Un indicateur de progression guide l'utilisateur à chaque étape.
+Formulaire en 2 étapes : informations personnelles, puis coordonnées et identification. Un indicateur de progression accompagne l'utilisateur. La connexion s'effectue par code à usage unique à 6 chiffres, saisi dans six cases distinctes ; la page d'authentification des agents est séparée et demande un matricule préfixé.
 
 ### 9.2 Dépôt de plainte
 
-Écran de choix initial entre saisie texte et saisie vocale. En mode texte : barre de progression, un seul sujet par écran, exemples de rédaction en grisé. En mode vocal : bouton d'enregistrement central, animation de niveau sonore, transcription temps réel dans un volet inférieur, zone d'édition de la transcription avant validation.
+Barre de progression sur cinq écrans, un sujet par écran, exemples de rédaction en grisé. La déclaration se saisit au clavier ou à la voix : un bouton d'enregistrement central, un minuteur, la transcription qui s'écrit au fil de la parole dans un volet inférieur, et une zone d'édition libre avant validation.
 
-### 9.3 Questionnaire IA (pré-audition)
+### 9.3 Questionnaire d'approfondissement
 
-Interface de type messagerie : questions de l'IA en bulles grises, réponses du plaignant en bulles bleues. Boutons de réponse rapide (Oui / Non / Je ne sais pas), listes déroulantes pour les choix multiples, zone de saisie libre avec option microphone. Jauge de complétude en haut de l'écran (rouge < 50 %, orange 50–80 %, vert > 80 %).
+Interface en fil de discussion : questions en bulles claires, réponses du plaignant en bulles colorées. Boutons de réponse rapide, listes pour les choix multiples, saisie libre lorsque la question l'appelle. Jauge de complétude en haut de l'écran, avec trois seuils : rouge en deçà de 50 %, orange de 50 à 80 %, vert au-delà.
 
 ### 9.4 Suivi du dossier (citoyen)
 
-Page "Mes dossiers" : liste des plaintes avec badge de statut coloré. Vue détail : frise chronologique verticale avec horodatage des étapes franchies (coche verte), étape en cours (pulsation), étapes futures (grisées). Accès au téléchargement de l'attestation PDF et à l'historique des SMS reçus.
+Page « Mes dossiers » : liste des plaintes avec badge de statut coloré. Vue détail : frise chronologique verticale, étapes franchies marquées, étape en cours mise en avant, étapes à venir en retrait. Chaque étape se déplie sur les actes qui la composent, les messages de l'enquêteur et les pièces jointes, procès-verbaux compris. Attestation téléchargeable et historique des notifications reçues.
 
 ### 9.5 Tableau de bord back-office (commissaire)
 
-En-tête avec 4 KPIs du jour (plaintes non affectées, en cours, en attente d'audition, traitées ce mois). Tableau des plaintes à affecter avec panneau latéral de sélection d'enquêteur affichant leur charge actuelle. Deux graphiques : histogramme journalier des plaintes reçues et camembert par type d'infraction.
+En-tête de quatre indicateurs : plaintes en attente d'affectation, dossiers en enquête, comparutions attendues, enquêteurs actifs, complétés par le **taux d'avancement moyen** des dossiers de l'unité. En dessous, la file des plaintes à affecter — numéro, plaignant, type, priorité, ancienneté d'attente — paginée, chaque ligne ouvrant le choix d'un enquêteur avec sa charge courante, puis une confirmation. Le tableau de tous les dossiers porte une colonne **Avancement** en pourcentage, qui n'apparaît que dans cet espace.
+
+Deux graphiques : **plaintes reçues** sur une période réglable (7 jours, 14 jours, 30 jours, 3 mois) et **répartition par statut** en barres horizontales. Une section de charge par enquêteur complète l'ensemble.
 
 ### 9.6 Gestion des dossiers (enquêteur)
 
-Bandeau de filtres (statut, type, période). Liste des dossiers en cards avec indicateur d'urgence. Vue détail en onglets : Déclaration (entités surlignées par couleur), Procès-Verbal (éditeur riche avec sections pré-remplies, bouton "Signer"), Pièces jointes, Historique. Barre d'actions fixe en bas : mettre à jour le statut, émettre une convocation, transférer, ajouter une note.
+Bandeau de recherche et de filtres (statut, priorité), liste paginée, indicateur d'urgence. Vue détail organisée en **progression par étapes** plutôt qu'en onglets juxtaposés : la frise commande l'affichage, et l'étape ouverte présente ses actes dans l'ordre, chacun avec son bouton d'action, son bouton de commentaire, ses écrits antérieurs et ses documents. Le procès-verbal s'affiche en place, éditable tant qu'il n'est pas signé. La clôture figure en tête du dossier, et ne devient possible qu'une fois toutes les étapes franchies.
+
+*Choix d'organisation : une présentation en onglets juxtaposés (Déclaration, PV, Pièces, Historique) doublée d'une liste de tâches ferait apparaître un même acte à deux endroits et laisserait accomplir les actes dans le désordre. La progression unique par étapes contraint l'ordre de la procédure au lieu de le confier à la discipline de l'agent.*
 
 ---
 
@@ -336,52 +396,57 @@ Bandeau de filtres (statut, type, période). Liste des dossiers en cards avec in
 ### 10.1 Architecture globale
 
 ```
-┌──────────────────────────────────────────────────────────────┐
-│                  COUCHE PRÉSENTATION (React.js)              │
-│  ┌───────────────┐  ┌─────────────────────┐  ┌────────────┐  │
-│  │ Espace Citoyen│  │ Espace Police        │  │ Espace     │  │
-│  │ • Inscription │  │ (Enquêteur /         │  │ Admin      │  │
-│  │ • Dépôt       │  │  Commissaire)        │  │            │  │
-│  │ • Vocal / IA  │  │ • Tableau de bord    │  │ • Comptes  │  │
-│  │ • Suivi       │  │ • Dossiers / PV      │  │ • Routage  │  │
-│  └───────┬───────┘  │ • Convocations       │  │ • Logs     │  │
-│          │          └──────────┬────────────┘  └─────┬──────┘  │
-└──────────┼────────────────────┼───────────────────────┼────────┘
-           │       HTTPS / REST │                       │
-           ▼                    ▼                       ▼
-┌──────────────────────────────────────────────────────────────┐
-│              API GATEWAY — Spring Cloud Gateway               │
-│         (routage, rate limiting, auth JWT, SSL termination)  │
-└─────────────────────────────┬────────────────────────────────┘
-                              │
-              ┌───────────────┼───────────────────┐
-              ▼               ▼                   ▼
-┌─────────────────┐  ┌─────────────────┐  ┌──────────────────┐
-│ API Backend     │  │ Microservices IA │  │ Service Notifs   │
-│ Spring Boot 3   │  │ Python/FastAPI   │  │ SMS / Email      │
-│ /auth           │  │ /stt            │  └──────────────────┘
-│ /plaintes       │◄─│ /nlp            │
-│ /dossiers       │  │ /routage        │
-│ /documents      │  │ /generate-pv    │
-│ /stats          │  └─────────────────┘
-└────────┬────────┘
-         │
-    ┌────┼────────────┐
-    ▼    ▼            ▼
-┌──────┐ ┌──────┐ ┌──────┐
-│ Post │ │Redis │ │MinIO │
-│ greSQL│ │Cache │ │Files │
-└──────┘ └──────┘ └──────┘
+┌───────────────────────────────────────────────────────────────┐
+│               COUCHE PRÉSENTATION — React.js 18               │
+│  ┌────────────────┐ ┌────────────────────┐ ┌───────────────┐  │
+│  │ Espace Citoyen │ │ Espace Police      │ │ Espace Admin  │  │
+│  │ • Inscription  │ │ (Enquêteur /       │ │ • Comptes     │  │
+│  │ • Dépôt 5 écr. │ │  Commissaire)      │ │ • Routage     │  │
+│  │ • Vocal / IA   │ │ • Tableau de bord  │ │ • Journaux    │  │
+│  │ • Suivi        │ │ • Dossiers / PV    │ │               │  │
+│  └────────────────┘ └────────────────────┘ └───────────────┘  │
+└───────────────────────────────┬───────────────────────────────┘
+                                │  HTTPS / REST (JSON + JWT)
+                                ▼
+┌───────────────────────────────────────────────────────────────┐
+│        service-coeur — Flask 3   (seul service exposé)        │
+│   /auth · /plaintes · /dossiers · /documents · /stats         │
+│   émission et vérification des JWT · RBAC · limitation de     │
+│   débit · service du bundle React · en-têtes de sécurité      │
+└────────┬──────────────────────────────────────────┬───────────┘
+         │   réseau privé de conteneurs             │
+         ▼                                          │
+┌──────────────────────┐   ┌────────────────────┐   │
+│   service-ia         │   │ service-notifs     │   │
+│   Flask 3            │   │ Flask 3            │   │
+│   /stt               │   │ SMS (Twilio /      │   │
+│   /analyse           │   │      Orange CM)    │   │
+│   /questionnaire     │   │ Courriel (SMTP)    │   │
+│   /routage · /pv     │   │ relances auto      │   │
+└──────────┬───────────┘   └─────────┬──────────┘   │
+           │                         │              │
+           └────────────┬────────────┴──────────────┘
+                        ▼
+   ┌────────────────────────────┐   ┌────────────────────────┐
+   │ PostgreSQL 16 + PostGIS    │   │ MinIO (S3-compatible)  │
+   │ données métier · JSONB ·   │   │ audio · PDF ·          │
+   │ file d'attente notifs      │   │ pièces jointes         │
+   └────────────────────────────┘   └────────────────────────┘
 ```
+
+**Un seul service est joignable depuis Internet.** Le `service-coeur` sert le bundle React et l'API ; le `service-ia` et le `service-notifs` n'écoutent que sur le réseau privé des conteneurs et ne sont donc atteignables ni par le navigateur, ni depuis l'extérieur. Cette exposition unique remplace la passerelle d'un déploiement classique : le point de contrôle des jetons, des rôles et du débit est le service qui détient déjà la logique métier, ce qui évite d'entretenir une configuration de routage séparée du code qu'elle protège.
+
+Les trois services sont **déployés et mis à l'échelle indépendamment** : un conteneur chacun, plusieurs *workers* Gunicorn par conteneur. Ils ne partagent aucun état en mémoire — toute coordination passe par PostgreSQL, MinIO ou un appel REST explicite. La panne du `service-ia` n'empêche donc pas le dépôt d'une plainte au clavier, et celle du `service-notifs` diffère l'envoi des SMS sans bloquer l'instruction des dossiers.
 
 ### 10.2 Flux de traitement principal (dépôt de plainte)
 
-1. Citoyen enregistre sa déclaration vocale → API Gateway → Spring Boot → Service STT
-2. Texte transcrit → Service NLP → entités extraites + score de complétude
-3. Questions adaptatives générées → citoyen répond → dossier complété
-4. Service Routage identifie le commissariat compétent
-5. Spring Boot persiste la plainte en PostgreSQL, génère l'attestation PDF (MinIO)
-6. Service Notifications publie un événement → SMS envoyé au plaignant
+1. Le citoyen enregistre sa déclaration vocale → `service-coeur`, qui dépose l'audio dans MinIO puis appelle `service-ia` `/stt`
+2. Texte transcrit → `service-ia` `/analyse` → entités extraites et score de complétude
+3. `service-ia` `/questionnaire` produit les questions ciblant les éléments manquants ; le citoyen répond, le dossier se complète
+4. `service-ia` `/routage` identifie le commissariat territorialement compétent (PostGIS)
+5. `service-coeur` persiste la plainte en PostgreSQL — le numéro `2026-NNNNN` est attribué par la base — fait composer l'attestation par `service-ia` `/pv` et archive le PDF dans MinIO
+6. `service-coeur` inscrit la notification dans la file en base ; `service-notifs` la consomme et adresse le SMS et le courriel au plaignant
+7. La plainte entre au statut `RECU` dans la file du commissaire, qui l'affecte à un enquêteur
 
 ---
 
@@ -389,47 +454,63 @@ Bandeau de filtres (statut, type, période). Liste des dossiers en cards avec in
 
 ### 11.1 Diagramme de cas d'utilisation
 
-**Citoyen** : s'inscrire, se connecter, déposer une plainte (texte/vocal), répondre au questionnaire IA, joindre des preuves, suivre son dossier, télécharger l'attestation.
+**Citoyen** : s'inscrire, se connecter, déposer une plainte (texte ou vocal), répondre au questionnaire d'approfondissement, joindre des preuves, suivre son dossier étape par étape, lire les messages de l'enquêteur, télécharger l'attestation.
 
-**Enquêteur** : se connecter (2FA), consulter ses dossiers, réviser et signer le PV, émettre une convocation, mettre à jour les statuts, transférer un dossier.
+**Enquêteur** : se connecter (second facteur), consulter ses dossiers, accomplir les actes de chaque étape dans l'ordre, dicter la déposition, réviser et signer le PV, émettre une convocation, écrire au plaignant, clore le dossier.
 
-**Commissaire** : superviser la file d'attente, affecter les dossiers, consulter les statistiques, valider la transmission au procureur, gérer les comptes agents, configurer les règles de routage.
+**Commissaire** : superviser la file d'attente, affecter et transférer les dossiers, consulter les statistiques, ouvrir un dossier en lecture, annuler une étape, gérer les comptes agents, consulter le journal d'audit.
 
 **Relations notables** :
-- "Déposer par vocal" *inclut* "Transcrire (STT)"
-- "Déposer une plainte" *inclut* "Générer questionnaire IA" et "Router vers commissariat"
-- "Valider le PV" *étend* "Consulter le dossier"
+- « Déposer une plainte » *inclut* « Situer les faits » et *peut inclure* « Transcrire la déclaration »
+- « Déposer une plainte » *inclut* « Générer le questionnaire » et « Orienter vers le commissariat »
+- « Franchir une étape » *inclut* « Accomplir tous les actes de l'étape »
+- « Clore le dossier » *inclut* « Franchir toutes les étapes »
+- « Signer le PV » *étend* « Réviser le PV » et le rend définitif
 
 ### 11.2 Diagramme de séquence — Dépôt de plainte vocal
 
 ```
-Citoyen   React   Gateway   Spring Boot   STT   NLP   Routage   DB   SMS
-  |         |         |          |          |     |       |      |     |
-  |─enreg.─►|─audio──►|─────────►|─POST────►|     |       |      |     |
-  |         |         |          |◄─texte───|     |       |      |     |
-  |         |         |          |─POST NLP──────►|       |      |     |
-  |         |         |          |◄─entités+score─|       |      |     |
-  |◄─questions───────────────────|                |       |      |     |
-  |─réponses►         |          |─POST routage──────────►|      |     |
-  |         |         |          |◄─commissariat──────────|      |     |
-  |         |         |          |─INSERT dossier────────────────►|     |
-  |         |         |          |─génère PDF─────────────────────►|     |
-  |         |         |          |─send SMS───────────────────────────►|
-  |◄─SMS + confirmation──────────────────────────────────────────────|
+Citoyen  React       coeur(Flask)      ia(Flask)  PostgreSQL/MinIO  notifs
+   |       |              |                |              |            |
+   |─audio►|              |                |              |            |
+   |       |─POST /dépôt─►|                |              |            |
+   |       |              |─PUT audio (MinIO)────────────►|            |
+   |       |              |─POST /ia/stt──►|              |            |
+   |       |              |◄──texte────────|              |            |
+   |       |              |─POST /analyse─►|              |            |
+   |       |              |◄entités + score|              |            |
+   |◄─questions ciblées───|                |              |            |
+   |─réponses────────────►|                |              |            |
+   |       |              |─POST /routage─►|              |            |
+   |       |              |◄─commissariat──|              |            |
+   |       |              |─INSERT plainte + n° dossier──►|            |
+   |       |              |─POST /pv──────►|              |            |
+   |       |              |─PUT attestation.pdf──────────►|            |
+   |       |              |─INSERT notification (file)───►|            |
+   |◄─n° dossier + PDF────|                |              |            |
+   |       |              |                |              |◄──SELECT───|
+   |◄─SMS de confirmation──────────────────────────────────────────────|
 ```
+
+Le `service-notifs` ne reçoit aucun appel du `service-coeur` : il consulte la file `notifications` en base. L'envoi reste ainsi rejouable après une panne de la passerelle opérateur, sans jamais bloquer le dépôt.
 
 ### 11.3 Diagramme d'activités — Cycle de vie d'une plainte
 
 ```
-[Dépôt citoyen] → [STT si vocal] → [NLP : entités + score]
-    → [Score < 80% ?] → Oui → [Questionnaire adaptatif]
-                      → Non →
-    → [Validation récapitulatif] → [Soumission officielle]
-    → [Routage commissariat] → [Génération attestation + SMS]
-    → [Commissaire affecte] → [Enquêteur instruit]
-    → [Auditions + révision PV] → [Signature électronique]
-    → [Décision : transmission procureur OU classement sans suite]
-    → [SMS clôture au citoyen] → [Archivage]
+[Dépôt citoyen] → [Transcription si vocal] → [Analyse : entités + score]
+    → [Complétude < 80 % ?] → Oui → [Questions complémentaires]
+                            → Non ↓
+    → [Aperçu et soumission] → [Orientation vers le commissariat]
+    → [Attestation + notification]                                  ⟨RECU⟩
+    → [Le commissaire affecte un enquêteur]
+    → [Convocation et audition du plaignant] → [Dictée de la déposition]
+    → [Établissement puis signature du PV]                          ⟨AUDITION⟩
+    → [Convocation du mis en cause — jusqu'à 3 tentatives]
+    → [Vérifications et recherche d'éléments]                ⟨EN_INSTRUCTION⟩
+    → [Qualification des faits]                                  ⟨DECISION⟩
+    → [Transmission au parquet ⟨TRANSMIS⟩ OU classement sans suite]
+    → [Toutes les étapes franchies ?] → Oui → [Clôture]           ⟨CLOTURE⟩
+    → [Notification au citoyen]
 ```
 
 ### 11.4 Diagramme de classes (principaux attributs)
@@ -438,141 +519,212 @@ Citoyen   React   Gateway   Spring Boot   STT   NLP   Routage   DB   SMS
 Utilisateur                     Plainte
 ───────────                     ───────
 id : UUID                       id : UUID
-nom, prenom : String            numeroDossier : String
-telephone : String [UNIQUE]     idPlaignant → Utilisateur
-email : String                  dateDepot : DateTime
-role : Enum                     modeDepot : Enum {TEXTE, VOCAL}
-  {CITOYEN, ENQUETEUR,          natureInfraction : String
-   COMMISSAIRE, ADMIN}          description : Text
-cni : String                    lieuFaits : String
-idCommissariat → Commissariat   scoreCompletude : Decimal
-actif : Boolean                 entitesExtraites : JSON
-                                statut : Enum
-                                idCommissariatCible → Commissariat
+role : Enum                     numeroDossier : String [UNIQUE]
+  {citoyen, enqueteur,          plaignant → Utilisateur
+   commissaire, accueil,        commissariat → Commissariat
+   admin}                       enqueteur → Utilisateur
+nom, prenom : String            typeInfraction : Enum
+telephone : String [UNIQUE]     statut : Enum
+email, cni : String             priorite : Enum
+motDePasseHash : String         dateFaits : Date
+matricule : String [UNIQUE]     lieu : Region/Dept/Arrond/Quartier
+grade, specialite : String      declaration : Text
+commissariat → Commissariat     audioDeclaration : String (MinIO)
+actif : Boolean                 scoreCompletude : Integer
+                                entitesExtraites : JSONB
+Commissariat                    misEnCause : nom, prenom, adresse,
+────────────                                 telephone, description
+id : UUID                       reponsesQuestionnaire : JSONB
+nom : String                    dateAffectation, dateCloture
+region, departement,
+arrondissement : String         ProcesVerbal
+adresse, telephone : String     ────────────
+zoneCompetence : Geometry       id : UUID
+                                plainte → Plainte
+Convocation                     contenu : Text
+───────────                     genereParIA : Boolean
+id : UUID                       signe : Boolean
+plainte → Plainte               signePar → Utilisateur
+emisPar → Utilisateur           dateSignature : DateTime
+nomConvoque : String
+dateConvocation : Date          Historique          PieceJointe
+heureConvocation : Time         ──────────          ───────────
+motif : Text                    id : UUID           id : UUID
+numeroOrdre : Integer           plainte → Plainte   plainte → Plainte
+statut : Enum                   action : Text       nomFichier : String
+  {EN_ATTENTE,                  detail : Text       typeMime : String
+   COMPARU, ABSENT}             effectuePar→Utilis. taille : Integer
+smsEnvoye : Boolean             adresseIp : String  cheminMinio : String
 
-Dossier                         ProcesVerbal
-───────                         ────────────
-id : UUID                       id : UUID
-idPlainte → Plainte [1:1]       idDossier → Dossier [1:1]
-idEnqueteur → Utilisateur       contenuGenereIA : Text
-idCommissariat → Commissariat   contenuFinal : Text
-statut : Enum                   dateGeneration : DateTime
-  {RECU, EN_INSTRUCTION,        idValidateur → Utilisateur
-   AUDITION, DECISION,          signatureElectronique : Blob
-   TRANSMIS, CLOS}              dateSignature : DateTime
-priorite : Enum
-dateAffectation : DateTime      Convocation
-                                ───────────
-Commissariat                    id : UUID
-────────────                    idDossier → Dossier
-id : UUID                       destinataireNom : String
-nom : String                    dateConvocation : DateTime
-ville : String                  numeroOrdre : Integer
-zonesCompetence : String[]      statut : Enum {EMISE, REMISE, IGNOREE}
+Notification
+────────────
+id : UUID · destinataire → Utilisateur · plainte → Plainte
+canal : Enum {SMS, EMAIL} · message : Text
+statutLivraison : Enum {EN_ATTENTE, ENVOYE, LIVRE, ECHEC} · dateEnvoi
 ```
+
+*Note de modélisation : `Plainte` et `Dossier` ne forment qu'une seule entité en relation 1:1 dans une première rédaction — les dédoubler n'apportait rien. La table `plaintes` porte donc elle-même l'affectation, le statut et la priorité. Les énumérations suivent l'ordre réel de la procédure (§7.4).*
 
 ---
 
 ## 12. Modélisation des données
 
-### 12.1 Dictionnaire de données (tables principales)
+Le schéma comporte **8 tables, 5 types énumérés, 9 index et 15 politiques de sécurité au niveau ligne**. Il est géré par migrations versionnées (Alembic) et déployé sur PostgreSQL 16 avec l'extension PostGIS.
 
-**Table : profils** (utilisateurs Supabase Auth)
+### 12.1 Types énumérés
 
-| Attribut | Type | Contrainte | Description |
-|---|---|---|---|
-| id | UUID | PK | Identifiant unique |
-| nom, prenom | VARCHAR(100) | NOT NULL | État civil |
-| telephone | VARCHAR(20) | UNIQUE NOT NULL | Identifiant principal |
-| email | VARCHAR(150) | UNIQUE | Optionnel (citoyens) |
-| role | ENUM | NOT NULL | CITOYEN / ENQUETEUR / COMMISSAIRE / ADMIN |
-| id_commissariat | UUID | FK | Pour les agents |
-| specialites | TEXT[] | — | Types d'infractions (agents) |
-| actif | BOOLEAN | DEFAULT true | Compte actif |
+| Type | Valeurs |
+|---|---|
+| `role_utilisateur` | `citoyen`, `enqueteur`, `commissaire`, `accueil`, `admin` |
+| `statut_plainte` | `RECU`, `AUDITION`, `EN_INSTRUCTION`, `DECISION`, `TRANSMIS`, `CLOTURE` |
+| `priorite_plainte` | `BASSE`, `NORMALE`, `HAUTE`, `URGENTE` |
+| `type_infraction` | Vol simple, Vol avec violence, Agression physique, Escroquerie / Fraude, Harcèlement, Dégradation de biens, Accident de la route, Autre |
+| `statut_convocation` | `EN_ATTENTE`, `COMPARU`, `ABSENT` |
 
-**Table : plaintes**
+### 12.2 Dictionnaire de données
 
-| Attribut | Type | Contrainte | Description |
-|---|---|---|---|
-| id | UUID | PK | Identifiant |
-| numero_dossier | VARCHAR(20) | UNIQUE NOT NULL | Format 2026-NNNNN |
-| id_plaignant | UUID | FK profils | Citoyen déposant |
-| mode_depot | ENUM | NOT NULL | TEXTE / VOCAL |
-| nature_infraction | VARCHAR(150) | NOT NULL | Qualifié par l'IA |
-| description | TEXT | NOT NULL | Déclaration complète |
-| audio_url | VARCHAR | — | URL MinIO si vocal |
-| lieu_faits | VARCHAR | NOT NULL | Adresse textuelle |
-| score_completude | DECIMAL(5,2) | NOT NULL | Score IA 0–100 |
-| entites_extraites | JSONB | — | Entités NLP |
-| statut | ENUM | DEFAULT 'SOUMISE' | Cycle de vie |
-| id_commissariat_cible | UUID | FK | Après routage |
-
-**Table : dossiers**
+**Table : `commissariats`**
 
 | Attribut | Type | Contrainte | Description |
 |---|---|---|---|
 | id | UUID | PK | Identifiant |
-| id_plainte | UUID | FK UNIQUE | Relation 1:1 |
-| id_enqueteur | UUID | FK | Enquêteur affecté |
-| id_commissariat | UUID | FK | Commissariat traitant |
-| statut | ENUM | NOT NULL | Avancement |
-| priorite | ENUM | DEFAULT 'NORMALE' | NORMALE / HAUTE / URGENTE |
-| date_affectation | TIMESTAMPTZ | — | Date d'affectation |
-| date_cloture | TIMESTAMPTZ | — | Date de clôture |
+| nom | TEXT | NOT NULL | Dénomination de l'unité |
+| region, departement, arrondissement | TEXT | NOT NULL | Ressort territorial |
+| zone_competence | GEOMETRY | — | Emprise géographique (PostGIS) |
+| adresse, telephone | TEXT | — | Coordonnées |
 
-**Table : proces_verbaux**
+**Table : `utilisateurs`**
+
+| Attribut | Type | Contrainte | Description |
+|---|---|---|---|
+| id | UUID | PK | Identifiant |
+| role | `role_utilisateur` | NOT NULL, défaut `citoyen` | Habilitation |
+| nom, prenom | TEXT | NOT NULL | État civil |
+| telephone | TEXT | UNIQUE | Contact |
+| email, cni | TEXT | — | Courriel, pièce d'identité |
+| mot_de_passe_hash | TEXT | — | Argon2 ; agents uniquement |
+| matricule | TEXT | UNIQUE | Agents uniquement |
+| grade, specialite | TEXT | — | Agents uniquement |
+| commissariat_id | UUID | FK | Unité de rattachement |
+| actif | BOOLEAN | défaut `true` | Compte actif |
+
+**Table : `plaintes`** — entité centrale
+
+| Attribut | Type | Contrainte | Description |
+|---|---|---|---|
+| id | UUID | PK | Identifiant |
+| numero_dossier | TEXT | UNIQUE NOT NULL | Format `2026-NNNNN`, attribué par déclencheur |
+| plaignant_id | UUID | FK utilisateurs NOT NULL | Déposant |
+| commissariat_id | UUID | FK | Unité compétente |
+| enqueteur_id | UUID | FK utilisateurs | Enquêteur affecté |
+| type_infraction | `type_infraction` | NOT NULL | Qualification |
+| statut | `statut_plainte` | NOT NULL, défaut `RECU` | Avancement |
+| priorite | `priorite_plainte` | NOT NULL, défaut `NORMALE` | Urgence |
+| date_faits | DATE | NOT NULL | Date des faits |
+| lieu_region … lieu_adresse | TEXT | region/dept/arrond NOT NULL | Localisation |
+| declaration | TEXT | NOT NULL | Récit du plaignant |
+| audio_declaration | TEXT | — | Chemin MinIO de l'enregistrement |
+| score_completude | INTEGER | défaut 0 | **Complétude de la déclaration** (0 à 100), calculée par le `service-ia` et destinée au seul citoyen — à ne pas confondre avec le taux d'avancement du dossier, qui n'est pas stocké ici (§7.3, §12.5) |
+| entites_extraites | JSONB | défaut `{}` | Sortie du service d'analyse |
+| mis_en_cause_* | TEXT | — | Nom, prénom, adresse, téléphone, signalement |
+| reponses_questionnaire | JSONB | défaut `{}` | Réponses d'approfondissement |
+| date_affectation, date_cloture | TIMESTAMPTZ | — | Jalons |
+
+**Table : `proces_verbaux`**
 
 | Attribut | Type | Description |
 |---|---|---|
 | id | UUID | Identifiant |
-| id_dossier | UUID FK UNIQUE | Relation 1:1 avec dossier |
-| contenu_genere_ia | TEXT | PV original généré |
-| contenu_final | TEXT | Après révision enquêteur |
-| date_signature | TIMESTAMPTZ | Horodatage signature |
-| signature_electronique | BYTEA | Signature sérialisée |
+| plainte_id | UUID FK | Dossier concerné |
+| contenu | TEXT | Corps du procès-verbal |
+| genere_par_ia | BOOLEAN | Origine de la première version |
+| signe | BOOLEAN | Verrouille toute modification ultérieure |
+| signe_par | UUID FK utilisateurs | Signataire |
+| date_signature | TIMESTAMPTZ | Horodatage de la signature |
 
-**Table : convocations**
-
-| Attribut | Type | Description |
-|---|---|---|
-| id | UUID | Identifiant |
-| id_dossier | UUID FK | Dossier associé |
-| destinataire_nom | VARCHAR | Personne convoquée |
-| date_convocation | DATE | Date de comparution |
-| numero_ordre | INTEGER | 1ère, 2ème, 3ème tentative |
-| statut | ENUM | EMISE / REMISE / REFUSEE / IGNOREE |
-| token_acces | VARCHAR UNIQUE | Lien sécurisé d'accès |
-
-**Table : notifications**
+**Table : `convocations`**
 
 | Attribut | Type | Description |
 |---|---|---|
 | id | UUID | Identifiant |
-| id_utilisateur | UUID FK | Destinataire |
-| canal | ENUM | SMS / EMAIL / IN_APP |
-| message | TEXT | Contenu envoyé |
+| plainte_id | UUID FK | Dossier associé |
+| emis_par | UUID FK utilisateurs | Agent émetteur |
+| nom_convoque | TEXT | Personne convoquée |
+| date_convocation, heure_convocation | DATE, TIME | Comparution |
+| motif | TEXT | Objet de la convocation |
+| numero_ordre | INTEGER | 1ʳᵉ, 2ᵉ, 3ᵉ tentative |
+| statut | `statut_convocation` | EN_ATTENTE / COMPARU / ABSENT |
+| token_acces | TEXT UNIQUE | Jeton de vérification porté par le QR code |
+| sms_envoye | BOOLEAN | Suivi d'acheminement |
+
+**Table : `historique`** — journal d'audit
+
+| Attribut | Type | Description |
+|---|---|---|
+| id | UUID | Identifiant |
+| plainte_id | UUID FK | Dossier concerné |
+| action | TEXT NOT NULL | Nature de l'acte |
+| detail | TEXT | Circonstances |
+| effectue_par | UUID FK utilisateurs | Auteur |
+| adresse_ip | TEXT | Origine de l'action |
+| created_at | TIMESTAMPTZ | Horodatage |
+
+**Table : `pieces_jointes`**
+
+| Attribut | Type | Description |
+|---|---|---|
+| id | UUID | Identifiant |
+| plainte_id | UUID FK | Dossier |
+| nom_fichier, type_mime | TEXT | Nom d'origine, type MIME |
+| taille | INTEGER | Octets |
+| chemin_minio | TEXT | Emplacement dans le stockage objet |
+
+**Table : `notifications`** — file d'attente d'acheminement
+
+| Attribut | Type | Description |
+|---|---|---|
+| id | UUID | Identifiant |
+| destinataire_id | UUID FK utilisateurs | Destinataire |
+| plainte_id | UUID FK | Dossier concerné |
+| canal | ENUM | SMS / EMAIL |
+| telephone, email | TEXT | Adresse d'acheminement |
+| message | TEXT | Contenu |
 | statut_livraison | ENUM | EN_ATTENTE / ENVOYE / LIVRE / ECHEC |
+| tentatives | INTEGER | Nombre de relances effectuées |
+| date_envoi | TIMESTAMPTZ | Horodatage du dernier envoi |
 
-**Table : audit_logs**
+### 12.3 Relations principales
 
-| Attribut | Type | Description |
-|---|---|---|
-| id | UUID | Identifiant |
-| id_utilisateur | UUID FK | Auteur de l'action |
-| action | VARCHAR | Description de l'action |
-| entite_type | VARCHAR | Type concerné (Dossier, PV…) |
-| entite_id | UUID | ID de l'entité |
-| donnees_avant / apres | JSONB | État avant/après modification |
-| adresse_ip | VARCHAR | IP de l'auteur |
-
-### 12.2 Relations principales
-
-- `Utilisateur` (1) ──< (N) `Plainte`
-- `Plainte` (1) ──── (1) `Dossier`
-- `Dossier` (1) ──── (1) `ProcesVerbal`
-- `Dossier` (1) ──< (N) `Convocation`
-- `Commissariat` (1) ──< (N) `Dossier`
 - `Commissariat` (1) ──< (N) `Utilisateur`
+- `Commissariat` (1) ──< (N) `Plainte`
+- `Utilisateur` (1) ──< (N) `Plainte` — en qualité de plaignant
+- `Utilisateur` (1) ──< (N) `Plainte` — en qualité d'enquêteur affecté
+- `Plainte` (1) ──< (N) `ProcesVerbal` — un par audition
+- `Plainte` (1) ──< (N) `Convocation`, `Historique`, `PieceJointe`
+- `Utilisateur` (1) ──< (N) `Notification`
+
+### 12.4 Politiques de sécurité au niveau ligne
+
+Le cloisonnement n'est pas confié au seul code applicatif : il est déclaré dans la base. Chaque service ouvre sa transaction sous un rôle applicatif et y déclare l'identité de l'appelant (`SET LOCAL app.utilisateur_id`), que les politiques exploitent. Une requête forgée, ou un défaut de contrôle dans un service, ne franchit donc pas la barrière.
+
+| Table | Règle de lecture |
+|---|---|
+| `plaintes` | Le citoyen ne voit que celles qu'il a déposées ; l'enquêteur celles qui lui sont affectées ; le commissaire celles de son commissariat |
+| `utilisateurs` | Chacun lit son propre profil ; les agents lisent les profils de leur unité |
+| `historique`, `proces_verbaux`, `convocations`, `pieces_jointes` | Accès dérivé du droit d'accès à la plainte rattachée |
+| `notifications` | Le destinataire seul |
+| `v_avancement_dossier` (vue) | **Le commissaire seul**, et pour son commissariat uniquement : la restriction du taux d'avancement (§7.3) est déclarée dans la base, non laissée au masquage d'une colonne par l'interface |
+
+### 12.5 Automatismes en base
+
+- **Attribution du numéro de dossier** : déclencheur `BEFORE INSERT` sur `plaintes`, format `AAAA-NNNNN`, séquence par année — le numéro ne peut donc pas être dupliqué par deux dépôts simultanés
+- **Journalisation automatique** : tout changement de statut ou d'affectation inscrit une ligne dans `historique`, sans dépendre du code appelant
+- **Horodatage** : `updated_at` mis à jour par déclencheur
+- **Taux d'avancement** : exposé par une **vue calculée** à partir des actes enregistrés dans `historique` et de l'étape courante — aucune colonne stockée, donc aucun risque de divergence entre le chiffre affiché au commissaire et la procédure réelle (§7.3). À distinguer de `plaintes.score_completude`, qui porte la complétude de la déclaration et n'est destinée qu'au citoyen
+
+### 12.6 Jeu d'amorçage
+
+Un jeu de données cohérent accompagne le schéma : **24 plaintes** couvrant les six statuts, **21 citoyens**, **6 agents** (1 commissaire, 4 enquêteurs dont un désactivé, 1 agent d'accueil), les convocations et l'historique correspondants — soit 221 actes de procédure. Il permet de monter un environnement de démonstration ou de recette en une commande.
 
 ---
 
@@ -580,38 +732,85 @@ zonesCompetence : String[]      statut : Enum {EMISE, REMISE, IGNOREE}
 
 ### 13.1 Architecture distribuée
 
-La plateforme repose sur une **architecture distribuée à 3 tiers** avec des microservices IA indépendants.
+La plateforme repose sur une **architecture distribuée à 3 tiers**, dont le tier applicatif est éclaté en trois services Flask autonomes.
 
-**Tier 1 — Frontend**
-SPA React.js servie par Nginx. Communique uniquement avec l'API Gateway via REST/HTTPS.
+**Tier 1 — Présentation**
+SPA **React.js 18** compilée en fichiers statiques, servis par le `service-coeur`. Elle ne dialogue qu'avec ce seul service, en REST/HTTPS, et ne détient aucun secret : le jeton JWT est le seul élément d'authentification qu'elle conserve.
 
-**Tier 2 — Backend distribué**
-- **Spring Cloud Gateway** : point d'entrée unique, authentification JWT, rate limiting, routage vers les services
-- **Spring Boot 3 (Java 21)** : API REST principale, logique métier, orchestration des appels aux microservices IA
-- **Microservices IA (Python / FastAPI)** : services indépendants déployés séparément (STT, NLP, routage, génération PV)
+**Tier 2 — Services applicatifs distribués (Python 3.11 / Flask 3)**
+- **`service-coeur`** — *seul service exposé sur Internet* : terminaison TLS, service du bundle React, authentification et émission des JWT, contrôle des rôles, limitation de débit, en-têtes de sécurité ; plaintes, dossiers, procès-verbaux, convocations, documents, statistiques. Orchestre les appels au `service-ia`
+- **`service-ia`** : transcription vocale, analyse de la déclaration, questionnaire d'approfondissement, orientation territoriale, composition des documents officiels
+- **`service-notifs`** : consommation de la file `notifications`, envoi des SMS et courriels, relances en cas d'échec
+
+Chaque service est un conteneur distinct exécuté par **Gunicorn** (plusieurs *workers* par conteneur), sans état en mémoire : il peut être redémarré, dupliqué ou remplacé sans coordination avec les autres.
 
 **Tier 3 — Données**
-- **PostgreSQL 16** : données métier structurées, avec Spring Data JPA / Hibernate
-- **Redis** : cache de sessions, file de messages asynchrone pour les notifications
-- **MinIO** : stockage objet (audio, PDF, pièces jointes)
+- **PostgreSQL 16 + PostGIS** : données métier structurées, accès par SQLAlchemy, migrations Alembic ; JSONB pour les entités extraites et les réponses au questionnaire ; PostGIS pour la compétence territoriale ; table `notifications` employée comme file d'attente durable
+- **MinIO** : stockage objet S3-compatible pour les audios de déclaration, les pièces jointes et les PDF générés
 
-### 13.2 Architecture des microservices IA
+### 13.2 Découpage fonctionnel du `service-ia`
 
-| Service | Technologie | Rôle |
+| Point d'entrée | Technologie | Rôle |
 |---|---|---|
-| STT | Python + Whisper large-v3 | Audio → texte français (exécution locale, sans API cloud) |
-| NLP | Python + SpaCy + CamemBERT | Extraction d'entités, qualification, score de complétude |
-| Routage | Python + PostGIS | Identification du commissariat compétent par géolocalisation |
-| Génération PV | Python + python-docx + LibreOffice | Template DOCX → PDF institutionnel |
+| `POST /ia/stt` | Whisper large-v3 | Audio → texte français, exécution locale, sans service tiers |
+| `POST /ia/analyse` | spaCy + CamemBERT | Extraction d'entités, qualification de l'infraction, score de complétude |
+| `POST /ia/questionnaire` | Banque de questions + éléments manquants détectés | Questions ciblant ce qui manque, par type d'infraction |
+| `POST /ia/routage` | PostGIS | Identification du commissariat territorialement compétent |
+| `POST /ia/pv` | Jinja2 + WeasyPrint | Gabarit institutionnel → PDF (attestation, procès-verbal, convocation) |
 
-Chaque microservice expose une API REST indépendante. Le Spring Boot les orchestre en appelant les endpoints correspondants.
+Le regroupement de ces traitements dans un service unique — plutôt qu'un service par modèle — évite de charger plusieurs fois les mêmes dépendances Python lourdes en mémoire, tout en gardant l'ensemble déployable indépendamment du `service-coeur`.
 
-### 13.3 Sécurité de l'architecture
+### 13.3 Communication entre services
 
-- **JWT** : tokens émis par Spring Security, validés par l'API Gateway à chaque requête
-- **RLS PostgreSQL** : règles de sécurité au niveau ligne pour isoler les données par rôle
-- **TLS 1.3** : chiffrement de bout en bout sur toutes les communications
-- **RBAC** : chaque rôle n'accède qu'à ses ressources autorisées
+- **Contrats REST/JSON explicites**, versionnés par préfixe d'URL ; aucun service ne lit la base d'un autre service en dehors des tables dont il est responsable
+- **Délais et repli** : tout appel au `service-ia` est borné dans le temps ; à l'expiration, le parcours se poursuit sans assistance plutôt que d'échouer
+- **Idempotence** des écritures sensibles (dépôt, envoi de notification), afin qu'une reprise après incident ne produise pas de doublon
+- **Découplage de la notification** : le `service-coeur` écrit en base, le `service-notifs` lit — les deux ne sont jamais indisponibles ensemble du point de vue de l'utilisateur
+
+### 13.4 Sécurité de l'architecture
+
+- **JWT** : jetons signés émis et vérifiés par le `service-coeur`, puis revalidés par le `service-ia` sur chaque appel interne — aucun service ne fait confiance à son appelant, même sur le réseau privé
+- **Surface d'exposition réduite** : `service-ia`, `service-notifs`, PostgreSQL et MinIO ne publient aucun port hors du réseau de conteneurs ; seul le `service-coeur` est joignable
+- **RLS PostgreSQL** : la règle d'accès s'applique à la ligne, quelle que soit l'origine de la requête (§12.4)
+- **RBAC** appliqué par décorateur sur chaque route Flask
+- **TLS 1.3** de bout en bout ; les services internes ne sont pas exposés hors du réseau privé de conteneurs
+- **MinIO** : *buckets* privés, fichiers délivrés par URL présignée à durée limitée, sans transiter par les services applicatifs
+- **Aucun secret dans l'interface** : clés, identifiants de passerelle et paramètres de connexion résident côté serveur, injectés par variables d'environnement
+- **Cloisonnement par conteneur** : chaque service s'exécute sous un utilisateur non privilégié, en système de fichiers minimal, et ne voit que les services déclarés sur son réseau (§13.5)
+
+### 13.5 Conteneurisation et déploiement
+
+L'ensemble de la plateforme est décrit par un fichier `docker-compose.yml` : **six conteneurs**, deux réseaux, trois volumes persistants. Un environnement complet se monte par une seule commande, ce qui rend l'installation identique sur le poste du développeur, en préproduction et en production.
+
+```
+┌─────────────────────── réseau  public ────────────────────────┐
+│  service-coeur          image plaintecam/coeur:1.0            │
+│  Flask + Gunicorn       port 443 publié · bundle React servi   │
+└───────────────┬───────────────────────────────────────────────┘
+                │
+┌───────────────┴─────── réseau  interne (non publié) ──────────┐
+│  service-ia             image plaintecam/ia:1.0               │
+│                         modèles Whisper + CamemBERT embarqués  │
+│  service-notifs         image plaintecam/notifs:1.0           │
+│                         passerelle SMS · SMTP                  │
+│  postgres               image postgis/postgis:16-3.4          │
+│                         volume  pgdata                         │
+│  minio                  image minio/minio                     │
+│                         volume  objets                         │
+│  prometheus + grafana   supervision · volume  metrics          │
+└───────────────────────────────────────────────────────────────┘
+```
+
+| Aspect | Mise en œuvre |
+|---|---|
+| **Images applicatives** | Construction en deux étapes (*multi-stage*) : dépendances compilées dans une image de construction, seul le résultat est copié dans l'image d'exécution. Le frontend React est bâti puis ses fichiers statiques sont intégrés à l'image du `service-coeur` |
+| **Isolation réseau** | Deux réseaux Docker : le `service-coeur` appartient aux deux, les autres conteneurs au seul réseau interne. Aucun port de PostgreSQL, MinIO, `service-ia` ou `service-notifs` n'est publié sur l'hôte |
+| **Persistance** | Volumes nommés pour les données PostgreSQL, les objets MinIO et les métriques : la suppression d'un conteneur ne détruit aucune donnée |
+| **Configuration** | Aucun paramètre en dur dans les images : URL de base, secrets JWT, identifiants de passerelle SMS et de MinIO sont injectés par variables d'environnement, lues d'un fichier `.env` exclu du dépôt |
+| **Surveillance de l'état** | `healthcheck` par service et politique `restart: unless-stopped` : un service qui ne répond plus est redémarré sans intervention |
+| **Ordre de démarrage** | `depends_on` conditionné à l'état de santé : les services applicatifs n'acceptent de trafic qu'une fois la base prête et les migrations appliquées |
+| **Mise à l'échelle** | `docker compose up --scale service-ia=3` duplique le service coûteux en calcul sans toucher aux autres — c'est la traduction opérationnelle du découpage décrit au §13.1 |
+| **Reproductibilité** | Images étiquetées par version et construites par l'intégration continue ; un déploiement se ramène à changer une étiquette, un retour arrière à remettre la précédente |
 
 ---
 
@@ -621,42 +820,50 @@ Chaque microservice expose une API REST indépendante. Le Spring Boot les orches
 
 | Couche | Technologie | Rôle |
 |---|---|---|
-| Frontend | **React.js 18** | SPA responsive, interface citoyen et back-office |
-| State management | Zustand | Gestion de l'état global côté client |
-| API Gateway | **Spring Cloud Gateway** | Point d'entrée unique, sécurité, routage |
-| Backend API | **Spring Boot 3 (Java 21)** | API REST, logique métier, orchestration |
-| ORM | Spring Data JPA / Hibernate | Accès base de données typé |
-| Sécurité | Spring Security + JWT | Authentification, autorisation RBAC |
-| Microservices IA | **Python 3.11 + FastAPI** | Services STT, NLP, routage, génération PV |
-| STT | **OpenAI Whisper large-v3** | Transcription vocale français (local, open source) |
-| NLP | **SpaCy + CamemBERT** | Extraction d'entités, classification d'infractions |
-| Base de données | **PostgreSQL 16** | Stockage relationnel principal, JSONB, PostGIS |
-| Cache / queues | **Redis 7** | Sessions, file de messages notifications |
-| Stockage fichiers | **MinIO** | Stockage objet S3-compatible (audio, PDF, pièces jointes) |
-| Génération PDF | LibreOffice Headless + python-docx | DOCX → PDF pour documents officiels |
+| Frontend | **React.js 18** (Vite) | SPA responsive, espaces citoyen et back-office |
+| Routage / état client | React Router + Context API | Navigation, session, état global |
+| Appels réseau | Axios | Client HTTP, intercepteurs JWT |
+| Graphiques | Chart.js 4 (`react-chartjs-2`) | Barres, barres horizontales, anneaux, courbes |
+| Point d'entrée unique | **`service-coeur`** (Flask) | Sert le bundle React et l'API ; seul service exposé |
+| Limitation de débit | Flask-Limiter | Protection contre la force brute et les rafales |
+| Certificat TLS | Let's Encrypt (renouvellement automatique) | Chiffrement en transit |
+| Services applicatifs | **Python 3.11 + Flask 3** | `service-coeur`, `service-ia`, `service-notifs` |
+| Serveur d'application | Gunicorn | Exécution multi-*workers* de chaque service |
+| ORM / migrations | SQLAlchemy + Alembic (Flask-Migrate) | Accès aux données, évolution versionnée du schéma |
+| Validation / sérialisation | Marshmallow | Schémas d'entrée et de sortie des API |
+| Sécurité | Flask-JWT-Extended + argon2 | Authentification JWT, hachage des mots de passe, RBAC |
+| Transcription vocale | **OpenAI Whisper large-v3** | Audio → texte français, exécution locale |
+| Traitement de la langue | **spaCy + CamemBERT** | Entités, qualification d'infraction, score de complétude |
+| Base de données | **PostgreSQL 16 + PostGIS** | Données métier, JSONB, compétence territoriale, RLS |
+| Stockage de fichiers | **MinIO** | Objets S3-compatibles : audio, PDF, pièces jointes |
+| Documents PDF | Jinja2 + WeasyPrint | Gabarit HTML institutionnel → PDF |
+| QR code | Bibliothèque `qrcode` (Python) | Jeton de vérification des convocations |
 | Notifications SMS | Twilio / Orange API CM | SMS aux citoyens et mis en cause |
-| Notifications email | Spring Mail | Emails transactionnels |
-| Reverse proxy | **Nginx** | Compression, cache statique, headers sécurité |
-| Conteneurisation | **Docker + Docker Compose** | Isolation des services, déploiement reproductible |
-| CI/CD | GitHub Actions | Tests → build → déploiement staging automatique |
-| Tests backend | JUnit 5 + Mockito | Tests unitaires et d'intégration Spring Boot |
-| Tests IA | Pytest | Tests microservices Python |
-| Monitoring | Prometheus + Grafana | Métriques système et applicatives |
-| Logs | Loki + Grafana | Centralisation et visualisation des logs |
+| Notifications courriel | Flask-Mail (SMTP) | Courriels transactionnels |
+| Conteneurisation | **Docker** (images *multi-stage*) | Une image versionnée par service, exécution identique partout |
+| Orchestration | **Docker Compose** | Six conteneurs, deux réseaux, trois volumes, un fichier de description |
+| Documentation d'API | OpenAPI / Swagger UI | Contrat des trois services, généré depuis le code |
+| CI/CD | GitHub Actions | Tests → construction des images → préproduction |
+| Tests services | Pytest + pytest-flask | Tests unitaires et d'intégration |
+| Tests frontend | Vitest + React Testing Library | Composants et parcours |
+| Supervision | Prometheus + Grafana | Métriques système et applicatives |
+| Journaux | Loki + Grafana | Centralisation et exploration des logs |
 
 ### 14.2 Justification des choix principaux
 
-**Spring Boot** : framework Java mature et robuste, idéal pour les API REST d'entreprise nécessitant une sécurité rigoureuse. Spring Security offre une gestion native des rôles (RBAC), de l'authentification JWT et de la protection contre les vulnérabilités communes. L'écosystème Spring Cloud facilite la mise en place de l'architecture distribuée (Gateway, Config Server, etc.).
+**Flask.** Micro-cadriciel Python volontairement minimal, dont on n'embarque que les extensions nécessaires (JWT, SQLAlchemy, Marshmallow, Mail). Ce faible périmètre est ce qui rend le découpage en trois services soutenable : chaque service reste petit, démarre vite et se lit d'un bloc, là où un cadriciel à conventions lourdes imposerait la même infrastructure trois fois. Surtout, il place l'API métier et les traitements d'assistance dans **un seul langage** : les modèles Whisper et CamemBERT s'appellent directement, sans passerelle ni sérialisation supplémentaire entre deux écosystèmes.
 
-**React.js** : bibliothèque frontend la plus adoptée, composants réutilisables, Virtual DOM performant sur appareils mobiles d'entrée de gamme, large communauté. Partage de code possible avec React Native pour la future version mobile.
+**React.js.** Bibliothèque frontend la plus adoptée, composants réutilisables, DOM virtuel performant sur les appareils mobiles d'entrée de gamme, large communauté. Le découpage en composants sert directement l'application : la vue de dossier construite pour l'enquêteur est réemployée en lecture seule par le commissaire. Un partage de code avec React Native reste ouvert pour la future version mobile.
 
-**Microservices Python pour l'IA** : Python est l'écosystème de référence pour le machine learning. Séparer les services IA du backend Spring Boot permet de les mettre à jour ou remplacer indépendamment, et de les scaler séparément selon la charge de traitement.
+**PostgreSQL.** SGBD le plus avancé en open source : ACID, JSONB pour les entités extraites, PostGIS pour la compétence territoriale, et surtout **sécurité au niveau ligne**, qui permet d'exprimer les règles de visibilité là où elles ne peuvent être contournées. Sa robustesse transactionnelle permet en outre d'utiliser la table `notifications` comme file d'attente durable, sans introduire de courtier de messages supplémentaire à administrer.
 
-**OpenAI Whisper** : meilleure précision en open source pour le français (WER < 5 % sur audio de qualité), exécution entièrement locale — confidentialité des données audio garantie, pas de coût variable d'API cloud.
+**MinIO.** Les audios de déclaration, les pièces jointes et les PDF n'ont pas leur place dans la base — ils l'alourdiraient et compliqueraient les sauvegardes. MinIO expose une API S3 standard, s'auto-héberge (les données restent sur le territoire national) et délivre les fichiers par URL présignée à durée limitée, donc sans les faire transiter par les services applicatifs.
 
-**PostgreSQL** : SGBD le plus avancé en open source, ACID, JSONB pour les entités NLP, PostGIS pour le routage géographique. Support commercial disponible si nécessaire.
+**OpenAI Whisper.** Meilleure précision disponible en open source pour le français (WER < 5 % sur audio de qualité), exécution entièrement locale : la voix d'un plaignant ne quitte pas l'infrastructure, et aucun coût variable d'API cloud ne pèse sur l'exploitation.
 
-**Architecture distribuée** : séparation claire des responsabilités, déploiement et mise à l'échelle indépendants de chaque composant, résilience accrue (panne d'un microservice n'affecte pas les autres).
+**Docker.** Trois services écrits en Python, une base avec extension spatiale, un stockage objet et une pile de supervision : installer tout cela à la main sur une machine, puis recommencer à l'identique sur une autre, est une source de panne bien plus probable que le code lui-même. La conteneurisation ramène ce montage à un fichier versionné, aux côtés du code qu'il déploie. Elle apporte aussi trois choses que l'architecture distribuée exige : un **réseau privé** qui rend les services internes réellement injoignables de l'extérieur, une **mise à l'échelle sélective** du seul service coûteux en calcul, et un **retour arrière immédiat** en remettant l'étiquette d'image précédente. Docker Compose suffit au périmètre v1 ; un orchestrateur de type Kubernetes ne se justifierait qu'à l'échelle de plusieurs commissariats déployés en parallèle.
+
+**Architecture distribuée.** Séparation claire des responsabilités, déploiement et mise à l'échelle indépendants, résilience accrue. Le dimensionnement le justifie concrètement : le `service-ia` est gourmand en mémoire et en CPU (modèles chargés en RAM) alors que le `service-coeur` traite de nombreuses requêtes courtes — les héberger ensemble obligerait à dimensionner l'ensemble sur le plus exigeant des deux. Le découplage a aussi une conséquence fonctionnelle directe : la panne d'un service dégrade une fonction, elle n'arrête pas le service public.
 
 ---
 
@@ -666,36 +873,36 @@ Chaque microservice expose une API REST indépendante. Le Spring Boot les orches
 
 | Phase | Intitulé | Durée | Période |
 |---|---|---|---|
-| 1 | Analyse des besoins et cahier des charges | 2 semaines | S1–S2 |
-| 2 | Conception (UML, maquettes, architecture) | 2 semaines | S3–S4 |
-| 3 | Développement backend Spring Boot + API | 4 semaines | S5–S8 |
-| 4 | Développement microservices IA (Python) | 3 semaines | S6–S8 |
-| 5 | Développement frontend React.js | 3 semaines | S9–S11 |
-| 6 | Intégration, tests fonctionnels et de charge | 2 semaines | S12–S13 |
-| 7 | Déploiement, recette et documentation finale | 1 semaine | S14 |
+| 1 | Analyse des besoins, entretien de terrain, cahier des charges | 2 semaines | S1–S2 |
+| 2 | Conception : modèle de données, maquettes, parcours, contrats d'API | 2 semaines | S3–S4 |
+| 3 | `service-coeur` : authentification, plaintes, dossiers, documents, statistiques | 4 semaines | S5–S8 |
+| 4 | `service-ia` et `service-notifs` : transcription, analyse, orientation, PDF, SMS | 3 semaines | S6–S8 |
+| 5 | Frontend React : espace citoyen, espace enquêteur, espace commissaire | 4 semaines | S8–S11 |
+| 6 | Intégration, tests fonctionnels et tests de charge | 2 semaines | S12–S13 |
+| 7 | Conteneurisation, déploiement, recette, documentation et soutenance | 1 semaine | S14 |
 
-Les phases 3 et 4 sont partiellement parallèles à partir de la semaine 6.
+Les phases 3 et 4 se recouvrent à partir de la semaine 6 : les contrats d'API étant figés en phase 2, le service d'assistance se développe contre des doublures et non contre le service métier réel. La phase 5 démarre dès que les points d'entrée du `service-coeur` sont disponibles en préproduction.
 
 ### 15.2 Diagramme de Gantt
 
 ```
-                    S1  S2  S3  S4  S5  S6  S7  S8  S9  S10 S11 S12 S13 S14
-────────────────────────────────────────────────────────────────────────────
-Phase 1 — Analyse   ██  ██
-Phase 2 — Conception          ██  ██
-Phase 3 — Backend                     ██  ██  ██  ██
-Phase 4 — IA                              ██  ██  ██
-Phase 5 — Frontend                                    ██  ██  ██
-Phase 6 — Tests                                                   ██  ██
-Phase 7 — Déploiement                                                     ██
-────────────────────────────────────────────────────────────────────────────
+                        S1  S2  S3  S4  S5  S6  S7  S8  S9  S10 S11 S12 S13 S14
+────────────────────────────────────────────────────────────────────────────────
+P1 — Analyse            ██  ██
+P2 — Conception                 ██  ██
+P3 — service-coeur                      ██  ██  ██  ██
+P4 — service-ia/notifs                      ██  ██  ██
+P5 — Frontend React                                 ██  ██  ██  ██
+P6 — Intégration/tests                                          ██  ██
+P7 — Déploiement                                                        ██
+────────────────────────────────────────────────────────────────────────────────
 Jalons :
-  ▲ S2  : Cahier des charges validé
-  ▲ S4  : Conception et maquettes validées
-  ▲ S8  : Backend + IA intégrés, tests unitaires OK
-  ▲ S11 : Frontend intégré à l'API, parcours utilisateurs fonctionnels
-  ▲ S13 : Tests terminés, anomalies corrigées
-  ▲ S14 : Déploiement final, recette validée
+  ▲ S2  : Cahier des charges validé, entretien de terrain exploité
+  ▲ S4  : Modèle de données, maquettes et contrats d'API validés
+  ▲ S8  : Services Flask intégrés, schéma déployé, tests unitaires au vert
+  ▲ S11 : Trois espaces React raccordés aux API, parcours complets
+  ▲ S13 : Tests fonctionnels et de charge terminés, anomalies corrigées
+  ▲ S14 : Déploiement final, recette validée, démonstration prête
 ```
 
 ---
@@ -704,29 +911,36 @@ Jalons :
 
 | # | Livrable | Format | Échéance | Critère d'acceptation |
 |---|---|---|---|---|
-| L1 | Cahier des charges | PDF | Fin S2 | Validé par toutes les parties prenantes |
-| L2 | Maquettes des interfaces | Figma + PDF | Fin S4 | Validation par un utilisateur test non technique |
-| L3 | Diagrammes UML | PNG + PlantUML | Fin S4 | Cohérence avec le cahier des charges |
-| L4 | Schéma de base de données | SQL + PNG | Fin S4 | Exécutable sans erreur sur PostgreSQL 16 |
-| L5 | Code source Spring Boot (API REST) | Dépôt Git | Fin S8 | Couverture tests ≥ 70 %, tous les tests passent |
-| L6 | Code source microservices IA (Python) | Dépôt Git | Fin S8 | STT ≥ 85 % précision, NLP qualification ≥ 80 % |
-| L7 | Code source frontend React.js | Dépôt Git | Fin S11 | Parcours utilisateurs fonctionnels, responsive validé |
-| L8 | Documentation API (Swagger / OpenAPI) | Swagger UI | Fin S11 | Couverture 100 % des endpoints |
-| L9 | Rapport de tests | PDF | Fin S13 | Tests de charge validés à 500 utilisateurs simultanés |
-| L10 | Application déployée | URL | Fin S14 | Disponibilité ≥ 99,5 % la première semaine |
-| L11 | Documentation technique | Markdown / PDF | Fin S14 | Déploiement réussi sur environnement vierge |
-| L12 | Présentation de soutenance | PowerPoint / PDF | Soutenance | Démo fonctionnelle sur les scénarios principaux |
+| L1 | Cahier des charges | Markdown / PDF | Fin S2 | Validé par les parties prenantes |
+| L2 | Compte rendu d'entretien de terrain | Markdown | Fin S2 | Validé par l'agent interviewé |
+| L3 | Maquettes des interfaces | Figma / HTML navigable | Fin S4 | Parcourues par un utilisateur non technique |
+| L4 | Diagrammes UML | Intégrés au §11 | Fin S4 | Cohérents avec le code livré |
+| L5 | Schéma de base de données et migrations | SQL + Alembic | Fin S5 | S'exécute sans erreur sur PostgreSQL 16 |
+| L6 | Jeu d'amorçage | SQL | Fin S5 | 24 plaintes couvrant les six statuts |
+| L7 | Code source `service-coeur` | Dépôt Git | Fin S8 | Couverture de tests ≥ 70 %, tests au vert |
+| L8 | Code source `service-ia` et `service-notifs` | Dépôt Git | Fin S8 | Transcription ≥ 85 %, qualification ≥ 80 % |
+| L9 | Code source frontend React | Dépôt Git | Fin S11 | Parcours complets, responsive dès 320 px |
+| L10 | Documentation d'API | OpenAPI / Swagger UI | Fin S11 | 100 % des points d'entrée décrits |
+| L11 | Rapport de tests | PDF | Fin S13 | Charge validée à 500 utilisateurs simultanés |
+| L12 | Fichiers de conteneurisation | `Dockerfile` × 3 + `docker-compose.yml` | Fin S13 | `docker compose up` démarre les six conteneurs sur une machine vierge |
+| L13 | Application déployée | URL publique | Fin S14 | Disponibilité ≥ 99,5 % la première semaine |
+| L14 | Documentation technique et de déploiement | Markdown | Fin S14 | Un tiers monte la plateforme sur un environnement vierge |
+| L15 | Présentation de soutenance | PDF | Soutenance | Démonstration des scénarios principaux |
 
 ---
 
 ## 17. Conclusion
 
-Ce cahier des charges définit les exigences fonctionnelles, techniques et organisationnelles de la plateforme PlainteCam, dont la conception repose sur une analyse terrain rigoureuse du processus de dépôt de plainte au Cameroun.
+Ce cahier des charges définit les exigences fonctionnelles, techniques et organisationnelles de la plateforme PlainteCam, dont la conception repose sur une analyse de terrain du processus de dépôt de plainte au Cameroun.
 
-**Différenciation technologique** : la plateforme est la seule à combiner saisie vocale (STT Whisper), assistance IA adaptive (NLP CamemBERT), génération automatique de PV institutionnel, et routage géographique intelligent — répondant directement aux dysfonctionnements documentés sur le terrain.
+**Fidélité à la procédure réelle.** L'apport principal n'est pas technologique mais procédural : l'application reproduit l'enchaînement effectivement suivi au commissariat — le plaignant est convoqué et auditionné avant l'ouverture de l'enquête, le mis en cause est convoqué jusqu'à trois fois, un dossier ne se clôt qu'une fois toutes ses étapes franchies, un procès-verbal signé ne se modifie plus. Ces règles sont contraintes par l'application, non laissées à la discipline de l'agent.
 
-**Architecture adaptée** : le choix d'une architecture distribuée Spring Boot + React + microservices Python garantit la séparation des responsabilités, la scalabilité indépendante de chaque composant, et la robustesse nécessaire à un service public critique.
+**Architecture adaptée à la nature des traitements.** Le choix d'une architecture distribuée — interface React, trois services Flask, PostgreSQL et MinIO — répond à un besoin concret et non à un effet de mode : les traitements d'assistance vocale et linguistique n'ont ni le profil de charge, ni le rythme de mise à jour, ni les besoins matériels de l'API métier. Les séparer permet de les dimensionner et de les faire évoluer séparément, et fait qu'une défaillance de l'un dégrade une fonction sans interrompre le service.
 
-**Périmètre maîtrisé** : la version 1 est délibérément cadrée pour une livraison en 14 semaines. Les fonctionnalités exclues (USSD, multilinguisme, intégration judiciaire) sont planifiées en phase 2 selon les retours utilisateurs.
+**Sécurité déclarée au plus près des données.** Les règles de visibilité sont exprimées dans PostgreSQL sous forme de politiques au niveau ligne, en plus des contrôles portés par les services. Un défaut dans une route applicative ne suffit donc pas à exposer le dossier d'un justiciable.
 
-La mise en service de PlainteCam est susceptible de produire des effets mesurables : réduction des barrières d'accès à la justice pour les citoyens, gain de temps administratif significatif pour les enquêteurs, et renforcement de la confiance dans les institutions de sécurité par la transparence du suivi des dossiers.
+**Assistance explicable.** Les mécanismes d'aide — transcription, analyse de la déclaration, approfondissement, orientation territoriale, composition des documents — restent au service de l'agent et du citoyen. Les deux pourcentages affichés par la plateforme sont d'ailleurs strictement séparés (§7.3) : la **complétude de la déclaration** est montrée au citoyen pendant qu'il rédige, parce qu'elle l'aide à préciser, et n'est pas reportée comme note sur le dossier — un chiffre non explicable orienterait le jugement d'un enquêteur sur une affaire judiciaire ; le **taux d'avancement du dossier**, réservé au commissaire, ne juge pas la plainte mais la procédure, et se déduit des actes réellement accomplis.
+
+**Périmètre maîtrisé.** La version 1 est délibérément cadrée pour une livraison en 14 semaines. Les fonctionnalités exclues — accès USSD, langues nationales, transmission électronique au parquet — sont planifiées en phase 2 selon les retours du terrain.
+
+La mise en service de PlainteCam est susceptible de produire des effets mesurables : réduction des barrières d'accès à la justice pour les citoyens, gain de temps administratif pour les enquêteurs, et renforcement de la confiance dans les institutions de sécurité par la transparence du suivi des dossiers.

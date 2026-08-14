@@ -612,6 +612,57 @@ const ETAPES = [
   { cle: 'CLOTURE',        icon: 'valide',   libelle: 'Clôture',         attente: 'Vous êtes notifié par e-mail' }
 ];
 
+/* ── Avancement du dossier ───────────────────────────────────
+   Part de la procédure réellement accomplie, en pourcentage.
+
+   À ne pas confondre avec le champ `score` d'un dossier, qui mesure la
+   complétude de la *déclaration* — la richesse du récit du plaignant.
+   Ces deux chiffres ne mesurent pas la même chose et ne s'adressent pas
+   aux mêmes personnes : la complétude regarde le citoyen pendant qu'il
+   rédige, l'avancement regarde le commissaire qui supervise. Le tableau
+   des dossiers affichait le premier sous l'intitulé « Complétude », si
+   bien qu'un dossier bien raconté paraissait avancé alors que rien n'y
+   avait encore été fait.
+
+   L'avancement se déduit des étapes franchies et, pour l'étape en cours,
+   des actes qui y sont déjà accomplis. Rien ne se saisit à la main : un
+   dossier ne peut donc pas être déclaré avancé sans que les actes
+   correspondants figurent au dossier.
+
+   `actesDeLEtape` appartient à l'espace enquêteur et n'est pas chargé
+   partout. Quand il manque, on s'en tient aux étapes franchies : le
+   chiffre est plus grossier, jamais faux.
+   ─────────────────────────────────────────────────────────── */
+function avancementDossier(d) {
+  if (!d || typeof ORDRE_ETAPES === 'undefined') return 0;
+
+  /* Transmis au parquet ou clos : la procédure est allée à son terme. */
+  if (d.statut === 'CLOTURE' || d.statut === 'TRANSMIS') return 100;
+
+  var rang = ORDRE_ETAPES.indexOf(d.statut);
+  if (rang < 0) return 0;
+
+  var franchies = 0;
+  var courante = null;
+  ETAPES.forEach(function (et) {
+    var r = ORDRE_ETAPES.indexOf(et.cle);
+    if (r < rang) franchies++;
+    else if (r === rang) courante = et.cle;
+  });
+
+  /* Fraction de l'étape en cours : sans elle, un dossier resterait au
+     même chiffre du premier au dernier acte de son étape. */
+  var part = 0;
+  if (courante && typeof actesDeLEtape === 'function') {
+    var actes = actesDeLEtape(d, courante) || [];
+    if (actes.length) {
+      part = actes.filter(function (a) { return a.fait; }).length / actes.length;
+    }
+  }
+
+  return Math.round((franchies + part) / ETAPES.length * 100);
+}
+
 /* Chaque évènement porte l'étape à laquelle il se rattache : les messages
    ne sont pas des étapes, ils se lisent à l'intérieur de l'étape en cours
    au moment où l'enquêteur les a écrits. */

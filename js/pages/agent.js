@@ -105,7 +105,11 @@ function initDashboard(liste) {
   }
   tbody.innerHTML = lignes.map(d => {
     const [cls, lbl] = STATUT_LABELS[d.statut];
-    const scoreClass = d.score >= 80 ? 'high' : d.score >= 50 ? 'med' : 'low';
+    /* Avancement de la procédure, pas complétude de la déclaration : voir
+       avancementDossier() dans data.js. Le seuil vert n'est atteint que par
+       un dossier réellement mené à son terme. */
+    const avance = avancementDossier(d);
+    const scoreClass = avance >= 80 ? 'high' : avance >= 50 ? 'med' : 'low';
     const prioColor = d.priorite === 'URGENTE' ? 'red' : d.priorite === 'HAUTE' ? 'orange' : 'gray';
     return `<tr onclick="consulterDossier('${d.id}')" style="cursor:pointer">
       <td><strong>${d.id}</strong></td>
@@ -115,10 +119,11 @@ function initDashboard(liste) {
       <td><span class="badge badge-${prioColor}">${d.priorite}</span></td>
       <td>
         <div style="display:flex;align-items:center;gap:8px">
-          <div class="score-bar-wrap" style="width:80px">
-            <div class="score-bar ${scoreClass}" style="width:${d.score}%"></div>
+          <div class="score-bar-wrap" style="width:80px" role="img"
+               aria-label="Avancement du dossier : ${avance} %">
+            <div class="score-bar ${scoreClass}" style="width:${avance}%"></div>
           </div>
-          <span style="font-size:12px">${d.score}%</span>
+          <span style="font-size:12px">${avance}%</span>
         </div>
       </td>
       <td><span class="badge ${cls}">${lbl}</span></td>
