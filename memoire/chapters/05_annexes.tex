@@ -17,41 +17,31 @@
     \item Vérifier l'\textbf{aperçu}, signer, puis valider. Le \textbf{récépissé} au format PDF, portant le numéro de dossier et un QR code de vérification, est téléchargeable immédiatement.
 \end{enumerate}
 
-\figopt{ecran_depot_nature.png}{0.58}{Étape 1 — nature de l'infraction et cascade de localisation}{fig:man_depot_nature}
+\figopt{ecran_depot_nature.png}{0.68}{Étape 1 — nature de l'infraction et cascade de localisation}{fig:man_depot_nature}
 
-\figopt{ecran_depot_apercu.png}{0.58}{Étape 5 — aperçu de la déclaration avant signature}{fig:man_depot_apercu}
+\figopt{ecran_depot_apercu.png}{0.68}{Étape 5 — aperçu de la déclaration avant signature}{fig:man_depot_apercu}
 
 \subsection*{A.2 — Suivre son dossier}
 
 Depuis \textbf{Mes plaintes}, le plaignant consulte l'état de chacun de ses dossiers. Les statuts successifs sont : \textit{Reçu}, \textit{Audition}, \textit{En instruction}, \textit{Décision}, \textit{Transmis}, \textit{Clôturé}. Toute convocation reçue apparaît dans le dossier concerné.
 
-\figopt{ecran_suivi.png}{0.58}{Espace citoyen — suivi de l'avancement d'un dossier}{fig:man_suivi}
+\figopt{ecran_suivi.png}{0.68}{Espace citoyen — suivi de l'avancement d'un dossier}{fig:man_suivi}
 
 \subsection*{A.3 — Coter un dossier (espace commissaire)}
 
 Depuis le tableau de bord, sélectionner un dossier au statut \textit{Reçu}, cliquer sur \textbf{Coter}, désigner l'enquêteur destinataire et confirmer la priorité proposée. La cotation est inscrite au journal d'audit et notifiée à l'enquêteur.
 
-\figopt{ecran_cotation.png}{0.58}{Espace commissaire — cotation d'un dossier à un enquêteur}{fig:man_cotation}
+\figopt{ecran_cotation.png}{0.68}{Espace commissaire — cotation d'un dossier à un enquêteur}{fig:man_cotation}
 
 \subsection*{A.4 — Dresser un procès-verbal (espace enquêteur)}
 
 Ouvrir un dossier coté, puis choisir \textbf{Nouveau PV} et sélectionner l'audition concernée. Une proposition rédigée à partir de la déclaration s'affiche dans l'éditeur. \textbf{La relecture est obligatoire} : corriger, compléter, puis valider et signer. Le PV n'est enregistré qu'après validation explicite.
 
-\figopt{ecran_pv.png}{0.58}{Espace enquêteur — éditeur de procès-verbal, proposition révisable}{fig:man_pv}
+\figopt{ecran_pv.png}{0.68}{Espace enquêteur — éditeur de procès-verbal, proposition révisable}{fig:man_pv}
 
-\section*{Annexe B — Captures d'écran complémentaires}
+\section*{Annexe B — Extraits de code}
 
-\figopt{ecran_connexion.png}{0.58}{Écran de connexion — choix du rôle et authentification}{fig:cap_connexion}
-
-\figopt{ecran_recepisse.png}{0.58}{Récépissé de dépôt de plainte généré au format PDF}{fig:cap_recepisse}
-
-\figopt{ecran_convocation.png}{0.58}{Convocation émise par l'enquêteur}{fig:cap_convocation}
-
-\figopt{ecran_qr.png}{0.58}{Vérification d'une pièce par son QR code}{fig:cap_qr}
-
-\section*{Annexe C — Extraits de code}
-
-\subsection*{C.1 — Dépôt d'une plainte et rattachement au commissariat}
+\subsection*{B.1 — Dépôt d'une plainte et rattachement au commissariat}
 
 \begin{lstlisting}[language=Python,caption={Endpoint Flask de dépôt d'une plainte},label={lst:depot}]
 @app.route("/api/plaintes", methods=["POST"])
@@ -84,7 +74,7 @@ def deposer_plainte():
     return jsonify(PlainteSchema().dump(plainte)), 201
 \end{lstlisting}
 
-\subsection*{C.2 — Rédaction assistée du procès-verbal}
+\subsection*{B.2 — Rédaction assistée du procès-verbal}
 
 \begin{lstlisting}[language=Python,caption={Appel au modèle génératif (Llama 3.1 via Groq), côté serveur},label={lst:ia}]
 from groq import Groq
@@ -112,7 +102,7 @@ def proposer_proces_verbal(plainte):
     return reponse.choices[0].message.content
 \end{lstlisting}
 
-\subsection*{C.3 — Cloisonnement des accès au niveau du SGBD}
+\subsection*{B.3 — Cloisonnement des accès au niveau du SGBD}
 
 \begin{lstlisting}[language=SQL,caption={Politique d'accès par ligne sur la table des plaintes},label={lst:rls}]
 -- Un plaignant ne voit que ses propres dossiers.
@@ -128,7 +118,7 @@ CREATE POLICY plaintes_select_commissaire ON plaintes
   FOR SELECT USING (commissariat_id = current_user_commissariat());
 \end{lstlisting}
 
-\section*{Annexe D — Fiches de tests}
+\section*{Annexe C — Fiches de tests}
 
 \begin{table}[H]
     \centering
@@ -161,7 +151,7 @@ CREATE POLICY plaintes_select_commissaire ON plaintes
     \label{tab:fiches_tests}
 \end{table}
 
-\section*{Annexe E — Glossaire technique}
+\section*{Annexe D — Glossaire technique}
 
 \begin{table}[H]
     \centering

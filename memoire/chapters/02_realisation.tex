@@ -59,7 +59,7 @@ Pour le frontend, React.js~\cite{react:web} a été sélectionné après évalua
     \label{tab:frontend}
 \end{table}
 
-React a été retenu parce que ses composants permettent à quatre espaces — citoyen, enquêteur, commissaire, administrateur — de partager les mêmes briques d'interface sans duplication, et parce que sa gestion d'état convient au formulaire de dépôt en cinq étapes, dont la saisie doit survivre à la navigation entre écrans~\cite{react:book}.
+React a été retenu parce que ses composants permettent à quatre espaces — citoyen, enquêteur, commissaire, administrateur — de partager les mêmes briques d'interface sans duplication, et parce que sa gestion d'état convient au formulaire de dépôt en cinq étapes, dont la saisie doit survivre à la navigation entre écrans.
 
 \begin{figure}[H]
     \centering
@@ -70,7 +70,7 @@ React a été retenu parce que ses composants permettent à quatre espaces — c
 
 \subsection{Backend : Flask}
 
-\textbf{Flask}~\cite{flask:web} a été retenu pour l'exposition des API et l'orchestration de la logique métier côté serveur. Ce micro-framework Python suit la spécification \textbf{WSGI}~\cite{wsgi:pep} et laisse à l'équipe le choix de ses composants plutôt que d'imposer une pile complète.
+\textbf{Flask}~\cite{flask:web} a été retenu pour l'exposition des API et l'orchestration de la logique métier côté serveur. Ce micro-framework Python suit la spécification \textbf{WSGI} et laisse à l'équipe le choix de ses composants plutôt que d'imposer une pile complète.
 
 \begin{table}[H]
     \centering
@@ -93,7 +93,7 @@ React a été retenu parce que ses composants permettent à quatre espaces — c
     \label{tab:backend}
 \end{table}
 
-Flask a été retenu d'abord pour la \textbf{continuité de langage avec l'IA} — le client Python de Groq s'intègre au backend sans passerelle ni service intermédiaire, et c'est le critère qui a tranché —, ensuite parce qu'un périmètre fonctionnel maîtrisé permet de choisir explicitement chaque brique plutôt que d'en hériter d'une pile imposée : SQLAlchemy pour la persistance~\cite{sqlalchemy:web}, Flask-JWT-Extended pour l'authentification, pour une empreinte et un coût d'exploitation réduits derrière un serveur WSGI de production~\cite{flask:book}.
+Flask a été retenu d'abord pour la \textbf{continuité de langage avec l'IA} — le client Python de Groq s'intègre au backend sans passerelle ni service intermédiaire, et c'est le critère qui a tranché —, ensuite parce qu'un périmètre fonctionnel maîtrisé permet de choisir explicitement chaque brique plutôt que d'en hériter d'une pile imposée : SQLAlchemy pour la persistance, Flask-JWT-Extended pour l'authentification, pour une empreinte et un coût d'exploitation réduits derrière un serveur WSGI de production.
 
 % La figure s'affiche automatiquement dès que images/flask.png existe.
 \IfFileExists{images/flask.png}{%
@@ -107,13 +107,13 @@ Flask a été retenu d'abord pour la \textbf{continuité de langage avec l'IA} �
 
 \subsection{Persistance : PostgreSQL et Supabase Storage}
 
-Le \textbf{SGBD} \textbf{PostgreSQL}~\cite{postgresql:web} assure la persistance des données structurées : son typage fort, ses types énumérés natifs — statuts, priorités, natures d'infraction — et son moteur transactionnel garantissent la cohérence des dossiers tout au long de l'enquête.
+Le \textbf{SGBD} \textbf{PostgreSQL} assure la persistance des données structurées : son typage fort, ses types énumérés natifs — statuts, priorités, natures d'infraction — et son moteur transactionnel garantissent la cohérence des dossiers tout au long de l'enquête.
 
 Les \textbf{pièces jointes} sont en revanche confiées à \textbf{Supabase Storage}~\cite{supabase:storage}, la base ne conservant que leurs métadonnées et le chemin de l'objet. Le dépôt est un \textbf{bucket privé} réservé aux utilisateurs authentifiés : aucune pièce n'est accessible par une URL publique, ce qui serait inacceptable pour un certificat médical ou l'identité d'un mis en cause.
 
 \subsection{Intelligence Artificielle : Llama 3.1 servi par Groq}
 
-La rédaction assistée des procès-verbaux s'appuie sur le modèle \textbf{Llama 3.1} de Meta, exploité via la plateforme d'inférence \textbf{Groq}~\cite{llama:meta,groq:api} — à ne pas confondre avec \textit{Grok}, le modèle de la société xAI. Son \textbf{palier gratuit} couvre les besoins du projet, son inférence rapide rend la proposition quasi instantanée, les poids ouverts de Llama autorisent un réhébergement ultérieur sur infrastructure maîtrisée, et l'appel reste exclusivement côté serveur : la clé d'API n'est jamais exposée au navigateur.
+La rédaction assistée des procès-verbaux s'appuie sur le modèle \textbf{Llama 3.1} de Meta, exploité via la plateforme d'inférence \textbf{Groq}~\cite{groq:api} — à ne pas confondre avec \textit{Grok}, le modèle de la société xAI. Son \textbf{palier gratuit} couvre les besoins du projet, son inférence rapide rend la proposition quasi instantanée, les poids ouverts de Llama autorisent un réhébergement ultérieur sur infrastructure maîtrisée, et l'appel reste exclusivement côté serveur : la clé d'API n'est jamais exposée au navigateur.
 
 Le procès-verbal produit reste une \textbf{proposition} : il est présenté à l'enquêteur dans un éditeur, qui le corrige et le valide avant signature. L'IA assiste la rédaction, elle ne se substitue pas à l'officier de police judiciaire, seul habilité à dresser le procès-verbal au sens du Code de procédure pénale~\cite{cameroun:cpp}.
 
@@ -132,11 +132,11 @@ Le développement s'est effectué sous \textbf{Windows 10}, avec \textbf{Visual 
 
 \subsection{Architecture globale}
 
-La plateforme PlainteCam suit une architecture \textbf{trois-tiers découplée} : le frontend React.js communique exclusivement avec le backend Flask via des API REST~\cite{rest:fielding} sécurisées par jeton. Le backend orchestre la logique métier, la persistance des données et les appels au service d'IA générative.
+La plateforme PlainteCam suit une architecture \textbf{trois-tiers découplée} : le frontend React.js communique exclusivement avec le backend Flask via des API REST sécurisées par jeton. Le backend orchestre la logique métier, la persistance des données et les appels au service d'IA générative.
 
 \begin{figure}[H]
     \centering
-    \includegraphics[width=0.7\textwidth]{diagrammes/architecture.png}
+    \includegraphics[width=0.78\textwidth]{diagrammes/architecture.png}
     \caption{Structure technique et organisation}
     \label{fig:architecture}
 \end{figure}
@@ -146,7 +146,7 @@ La plateforme PlainteCam suit une architecture \textbf{trois-tiers découplée} 
 \subsubsection{Diagramme de cas d'utilisation}
 \begin{figure}[H]
     \centering
-    \includegraphics[width=0.68\textwidth]{diagrammes/usecase.png}
+    \includegraphics[width=0.78\textwidth]{diagrammes/usecase.png}
     \caption{Diagramme de cas d'utilisation — PlainteCam}
     \label{fig:usecase}
 \end{figure}
@@ -155,7 +155,7 @@ La plateforme PlainteCam suit une architecture \textbf{trois-tiers découplée} 
 Le diagramme de classes constitue l'élément central de la modélisation orientée objet. Il décrit comment les entités du domaine interagissent pour concrétiser les différents cas d'utilisation.
 \begin{figure}[H]
     \centering
-    \includegraphics[width=0.78\textwidth]{diagrammes/classe.png}
+    \includegraphics[width=0.88\textwidth]{diagrammes/classe.png}
     \caption{Diagramme de classes — Modèle conceptuel de PlainteCam}
     \label{fig:classe}
 \end{figure}
@@ -164,7 +164,7 @@ Le diagramme de classes constitue l'élément central de la modélisation orient
 La figure~\ref{fig:sequence} illustre la séquence du dépôt d'une plainte, depuis la saisie guidée jusqu'à la rédaction assistée du procès-verbal.
 \begin{figure}[H]
     \centering
-    \includegraphics[width=0.62\textwidth]{diagrammes/sequence.png}
+    \includegraphics[width=0.74\textwidth]{diagrammes/sequence.png}
     \caption{Diagramme de séquence — Dépôt et instruction d'une plainte}
     \label{fig:sequence}
 \end{figure}
@@ -177,7 +177,7 @@ Le dépôt de plainte est implémenté comme un \textbf{formulaire multi-étapes
 
 \begin{enumerate}
     \item \textbf{Nature de l'infraction} — choix parmi les natures gérées (vol simple, vol avec violence, agression physique, escroquerie, harcèlement, dégradation de biens, accident de la route, autre) et cascade géographique Région / Département / Arrondissement / Quartier. Le \textbf{commissariat compétent} est déduit automatiquement du quartier des faits.
-    \item \textbf{Déclaration des faits} — récit libre du plaignant, avec dictée vocale optionnelle s'appuyant sur la Web Speech API~\cite{webspeech:mdn}.
+    \item \textbf{Déclaration des faits} — récit libre du plaignant, avec dictée vocale optionnelle s'appuyant sur la Web Speech API du navigateur.
     \item \textbf{Identité du mis en cause} — renseignée lorsqu'elle est connue, facultative dans le cas contraire.
     \item \textbf{Questions complémentaires} — un jeu de questions propre à la nature de l'infraction est proposé ; celles dont la réponse figure déjà dans le récit des faits sont automatiquement écartées, afin de ne pas faire répéter le plaignant.
     \item \textbf{Aperçu et confirmation} — récapitulatif de la déclaration, signature puis dépôt définitif, avec délivrance d'un \textbf{récépissé} portant le numéro de dossier.
