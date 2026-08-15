@@ -1,0 +1,490 @@
+\documentclass[9pt]{beamer}
+\mode<presentation>
+
+% Theme choice:
+\usetheme{Madrid}%Darmstadt
+
+\usecolortheme[RGB={0,100,50}]{structure}
+ \usefonttheme{structurebold}
+\setbeamercovered{invisible}
+%\setbeamertemplate{navigation symbols}{}
+\usepackage{dynblocks}
+\usepackage{textpos}
+\usepackage{amsfonts}
+\usepackage{amsmath}
+\usepackage{amssymb}
+\usepackage{amsthm}
+\usepackage{mathtools}
+\usepackage{dutchcal}
+\usepackage{hyperref}
+\usepackage[utf8]{inputenc}
+\usepackage[T1]{fontenc}
+\usepackage[french]{babel}
+\usepackage{enumitem}
+\usepackage{array}
+\usepackage{tabularx}
+\usepackage{booktabs}
+
+\usepackage[affil-it]{authblk}
+\usepackage{toolbox}
+\usepackage{lmodern}
+
+% Chemins des images : logo et captures dans ../images/, diagrammes UML
+% dans ../diagrammes/
+\graphicspath{{../images/}{../diagrammes/}}
+
+\makeatletter
+\patchcmd{\@maketitle}{\LARGE \@title}{\fontsize{14}{19.2}\selectfont\@title}{}{}
+\makeatother
+
+\renewcommand\Authfont{\fontsize{14}{14.4}\selectfont}
+\renewcommand\Affilfont{\fontsize{14}{10.8}\itshape}
+
+% Title page details:
+\title[Master Professionnel SIGL]{CONCEPTION ET RÉALISATION D'UNE PLATEFORME WEB DE DÉPÔT ET DE TRAITEMENT NUMÉRIQUE DES PLAINTES CITOYENNES}
+
+\institute[KLIVAR --- UY1]{\textbf{\large
+Présenté par :\\
+TCHOUALA NODEM BOREL\\[0.8em]
+Supervisé par :\\
+Dr. NZEKON NZEKO'O ARMEL JACQUES\\
+M. SAMUEL DIKONGUE}
+ \begin{center}
+  \includegraphics[width=0.15\textwidth]{Logo.png}
+
+\end{center}
+}
+\date{Année académique 2025--2026}
+
+\usepackage[pscoord]{eso-pic}
+
+
+\begin{document}
+
+\frame[plain]{\titlepage}
+
+\begin{frame}{PLAN DE TRAVAIL}
+  \tableofcontents
+\end{frame}
+
+%####################################################
+
+\section{INTRODUCTION}
+
+\begin{frame}{INTRODUCTION}
+    \begin{center}
+    \begin{figure}[htp]
+  \includegraphics[width=0.45\textwidth]{problematique_flux.png}
+  \vspace{5pt}
+  \label{fig:intro}
+\end{figure}
+\end{center}
+    \begin{block}{}
+   Comment concevoir une plateforme permettant à un citoyen de déposer une plainte de manière guidée, à un commissariat de coter et d'instruire l'enquête, et à la procédure d'être suivie et tracée, tout en mobilisant l'intelligence artificielle pour alléger la rédaction des procès-verbaux sans dessaisir l'officier de police judiciaire de sa responsabilité ?
+\end{block}
+\end{frame}
+
+\begin{frame}{INTRODUCTION}
+\begin{block}{Le dépôt de plainte : un acte juridique}
+\end{block}
+  \begin{itemize}[label=$\bullet$, font=\LARGE \color{green}]
+    \item Le dépôt de plainte engage le commissariat dès sa réception;
+    \item Il est encadré par le Code de procédure pénale;
+    \item Le procès-verbal est un acte de l'officier de police judiciaire;
+    \item Le dématérialiser ne peut donc pas se réduire à un formulaire en ligne;
+    \item Enjeu : préserver la valeur probante tout en supprimant les frictions.
+  \end{itemize}
+\end{frame}
+
+%####################################################
+
+\section{STRUCTURE DE STAGE}
+
+\begin{frame}{STRUCTURE DE STAGE}
+\begin{block}{Présentation de KLIVAR}
+\end{block}
+  \begin{columns}
+    \begin{column}{0.5\textwidth}
+      \begin{itemize}[label=$\bullet$, font=\LARGE \color{green}]
+        \item Solutions numériques sur mesure;
+        \item Clients publics et privés;
+        \item Structure resserrée, circuits de décision courts;
+        \item Développement, conseil et audit, maintenance;
+        \item Stage de six mois en équipe de développement.
+      \end{itemize}
+    \end{column}
+    \begin{column}{0.5\textwidth}
+      \begin{figure}
+        \includegraphics[width=0.95\textwidth]{organigramme_klivar.png}
+        \label{fig:orga}
+      \end{figure}
+    \end{column}
+  \end{columns}
+\end{frame}
+
+\begin{frame}{STRUCTURE DE STAGE}
+\begin{block}{Missions confiées}
+\end{block}
+  \begin{itemize}[label=$\bullet$, font=\LARGE \color{green}]
+    \item Auditer la procédure existante de dépôt et de traitement des plaintes;
+    \item Concevoir l'architecture de la solution;
+    \item Développer la plateforme en full-stack;
+    \item Intégrer l'intelligence artificielle générative;
+    \item Conduire la recette fonctionnelle et documenter la solution.
+  \end{itemize}
+\end{frame}
+
+%####################################################
+
+\section{ETUDE DE L'EXISTANT}
+
+\begin{frame}{ETUDE DE L'EXISTANT}
+\begin{block}{Méthode d'audit}
+\end{block}
+  \begin{itemize}[label=$\bullet$, font=\LARGE \color{green}]
+    \item Deux commissariats de Yaoundé : Ngoa-Ekélé et Mimboman;
+    \item Entretiens semi-directifs, sur guide structuré et anonymisés;
+    \item Observation directe du flux de travail sur place;
+    \item Réception des plaignants, circulation des dossiers, parafeurs;
+    \item Deux unités pour distinguer la procédure commune des habitudes locales.
+  \end{itemize}
+\end{frame}
+
+\begin{frame}{ETUDE DE L'EXISTANT}
+\begin{block}{La procédure actuelle, en quatre temps}
+\end{block}
+  \begin{itemize}[label=$\bullet$, font=\LARGE \color{green}]
+    \item \textbf{Réception} : le plaignant se déplace, le secrétariat enregistre et délivre une attestation de dépôt;
+    \item \textbf{Cotation} : le chef d'unité cote le dossier à un enquêteur, qui reçoit un parafeur;
+    \item \textbf{Auditions} : plaignant puis mis en cause, un procès-verbal manuscrit par audition;
+    \item \textbf{Suites} : le mis en cause est convoqué trois fois au minimum, puis le dossier est transmis au procureur;
+    \item Aucune procédure n'est formalisée pour la cotation.
+  \end{itemize}
+\end{frame}
+
+\begin{frame}{ETUDE DE L'EXISTANT}
+\begin{block}{Le constat qui a orienté toute la conception}
+\end{block}
+  \begin{itemize}[label=$\bullet$, font=\LARGE \color{green}]
+    \item C'est \textbf{en principe le plaignant lui-même} qui remet la convocation au mis en cause;
+    \item Un policier ne l'assiste que s'il redoute des représailles;
+    \item Or l'auteur présumé est souvent un proche ou un voisin;
+    \item Cette exposition peut dissuader de poursuivre la procédure;
+    \item Voire de la déclencher.
+  \end{itemize}
+\end{frame}
+
+\begin{frame}{ETUDE DE L'EXISTANT}
+\begin{block}{Difficultés relevées}
+\end{block}
+\small
+\begin{tabularx}{\textwidth}{@{}c>{\raggedright\arraybackslash}X>{\raggedright\arraybackslash}X@{}}
+  \toprule
+  \textbf{\#} & \textbf{Difficulté} & \textbf{Impact} \\
+  \midrule
+  1 & Le plaignant ne sait ni lire ni écrire & Dépendance à un tiers, confidentialité fragilisée \\
+  \addlinespace
+  2 & Il peine à exposer les faits clairement & Dossier incomplet, PV lacunaire \\
+  \addlinespace
+  3 & Le mis en cause refuse de signer le PV & Contentieux, risque de vice de forme \\
+  \addlinespace
+  4 & Rédaction manuscrite longue et répétitive & Temps soustrait à l'enquête \\
+  \bottomrule
+\end{tabularx}
+\vspace{6pt}
+
+\centering Trois sur quatre portent sur la \textbf{qualité de la déclaration}.
+\end{frame}
+
+\begin{frame}{ETUDE DE L'EXISTANT}
+\begin{block}{Un constat central : on ne sait pas mesurer}
+\end{block}
+  \begin{itemize}[label=$\bullet$, font=\LARGE \color{green}]
+    \item La procédure ne laisse aucune trace numérique;
+    \item Le délai entre le dépôt et la cotation n'est mesuré nulle part;
+    \item Celui du traitement complet non plus;
+    \item Il varie selon l'affluence, la nature des faits, la disponibilité des enquêteurs;
+    \item Le problème n'est pas la \textbf{longueur} des délais, mais l'\textbf{impossibilité de les connaître}.
+  \end{itemize}
+\end{frame}
+
+\begin{frame}{ETUDE DE L'EXISTANT}
+\begin{block}{Ce qui existe ailleurs}
+\end{block}
+\small
+\begin{tabularx}{\textwidth}{@{}l>{\raggedright\arraybackslash}X>{\raggedright\arraybackslash}X@{}}
+  \toprule
+  \textbf{Dispositif} & \textbf{Couvre} & \textbf{Ne couvre pas} \\
+  \midrule
+  \textbf{France} \newline Visioplainte, 2024
+    & Dépôt à distance, visioconférence, PV signé sans déplacement
+    & Réservé aux atteintes aux biens dont l'auteur est inconnu \\
+  \addlinespace
+  \textbf{Sénégal} \newline PSIC, 2026
+    & Signalement des cyberinfractions
+    & Périmètre thématique, rien en aval du signalement \\
+  \addlinespace
+  \textbf{Cameroun} \newline DGSN / GIZ, 2022
+    & Plaintes des usagers contre la police
+    & Objet distinct : contrôle interne, pas le dépôt pénal \\
+  \bottomrule
+\end{tabularx}
+\end{frame}
+
+\begin{frame}{ETUDE DE L'EXISTANT}
+\begin{block}{Pourquoi développer plutôt que reprendre}
+\end{block}
+  \begin{itemize}[label=$\bullet$, font=\LARGE \color{green}]
+    \item Les dispositifs existants sont restreints par la nature des faits ou la qualité de l'auteur;
+    \item Ils s'arrêtent au dépôt : ni cotation, ni auditions, ni procès-verbaux;
+    \item Aucun ne traite nos constats : plaignant illettré, convocation remise par la victime;
+    \item Ni la cotation sans procédure formalisée;
+    \item Le dispositif français reste une piste d'évolution complémentaire.
+  \end{itemize}
+\end{frame}
+
+%####################################################
+
+\section{MISE EN PLACE DE LA SOLUTION}
+
+\begin{frame}{MISE EN PLACE DE LA SOLUTION}
+\begin{block}{Objectifs et livrables}
+\end{block}
+  \begin{itemize}[label=$\bullet$, font=\LARGE \color{green}]
+    \item Supprimer le déplacement obligatoire : dépôt guidé en ligne avec récépissé;
+    \item Rattacher le dossier au commissariat compétent : cascade géographique;
+    \item Réduire la charge de rédaction des PV : rédaction assistée révisable;
+    \item Permettre au plaignant de suivre son dossier : espace de suivi;
+    \item Garantir la traçabilité : journal d'audit horodaté;
+    \item Couvrir quatre profils : citoyen, enquêteur, commissaire, administrateur.
+  \end{itemize}
+\end{frame}
+
+\begin{frame}{MISE EN PLACE DE LA SOLUTION}
+\begin{block}{Démarche : Agile Scrum, six sprints}
+\end{block}
+\small
+\begin{tabularx}{\textwidth}{@{}l>{\raggedright\arraybackslash}X@{}}
+  \toprule
+  \textbf{Sprint} & \textbf{Fonctionnalités livrées} \\
+  \midrule
+  1 & Authentification par jeton, profils, navigation par rôle \\
+  2 & Dépôt en cinq étapes, cascade géographique, pièces jointes \\
+  3 & Questions complémentaires, dictée vocale, rédaction assistée \\
+  4 & Espace enquêteur, procès-verbaux, convocations \\
+  5 & Espace commissaire, cotation, statistiques, suivi \\
+  6 & Journal d'audit, pièces PDF, recette \\
+  \bottomrule
+\end{tabularx}
+\end{frame}
+
+\begin{frame}{Architecture trois-tiers découplée}
+\begin{figure}[htp]
+ \centering
+  \includegraphics[height=0.80\textheight,keepaspectratio]{architecture.png}
+  \label{fig:archi}
+\end{figure}
+\end{frame}
+
+\begin{frame}{Diagramme de cas d'utilisation}
+\begin{figure}[htp]
+ \centering
+  \includegraphics[height=0.80\textheight,keepaspectratio]{usecase.png}
+  \label{fig:usecase}
+\end{figure}
+\end{frame}
+
+\begin{frame}{Modèle de données : huit entités}
+\begin{figure}[htp]
+ \centering
+  \includegraphics[height=0.80\textheight,keepaspectratio]{classe.png}
+  \label{fig:classe}
+\end{figure}
+\end{frame}
+
+\begin{frame}{Diagramme de séquence : dépôt et procès-verbal}
+\begin{figure}[htp]
+ \centering
+  \includegraphics[height=0.80\textheight,keepaspectratio]{sequence.png}
+  \label{fig:sequence}
+\end{figure}
+\end{frame}
+
+\begin{frame}{MISE EN PLACE DE LA SOLUTION}
+\begin{block}{Le dépôt d'une plainte, en cinq étapes}
+\end{block}
+  \begin{itemize}[label=$\bullet$, font=\LARGE \color{green}]
+    \item Nature de l'infraction et cascade Région, Département, Arrondissement, Quartier;
+    \item Déclaration des faits, avec dictée vocale optionnelle;
+    \item Identité du mis en cause, facultative si elle est inconnue;
+    \item Questions complémentaires propres à la nature déclarée;
+    \item Aperçu, signature et dépôt, avec délivrance d'un récépissé PDF.
+  \end{itemize}
+\end{frame}
+
+\begin{frame}{MISE EN PLACE DE LA SOLUTION}
+\begin{block}{Guider le plaignant : le taux de complétude}
+\end{block}
+  \begin{itemize}[label=$\bullet$, font=\LARGE \color{green}]
+    \item La plateforme repère les éléments attendus pour la nature déclarée;
+    \item Objet, moment des faits, suspect, témoins, justificatif;
+    \item Une jauge affiche la part de ces éléments effectivement présents;
+    \item Les éléments manquants deviennent les questions de l'étape 4;
+    \item Il mesure la richesse de la \textbf{déclaration}, et s'adresse au citoyen.
+  \end{itemize}
+\end{frame}
+
+\begin{frame}{MISE EN PLACE DE LA SOLUTION}
+\begin{block}{Piloter le dossier : l'avancement}
+\end{block}
+  \begin{itemize}[label=$\bullet$, font=\LARGE \color{green}]
+    \item Le commissaire cote le dossier à un enquêteur et fixe sa priorité;
+    \item L'avancement se calcule sur les étapes franchies et les actes accomplis;
+    \item Il ne se saisit jamais à la main;
+    \item Il mesure la part de \textbf{procédure} accomplie, et s'adresse au commissariat;
+    \item Confondre les deux ferait paraître avancé un dossier simplement bien raconté.
+  \end{itemize}
+\end{frame}
+
+\begin{frame}{MISE EN PLACE DE LA SOLUTION}
+\begin{block}{Rédaction assistée du procès-verbal}
+\end{block}
+  \begin{itemize}[label=$\bullet$, font=\LARGE \color{green}]
+    \item Le modèle produit un projet de PV au format du template institutionnel;
+    \item L'appel se fait exclusivement côté serveur : la clé d'API ne quitte jamais le backend;
+    \item Toute donnée absente est marquée « à compléter par l'enquêteur »;
+    \item Le texte reste une \textbf{proposition} : aucun PV n'est enregistré sans validation;
+    \item L'IA assiste la rédaction, elle ne se substitue pas à l'officier de police judiciaire.
+  \end{itemize}
+\end{frame}
+
+\begin{frame}{MISE EN PLACE DE LA SOLUTION}
+\begin{block}{Cloisonnement des accès}
+\end{block}
+  \begin{itemize}[label=$\bullet$, font=\LARGE \color{green}]
+    \item Authentification par jeton JWT signé côté serveur;
+    \item Citoyen par courriel et code à usage unique, personnels par matricule;
+    \item Un plaignant ne voit que ses dossiers;
+    \item Un enquêteur ceux qui lui sont cotés, un commissaire ceux de son unité;
+    \item Contrôle doublé au niveau du SGBD par des politiques d'accès par ligne.
+  \end{itemize}
+\end{frame}
+
+%####################################################
+
+\section{OUTILS ET LOGICIELS}
+
+\begin{frame}{OUTILS ET LOGICIELS}
+\begin{columns}
+    \begin{column}{0.45\textwidth}
+        \begin{block}{Technologies}
+            \begin{itemize}
+                \item React.js \includegraphics[width=0.08\textwidth]{react.png}
+                \item Flask (Python)
+                \item PostgreSQL
+                \item Supabase Storage
+                \item Llama 3.1 via Groq \includegraphics[width=0.08\textwidth]{grok_ai.png}
+            \end{itemize}
+        \end{block}
+
+        \begin{block}{Environnement logiciel}
+            \begin{itemize}
+                \item Visual Studio Code
+                \item Git et GitHub
+                \item Docker
+                \item Postman
+            \end{itemize}
+        \end{block}
+    \end{column}
+
+    \begin{column}{0.45\textwidth}
+        \begin{block}{Ce qui a tranché}
+            \begin{itemize}
+                \item \textbf{Flask} :  Offre un cadre léger, flexible et rapide pour développer des applications web ou des API en Python. S'associe facilement à l'API de Grok;
+                \item \textbf{Groq} : gratuit et très rapide;
+                \item \textbf{PostgreSQL} : les \emph{données} --- comptes, dossiers, historique;
+                \item \textbf{Supabase Storage} : les \emph{fichiers} --- pièces jointes, procès-verbaux, convocations.
+            \end{itemize}
+        \end{block}
+    \end{column}
+\end{columns}
+\end{frame}
+
+%####################################################
+
+\section{RESULTATS}
+
+\begin{frame}{RESULTATS}
+\begin{block}{Démonstration}
+\end{block}
+\begin{figure}[htp]
+ \centering
+  \includegraphics[width=0.45\textwidth]{demo_icon.png}
+  \label{fig:demo}
+\end{figure}
+\end{frame}
+
+\begin{frame}{RESULTATS}
+\begin{block}{Ce que le mémoire ne prétend pas}
+\end{block}
+  \begin{itemize}[label=$\bullet$, font=\LARGE \color{green}]
+    \item Aucun chiffre sur la durée de cotation ou de traitement : ces durées relèvent du commissariat et l'absence de traçabilité les rendait inconnaissables;
+    \item Les mesures viennent de la recette, non de l'exploitation réelle;
+    \item Le refus de signature du PV n'est pas résolu : la plateforme en garde la trace, elle ne l'empêche pas;
+    \item La transcription vocale reste imparfaite sur les noms propres et les toponymes;
+    \item Aucun test de charge n'a été mené.
+  \end{itemize}
+\end{frame}
+
+\begin{frame}{RESULTATS}
+\begin{block}{Préconisations}
+\end{block}
+  \begin{itemize}[label=$\bullet$, font=\LARGE \color{green}]
+    \item Instrumenter la plateforme avant le déploiement pour disposer de durées mesurées;
+    \item Conduire un test de charge représentatif d'un commissariat urbain;
+    \item Former les personnels à la révision des PV proposés;
+    \item Vérifier les quotas d'inférence : le palier gratuit convient à un pilote;
+    \item Déployer progressivement, en commençant par un commissariat pilote.
+  \end{itemize}
+\end{frame}
+
+%####################################################
+
+\section{CONCLUSION}
+
+\begin{frame}{CONCLUSION}
+
+\begin{itemize}[label=$\bullet$, font=\LARGE \color{green}]
+
+    \item \textbf{Objectif : }
+    \begin{itemize}[label=$\bullet$, font=\LARGE \color{green}]
+    \item Il était question pour nous de dématérialiser le dépôt et le traitement des plaintes citoyennes, jusqu'alors entièrement manuels.
+    \end{itemize}
+    \item \textbf{Solution : }
+        \begin{itemize}[label=$\bullet$, font=\LARGE \color{green}]
+  \item Dépôt guidé en ligne, sans déplacement;
+  \item Rattachement automatique au commissariat compétent;
+  \item Cotation, instruction et convocations outillées;
+  \item Procès-verbal assisté, validé par l'officier de police judiciaire;
+  \item Traçabilité horodatée de toutes les transitions.
+  \end{itemize}
+  \item \textbf{Limites : }
+     \begin{itemize}[label=$\bullet$, font=\LARGE \color{green}]
+  \item Transcription vocale imparfaite, relecture obligatoire;
+  \item Mesures issues de la recette, non de l'exploitation réelle.
+  \end{itemize}
+\item \textbf{Perspectives : }
+    \begin{itemize}[label=$\bullet$, font=\LARGE \color{green}]
+  \item Transcription vocale côté serveur, ouvrant aux langues nationales;
+  \item Réhébergement du modèle sur infrastructure maîtrisée;
+  \item Transmission dématérialisée des dossiers au parquet.
+\end{itemize}
+     \end{itemize}
+
+\end{frame}
+
+\begin{frame}{}
+   \centering \Large MERCI POUR VOTRE ATTENTION
+\end{frame}
+
+\end{document}
