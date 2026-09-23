@@ -1,5 +1,6 @@
 /* ============================================================
-   DOCUMENTS OFFICIELS — attestation de depot et declaration de plainte
+   DOCUMENTS OFFICIELS — attestation de depot, declaration de plainte
+   et convocation.
 
    Ce module etait enferme dans le <script> de citoyen/index.html : les
    documents n'etaient donc telechargeables que depuis l'espace citoyen.
@@ -7,92 +8,354 @@
    pieces. D'ou l'extraction.
 
    Depend de js/modules/qrcode.js (QR, urlVerification, codeVerification)
-   et, quand il est charge, de js/modules/data.js (DOSSIERS).
+   et, quand il est charge, de js/modules/data.js (DOSSIERS, CITOYENS,
+   etatCivilComplet, incriminationDe, VISAS_*).
    ============================================================ */
 
 /* ══════════════════════════════════════════════════════════
-   DOCUMENTS OFFICIELS TÉLÉCHARGEABLES
+   GABARITS
 
-   Deux documents distincts, tous deux imprimables en PDF par
-   l'impression native du navigateur :
+   Les documents suivaient un gabarit invente : en-tete centre sur toute
+   la largeur, tableaux a bordures, paragraphes ordinaires. Les modeles
+   reels de la Surete Nationale en different sur trois points, et ces
+   trois points sont precisement ce qui fait reconnaitre une piece de
+   procedure :
 
-     • l'attestation de dépôt — preuve que la plainte a été reçue ;
-     • la déclaration de plainte — le contenu même de la plainte.
+     • le timbre administratif occupe une colonne a gauche — Republique,
+       service emetteur, numero d'ordre, objet, affaire, incrimination ;
+     • chaque enonce est une ligne de procedure : elle commence par des
+       tirets et se prolonge par des tirets jusqu'a la marge, de sorte
+       qu'aucun ajout ne puisse etre glisse apres coup ;
+     • l'acte se raconte, il ne se tabule pas — « L'an deux mille
+       vingt-six, le 15 Mai a 14 heures 32 minutes, Nous, … ».
 
-   L'en-tête bilingue, le bloc de vérification et la mécanique
-   d'impression sont partagés : les deux documents ne peuvent pas
-   dériver l'un de l'autre.
+   Trois gabarits en decoulent :
+     gabaritProcedure()   — PV et attestation (colonne + corps)
+     gabaritConvocation() — en-tete bilingue pleine largeur
+     gabaritLettre()      — la plainte, qui est une lettre du citoyen
    ══════════════════════════════════════════════════════════ */
 
 const MOIS = ['janvier','février','mars','avril','mai','juin',
               'juillet','août','septembre','octobre','novembre','décembre'];
 
-/* « 15/05/2026 » ou « 2026-05-15 » -> « 15 mai 2026 » */
-function dateEnClair(v) {
-  if (!v) return '';
+const MOIS_CAP = ['Janvier','Février','Mars','Avril','Mai','Juin',
+                  'Juillet','Août','Septembre','Octobre','Novembre','Décembre'];
+
+/* Le texte d'un document est compose a partir de saisies libres. Il
+   n'etait pas echappe : une declaration contenant un chevron cassait la
+   mise en page, et le document se pretait a l'injection. */
+function esc(v) {
+  return String(v == null ? '' : v)
+    .replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;')
+    .replace(/"/g, '&quot;');
+}
+
+/* « 15/05/2026 » ou « 2026-05-15 » -> [15, 5, 2026] */
+function partsDate(v) {
+  if (!v) return null;
   let j, m, a;
   if (v.indexOf('/') !== -1)      { [j, m, a] = v.split('/'); }
   else if (v.indexOf('-') !== -1) { [a, m, j] = v.split('-'); }
-  else return v;
-  const mi = parseInt(m, 10) - 1;
-  return parseInt(j, 10) + ' ' + (MOIS[mi] || m) + ' ' + a;
+  else return null;
+  return [parseInt(j, 10), parseInt(m, 10), parseInt(a, 10)];
 }
 
-function enteteOfficielle() {
+/* « 15/05/2026 » -> « 15 mai 2026 » */
+function dateEnClair(v) {
+  const p = partsDate(v);
+  if (!p) return v || '';
+  return p[0] + ' ' + (MOIS[p[1] - 1] || p[1]) + ' ' + p[2];
+}
+
+/* « 15/05/2026 » -> « 15 Mai » : l'en-tete d'un acte donne le quantieme
+   et le mois, l'annee ayant deja ete enoncee en toutes lettres. */
+function jourEtMois(v) {
+  const p = partsDate(v);
+  if (!p) return v || '';
+  return p[0] + ' ' + (MOIS_CAP[p[1] - 1] || p[1]);
+}
+
+const UNITES = ['', 'un', 'deux', 'trois', 'quatre', 'cinq', 'six', 'sept',
+  'huit', 'neuf', 'dix', 'onze', 'douze', 'treize', 'quatorze', 'quinze',
+  'seize', 'dix-sept', 'dix-huit', 'dix-neuf'];
+const DIZAINES = ['', '', 'vingt', 'trente', 'quarante', 'cinquante',
+  'soixante', 'soixante', 'quatre-vingt', 'quatre-vingt'];
+
+/* 0 a 99 en toutes lettres — de quoi ecrire un millesime. */
+function petitNombreEnLettres(n) {
+  if (n < 20) return UNITES[n] || 'zéro';
+  const d = Math.floor(n / 10), u = n % 10;
+  let mot = DIZAINES[d];
+  if (d === 7 || d === 9) {
+    mot += (u === 1 && d === 7 ? ' et ' : '-') + UNITES[10 + u];
+  } else if (u === 1 && d !== 8) {
+    mot += ' et un';
+  } else if (u) {
+    mot += '-' + UNITES[u];
+  } else if (d === 8) {
+    mot += 's';
+  }
+  return mot;
+}
+
+/* « L'an deux mille vingt-six » : le millesime d'un acte s'ecrit en
+   toutes lettres, jamais en chiffres. */
+function anneeEnLettres(a) {
+  const n = parseInt(a, 10);
+  if (!n) return '';
+  if (n < 2000 || n > 2099) return String(n);
+  const reste = n - 2000;
+  return 'deux mille' + (reste ? ' ' + petitNombreEnLettres(reste) : '');
+}
+
+/* « 14h32 » -> « 14 heures 32 minutes » ; « 14h » -> « 14 heures 00 minutes » */
+function heureEnClair(h) {
+  const m = String(h || '').match(/(\d{1,2})\s*[h:]\s*(\d{0,2})/);
+  if (!m) return h || '';
+  return parseInt(m[1], 10) + ' heures ' + (m[2] ? m[2].padStart(2, '0') : '00') + ' minutes';
+}
+
+/* « 10h00 » -> « 10 heures » ; « 10h30 » -> « 10 heures 30 ». La
+   convocation annonce une heure de comparution, pas un horodatage :
+   « à 10h00 précises » se lit « à 10 heures précises ». */
+function heureRonde(h) {
+  const m = String(h || '').match(/(\d{1,2})\s*[h:]\s*(\d{0,2})/);
+  if (!m) return h || '';
+  const min = m[2] ? parseInt(m[2], 10) : 0;
+  return parseInt(m[1], 10) + ' heures' + (min ? ' ' + min : '');
+}
+
+/* Formule d'ouverture commune aux actes : « L'an deux mille vingt-six,
+   le 15 Mai à 14 heures 32 minutes ». */
+function ouvertureActe(date, heure) {
+  const p = partsDate(date);
+  return 'L’an ' + (p ? anneeEnLettres(p[2]) : '') +
+         ', le ' + jourEtMois(date) +
+         (heure ? ' à ' + heureEnClair(heure) : '');
+}
+
+/* « de escroquerie » -> « d'escroquerie ». La qualification penale est
+   inseree dans des tournures — « du chef de », « sur les faits de » —
+   ou l'elision est obligatoire. */
+function deQualif(mot) {
+  const m = String(mot || '').toLowerCase();
+  return /^[aeiouyàâäéèêëîïôöûüh]/.test(m) ? 'd’' + m : 'de ' + m;
+}
+
+/* Numero d'ordre du registre : « N° 0451/DGSN/DRSNC/CSCV/SEC ».
+   Il derive du numero de dossier, pour que les deux se recoupent. */
+function numeroOrdre(numero) {
+  const chiffres = String(numero || '').replace(/\D/g, '').slice(-4) || '0000';
+  return 'N° ' + chiffres + '/DGSN/DRSNC/CSCV/SEC';
+}
+
+/* ══════════ FEUILLE DE STYLE DES DOCUMENTS ══════════
+   Injectee dans le document lui-meme : ce qui est lu dans la
+   visionneuse est exactement ce qui sort a l'impression, sans dependre
+   d'une feuille externe que la fenetre d'impression ne chargerait pas.
+
+   .doc-f est le remplissage par tirets. Une boite en ligne de largeur
+   nulle laisse deborder son contenu ; le bloc parent, en overflow
+   hidden, le coupe net a la marge. Les tirets partent donc exactement
+   ou le texte s'arrete et s'arretent exactement au bord — sans image de
+   fond, que la boite d'impression supprimerait. */
+function stylesDocument() {
+  return `<style>
+    .doc { font-family:"Times New Roman",Times,serif; color:#000; font-size:15px; line-height:1.95; }
+    .doc p { margin:0; }
+    .doc-l { text-align:justify; overflow:hidden; white-space:normal; }
+    .doc-f { display:inline-block; width:0; white-space:nowrap; overflow:visible; letter-spacing:.5px; }
+    .doc-grille { width:100%; border-collapse:collapse; }
+    .doc-grille > tbody > tr > td { vertical-align:top; }
+    .doc-marge { width:31%; padding:0 14px 0 0; font-size:11.5px; line-height:1.5; text-align:center; }
+    .doc-marge .bloc { margin-bottom:13px; }
+    .doc-marge .sep { letter-spacing:1px; }
+    .doc-marge .champ { text-align:left; margin-bottom:13px; line-height:1.6; }
+    .doc-corps { width:69%; padding:0 0 0 16px; }
+    .doc-titre { text-align:center; font-weight:bold; font-size:19px; line-height:1.3;
+                 text-transform:uppercase; letter-spacing:1px; margin:0; }
+    .doc-etoiles { text-align:center; letter-spacing:3px; font-size:13px; margin:0 0 20px; }
+    .doc-section { text-align:center; font-weight:bold; text-decoration:underline;
+                   letter-spacing:.5px; margin:22px 0 10px; }
+    .doc-sign { width:100%; border-collapse:collapse; margin-top:26px; }
+    .doc-sign td { text-align:center; font-weight:bold; font-size:12.5px;
+                    line-height:1.4; padding-top:6px; }
+    .doc-sign .trait { display:block; border-top:1px solid #000; width:76%;
+                       margin:40px auto 4px; }
+    .doc-qa { margin:2px 0; text-align:justify; }
+    .doc-qa .q { font-weight:bold; }
+    .doc-pied { margin-top:30px; padding-top:9px; border-top:1px solid #000;
+                font-size:9.5px; line-height:1.5; }
+    .doc-pied td { vertical-align:middle; }
+    .pv-editable { outline:2px dashed #666; outline-offset:3px; }
+  </style>`;
+}
+
+/* Une ligne de procedure : tirets d'amorce, texte, tirets jusqu'a la
+   marge. C'est l'unite de base des trois gabarits. */
+const TIRETS = '-'.repeat(220);
+
+function ligneP(texte, style) {
+  return '<p class="doc-l"' + (style ? ' style="' + style + '"' : '') + '>----' +
+         texte + '<span class="doc-f">' + TIRETS + '</span></p>';
+}
+
+/* Ligne de fermeture : « Plus rien ne déclare… », suivie des tirets. */
+function ligneFin(texte) {
+  return ligneP(texte, 'margin-top:10px');
+}
+
+/* ══════════ COLONNE ADMINISTRATIVE ══════════
+   Le timbre de gauche. `champs` est la liste des mentions propres a
+   l'acte : OBJET, AFFAIRE, INCRIMINATION, telephone. */
+function colonneAdministrative(opts) {
+  const o = opts || {};
+  const services = (o.services || []).map(s =>
+    '<div class="bloc">' + s + '</div><div class="sep">--------</div>').join('');
+
+  const champs = (o.champs || []).filter(Boolean).map(c =>
+    '<div class="champ"><strong>' + c[0] + '</strong>' +
+    (c[1] ? ' : ' + c[1] : '') + '</div>').join('');
+
   return `
-    <table style="width:100%;text-align:center;font-size:14px;font-weight:bold;margin-bottom:40px;border-collapse:collapse">
+    <div class="bloc" style="font-weight:bold">RÉPUBLIQUE DU CAMEROUN<br>
+      <span style="font-weight:normal;font-style:italic">Paix - Travail - Patrie</span><br>
+      REPUBLIC OF CAMEROON<br>
+      <span style="font-weight:normal;font-style:italic">Peace - Work - Fatherland</span>
+    </div>
+    <div class="sep">--------</div>
+    ${services}
+    <div class="champ" style="font-weight:bold;margin-top:16px">${o.numero || ''}</div>
+    ${champs}`;
+}
+
+/* ══════════ GABARIT « PIÈCE DE PROCÉDURE » ══════════
+   PV et attestation : colonne administrative a gauche, acte a droite. */
+function gabaritProcedure(opts) {
+  const o = opts || {};
+  return stylesDocument() + '<div class="doc">' +
+    '<table class="doc-grille"><tbody><tr>' +
+      '<td class="doc-marge">' + colonneAdministrative(o) + '</td>' +
+      '<td class="doc-corps">' +
+        '<p class="doc-titre">' + o.titre + '</p>' +
+        '<p class="doc-etoiles">**********</p>' +
+        o.corps +
+      '</td>' +
+    '</tr></tbody></table>' +
+    (o.pied || '') +
+  '</div>';
+}
+
+/* ══════════ EN-TÊTE BILINGUE PLEINE LARGEUR ══════════
+   Celui de la convocation : Republique, Presidence, Delegation
+   generale, Delegation regionale, service — en francais a gauche, en
+   anglais a droite, embleme au centre.
+
+   L'embleme est dessine, non reproduit : la plateforme n'a pas a
+   embarquer les armoiries de l'Etat dans un depot de code. */
+function enteteOfficielle(service) {
+  const s = service || 'Commissariat Central';
+  return `
+    <table style="width:100%;border-collapse:collapse;font-size:11.5px;line-height:1.45;font-weight:bold;margin-bottom:8px">
       <tr>
-        <td style="width:45%;vertical-align:top;line-height:1.4">
+        <td style="width:40%;vertical-align:top;text-align:center">
           RÉPUBLIQUE DU CAMEROUN<br>
           <span style="font-weight:normal;font-style:italic">Paix - Travail - Patrie</span><br>
-          ---------<br>
-          DIRECTION GÉNÉRALE DE LA SÛRETÉ NATIONALE
+          <span style="letter-spacing:1px">********</span><br>
+          PRÉSIDENCE DE LA RÉPUBLIQUE<br>
+          <span style="letter-spacing:1px">********</span><br>
+          DÉLÉGATION GÉNÉRALE À LA SÛRETÉ NATIONALE<br>
+          <span style="letter-spacing:1px">********</span><br>
+          DÉLÉGATION RÉGIONALE DE LA SÛRETÉ NATIONALE DU CENTRE<br>
+          <span style="letter-spacing:1px">********</span><br>
+          ${esc(s).toUpperCase()}
         </td>
-        <td style="width:10%;vertical-align:top">
-          <div style="width:80px;height:80px;border:2px solid #000;border-radius:50%;margin:0 auto;display:flex;align-items:center;justify-content:center;font-size:13px;font-weight:bold;text-align:center">DGSN</div>
+        <td style="width:20%;vertical-align:top;text-align:center;padding-top:6px">
+          <div style="width:80px;height:80px;border:2px solid #000;border-radius:50%;
+                      margin:0 auto;display:flex;align-items:center;justify-content:center;
+                      font-size:8.5px;font-weight:bold;text-align:center;line-height:1.3;
+                      letter-spacing:.2px">
+            POLICE<br>CAMEROUNAISE
+          </div>
         </td>
-        <td style="width:45%;vertical-align:top;line-height:1.4">
+        <td style="width:40%;vertical-align:top;text-align:center">
           REPUBLIC OF CAMEROON<br>
           <span style="font-weight:normal;font-style:italic">Peace - Work - Fatherland</span><br>
-          ---------<br>
-          GENERAL DELEGATION FOR NATIONAL SECURITY
+          <span style="letter-spacing:1px">********</span><br>
+          PRESIDENCY OF THE REPUBLIC<br>
+          <span style="letter-spacing:1px">********</span><br>
+          GENERAL DELEGATION FOR NATIONAL SECURITY<br>
+          <span style="letter-spacing:1px">********</span><br>
+          REGIONAL DELEGATION FOR NATIONAL SECURITY CENTRE<br>
+          <span style="letter-spacing:1px">********</span><br>
+          ${esc(s).toUpperCase()}
         </td>
       </tr>
     </table>`;
 }
 
-function titreDocument(titre, numero) {
-  return `
-    <div style="text-align:center;margin-bottom:40px">
-      <h1 style="margin:0;font-size:26px;text-transform:uppercase;text-decoration:underline;letter-spacing:1px">${titre}</h1>
-      <p style="margin:14px 0 0;font-size:19px">Dossier N° <strong>${numero}</strong></p>
-    </div>`;
+function gabaritConvocation(opts) {
+  const o = opts || {};
+  return stylesDocument() + '<div class="doc">' +
+    enteteOfficielle(o.service) +
+    '<p style="font-weight:bold;font-size:13px;margin:4px 0 22px">' + (o.numero || '') + '</p>' +
+    '<p class="doc-titre" style="font-size:22px">' + o.titre + '</p>' +
+    '<p class="doc-etoiles">**********</p>' +
+    o.corps +
+    (o.pied || '') +
+  '</div>';
 }
 
-/* Bloc de vérification : QR calculé localement + code de contrôle et URL
-   en clair, pour que le document reste vérifiable sans lecteur de QR. */
-function blocVerification(numero, mentionDroite) {
-  return `
-    <table style="width:100%;font-size:15px;margin-top:20px">
+/* ══════════ GABARIT « LETTRE » ══════════
+   La plainte n'est pas un acte de police : c'est le citoyen qui ecrit.
+   Elle suit donc la forme de la lettre administrative — expediteur en
+   haut a gauche, lieu et date a droite, destinataire en dessous a
+   droite, objet, corps, signature. */
+function gabaritLettre(opts) {
+  const o = opts || {};
+  return stylesDocument() + '<div class="doc" style="line-height:1.85">' +
+    `<table style="width:100%;border-collapse:collapse;margin-bottom:26px">
       <tr>
-        <td style="width:50%;vertical-align:top;text-align:left;padding-left:10px">
-          <div style="font-weight:bold;margin-bottom:8px;width:150px;text-align:center">Vérification Électronique</div>
-          <div style="width:116px;height:116px;border:2px solid #000;margin-left:18px;display:flex;align-items:center;justify-content:center;padding:4px">
-            ${QR.svg(urlVerification(numero), { taille: 106, couleur: '#000000', alt: 'Code QR de vérification' })}
-          </div>
-          <div style="font-size:11px;margin-top:6px;width:240px;line-height:1.5">
-            Code de contrôle : <strong>${codeVerification(numero)}</strong><br>
-            <span style="font-size:10px">${urlVerification(numero)}</span>
-          </div>
+        <td style="width:55%;vertical-align:top;font-size:14.5px;line-height:1.6">${o.expediteur}</td>
+        <td style="width:45%;vertical-align:top;text-align:right;font-size:14.5px">${o.lieuDate}</td>
+      </tr>
+    </table>
+    <table style="width:100%;border-collapse:collapse;margin-bottom:30px">
+      <tr>
+        <td style="width:42%"></td>
+        <td style="width:58%;vertical-align:top;font-size:14.5px;line-height:1.6;font-weight:bold">${o.destinataire}</td>
+      </tr>
+    </table>` +
+    o.objet +
+    o.corps +
+    (o.pied || '') +
+  '</div>';
+}
+
+/* ══════════ PIED DE VÉRIFICATION ══════════
+   Le QR n'existe sur aucun modele reel : c'est l'apport de la
+   plateforme. Il est donc relegue en pied de page, en petit, pour que
+   le document garde l'allure d'une piece de procedure tout en restant
+   verifiable par qui le recoit sur papier. */
+function piedVerification(numero) {
+  if (typeof QR === 'undefined') return '';
+  return `
+    <table class="doc-pied" style="width:100%;border-collapse:collapse">
+      <tr>
+        <td style="width:58px;padding-right:10px">
+          ${QR.svg(urlVerification(numero), { taille: 52, couleur: '#000000', alt: 'Code QR de vérification' })}
         </td>
-        <td style="width:50%;vertical-align:bottom;text-align:right;padding-right:10px">
-          ${mentionDroite}
+        <td>
+          <strong>Vérification du document</strong> — ce document est authentifiable en ligne.<br>
+          ${urlVerification(numero)} &nbsp;·&nbsp; code de contrôle : <strong>${codeVerification(numero)}</strong><br>
+          <span style="font-style:italic">Document édité par la plateforme PlainteCam. Toute altération le rend
+          non conforme à l'original conservé au dossier.</span>
         </td>
       </tr>
     </table>`;
 }
 
-/* Mécanique d'impression, commune aux deux documents. */
+/* Mécanique d'impression, commune à tous les documents. */
 function imprimerDocument(html) {
   const zone = document.createElement('div');
   zone.id = 'print-doc-area';
@@ -109,6 +372,10 @@ function imprimerDocument(html) {
       body * { visibility: hidden; }
       #print-doc-area, #print-doc-area * { visibility: visible; }
       #print-doc-area { position: absolute; left: 0; top: 0; width: 100%; }
+      /* Les tirets de conduite ne doivent pas etre coupes par un saut
+         de page au milieu d'un enonce. */
+      #print-doc-area .doc-l { page-break-inside: avoid; }
+      #print-doc-area .doc-sign { page-break-inside: avoid; }
     }`;
 
   document.head.appendChild(style);
@@ -118,22 +385,23 @@ function imprimerDocument(html) {
   setTimeout(() => {
     if (zone.parentNode)  document.body.removeChild(zone);
     if (style.parentNode) document.head.removeChild(style);
-  }, 800);
+  }, 400);
 }
 
-/* ── Source des données ──────────────────────────────────────
-   Depuis le suivi, le dossier vient de DOSSIERS. Juste après un dépôt,
-   il vient du formulaire encore rempli. On ne fabrique rien : si une
-   information est absente, elle est signalée comme telle. */
 function donneesDossier(numero) {
   const d = (typeof DOSSIERS !== 'undefined')
     ? DOSSIERS.find(x => x.id === numero) : null;
   if (d) {
     return {
       numero: d.id, plaignant: d.plaignant, type: d.type,
+      /* L'etat civil complet du plaignant se lit sur sa fiche citoyen :
+         le dossier ne porte que le nom affiche. */
+      citoyen: d.citoyen || null,
       date: d.date, heure: d.heure || '',
       lieu: d.lieu || '', declaration: d.declaration || '',
       misEnCause: d.misEnCause || '', prejudice: d.prejudice || null,
+      pieces: d.pieces || [],
+      contact: d.contact || null,
       commissariat: d.commissariat || 'Commissariat compétent',
       statut: (typeof STATUT_LABELS !== 'undefined' && STATUT_LABELS[d.statut])
               ? STATUT_LABELS[d.statut][1] : d.statut,
@@ -147,13 +415,14 @@ function donneesDossier(numero) {
   const mecNom = document.getElementById('mec-nom');
   const mecDesc = document.getElementById('mec-description');
   const infoComm = document.getElementById('commissariat-info-text');
+  const courant = (typeof citoyenCourant === 'function') ? citoyenCourant() : null;
   return {
     numero: numero,
     /* Le plaignant d'une plainte en cours de saisie est le compte
        connecté : son nom était écrit ici, ce qui faisait signer Jean
        MBIDA sur le document de n'importe quel utilisateur. */
-    plaignant: (typeof citoyenCourant === 'function')
-      ? nomCitoyen(citoyenCourant()) : '',
+    plaignant: courant ? nomCitoyen(courant) : '',
+    citoyen: courant ? courant.id : null,
     type: val('nature-infraction'),
     date: dateEl ? dateEl.value : '', heure: '',
     lieu: val('lieu-faits'),
@@ -166,6 +435,8 @@ function donneesDossier(numero) {
       montant: val('prejudice-montant'),
       detail: val('prejudice-detail')
     } : null,
+    pieces: [],
+    contact: courant ? { email: courant.email, telephone: courant.telephone } : null,
     commissariat: infoComm ? infoComm.textContent.trim() : 'Commissariat compétent',
     statut: 'Transmis pour instruction',
     enqueteur: null
@@ -177,95 +448,207 @@ function numeroCourant() {
   return (el ? el.textContent : 'N° 2026-00451').replace(/^\s*N°\s*/, '').trim();
 }
 
-function ligne(intitule, valeur) {
-  return `<tr>
-    <td style="padding:11px 14px;border:1px solid #000;width:38%;font-weight:bold">${intitule}</td>
-    <td style="padding:11px 14px;border:1px solid #000">${valeur || '<em>non renseigné</em>'}</td>
-  </tr>`;
+/* Etat civil du plaignant, ou a defaut son seul nom : le document ne
+   doit pas inventer une filiation qu'il n'a pas. */
+function etatCivilPlaignant(d) {
+  if (d.citoyen && typeof citoyen === 'function') {
+    const c = citoyen(d.citoyen);
+    if (c && typeof etatCivilComplet === 'function') {
+      return '<strong>' + esc(nomCitoyen(c)) + '</strong>, ' + esc(etatCivilComplet(c));
+    }
+  }
+  return '<strong>' + esc(d.plaignant) + '</strong>';
 }
 
-/* ══════════ ATTESTATION DE DÉPÔT ══════════ */
+function qualificationDe(type) {
+  return (typeof incriminationDe === 'function')
+    ? incriminationDe(type)
+    : { qualification: type || 'Faits à qualifier', articles: 'Code pénal' };
+}
+
+/* Nom porte a la rubrique AFFAIRE et a l'objet de la plainte. Un
+   signalement physique — « Jeune homme, environ 25 ans, tee-shirt
+   rouge » — n'est pas une identite : la piece se dirige alors contre X,
+   comme le veut l'usage. Le document nommait « Jeune homme » comme
+   partie adverse, ce qui aurait fait convoquer un signalement. */
+function nomMisEnCause(d) {
+  if (!d || !d.misEnCause) return 'X';
+  const identifie = (typeof misEnCauseIdentifie === 'function')
+    ? misEnCauseIdentifie(d)
+    : !/^(jeune homme|homme|femme|individu|inconnu)/i.test(String(d.misEnCause).trim());
+  return identifie ? d.misEnCause.split(',')[0].trim().replace(/\.$/, '') : 'X';
+}
+
+/* ══════════════════════════════════════════════════════════
+   ATTESTATION DE DÉPÔT
+
+   Elle n'a pas de modele reel : aucune piece de ce type ne circule
+   aujourd'hui, et c'est justement le manque que la plateforme comble —
+   le compte rendu d'entretien decrit un plaignant qui repart sans rien.
+   Faute de modele, elle emprunte le gabarit des pieces de procedure,
+   pour que le lot des quatre documents se tienne.
+   ══════════════════════════════════════════════════════════ */
 function htmlAttestation(numero) {
   const n = numero || numeroCourant();
   const d = donneesDossier(n);
+  const inc = qualificationDe(d.type);
 
-  return (
-    enteteOfficielle() +
-    titreDocument('Attestation de Dépôt de Plainte', d.numero) + `
-    <div style="font-size:17px;line-height:1.8;text-align:justify;margin-bottom:30px">
-      <p>Il est certifié par la présente que la déclaration de plainte enregistrée sur la plateforme nationale <strong>PlainteCam</strong> a été formellement reçue et consignée dans nos systèmes sécurisés.</p>
-    </div>
-    <table style="width:100%;border-collapse:collapse;font-size:15px;margin-bottom:34px">
-      <tbody>
-        ${ligne("Date d'enregistrement", dateEnClair(d.date) + (d.heure ? ' à ' + d.heure : ''))}
-        ${ligne('Identité du plaignant', '<strong>' + d.plaignant + '</strong>')}
-        ${ligne("Nature de l'infraction", d.type)}
-        ${ligne('Commissariat en charge', d.commissariat)}
-        ${ligne('Statut actuel', '<strong>' + d.statut + '</strong>')}
-      </tbody>
-    </table>
-    <div style="font-size:14px;line-height:1.6;text-align:justify;margin-bottom:44px;border-left:4px solid #000;padding-left:18px;font-style:italic">
-      <strong>Note importante :</strong> ce document numérique est généré automatiquement par le système central PlainteCam. Il fait foi de la date certaine du dépôt de votre plainte. L'officier de police judiciaire en charge du dossier vous contactera pour la suite de la procédure et l'audition. Toute fausse déclaration expose son auteur aux sanctions prévues par le Code pénal.
-    </div>` +
-    blocVerification(d.numero, `
-      <div style="margin-bottom:26px">Fait à Yaoundé, le ${dateEnClair(d.date)}</div>
-      <div style="font-weight:bold;margin-bottom:12px">Pour la Délégation Générale,<br>Le Système Central PlainteCam</div>
-      <div style="font-size:13px;margin-bottom:34px">(Signature électronique et cachet numérique)</div>
-      <div style="display:inline-block;border-bottom:1px solid #000;width:220px"></div>`)
-  );
+  const corps =
+    ligneP(ouvertureActe(d.date, d.heure) + ',') +
+    ligneP('Nous, Chef du ' + esc(d.commissariat) + ', Officier de Police Judiciaire, ' +
+           'auxiliaire de Monsieur le Procureur de la République ;') +
+    ligneP('Vu la déclaration de plainte enregistrée sous le numéro <strong>' + esc(d.numero) +
+           '</strong> sur la plateforme nationale PlainteCam ;') +
+    ligneP('Attestons que la plainte ci-après a été formellement reçue et consignée au registre du service :') +
+
+    ligneP('Plaignant : ' + etatCivilPlaignant(d) + ' ;', 'margin-top:12px') +
+    ligneP('Nature des faits dénoncés : <strong>' + esc(d.type) + '</strong>, ' +
+           'faits qualifiés ' + esc(deQualif(inc.qualification)) + ' au sens de l’' + esc(inc.articles) + ' ;') +
+    ligneP('Lieu des faits : ' + esc(d.lieu || 'non précisé') + ' ;') +
+    ligneP('Date et heure d’enregistrement : ' + dateEnClair(d.date) +
+           (d.heure ? ' à ' + heureEnClair(d.heure) : '') + ' ;') +
+    ligneP('État de la procédure à ce jour : <strong>' + esc(d.statut) + '</strong>' +
+           (d.enqueteur ? ', dossier confié à ' + esc(d.enqueteur) : ', enquêteur non encore désigné') + ' ;') +
+
+    ligneP('La présente attestation fait foi de la date certaine du dépôt. Elle ne préjuge ni de la ' +
+           'qualification définitive des faits, ni de la suite qui sera réservée à la procédure.',
+           'margin-top:12px') +
+    ligneP('Rappelons au plaignant que toute dénonciation calomnieuse expose son auteur aux peines ' +
+           'prévues par le Code pénal.') +
+    ligneFin('En foi de quoi la présente attestation lui est délivrée pour servir et valoir ce que de droit.') +
+
+    `<table class="doc-sign"><tr>
+       <td style="width:50%"></td>
+       <td style="width:50%">
+         <span style="font-weight:normal;font-size:13px">Fait à ${esc((d.commissariat || '').split(',').pop().trim() || 'Yaoundé')},
+         le ${dateEnClair(d.date)}</span><br>
+         L’OFFICIER DE POLICE JUDICIAIRE
+         <span class="trait"></span>
+       </td>
+     </tr></table>`;
+
+  return gabaritProcedure({
+    services: ['DÉLÉGATION GÉNÉRALE<br>À LA SÛRETÉ NATIONALE<br>GENERAL DELEGATION<br>FOR NATIONAL SECURITY',
+               esc(d.commissariat).toUpperCase()],
+    numero: numeroOrdre(d.numero),
+    champs: [
+      ['OBJET', 'Attestation de dépôt de plainte au profit du nommé ' + esc(d.plaignant)],
+      ['AFFAIRE', esc(d.plaignant) + '<br>C/<br>' + esc(nomMisEnCause(d))],
+      ['INCRIMINATION', esc(inc.qualification)],
+      d.contact && d.contact.telephone ? ['Tél', esc(d.contact.telephone)] : null
+    ],
+    titre: 'Attestation de dépôt de plainte',
+    corps: corps,
+    pied: piedVerification(d.numero)
+  });
 }
 
-/* ══════════ DÉCLARATION DE PLAINTE ══════════ */
+/* ══════════════════════════════════════════════════════════
+   DÉCLARATION DE PLAINTE
+
+   Une plainte ecrite est une lettre : elle emane du plaignant, elle est
+   adressee, elle porte un objet et elle se signe. Le document la
+   presentait en sections numerotees, ce qu'aucun modele ne fait.
+   ══════════════════════════════════════════════════════════ */
 function htmlPlainte(numero) {
   const n = numero || numeroCourant();
   const d = donneesDossier(n);
+  const inc = qualificationDe(d.type);
+  const c = (d.citoyen && typeof citoyen === 'function') ? citoyen(d.citoyen) : null;
+  const ville = (d.commissariat || '').split(',').pop().trim() || 'Yaoundé';
+  const mis = nomMisEnCause(d);
 
-  const prej = d.prejudice ? `
-    <p style="font-weight:bold;margin:26px 0 8px">III. PRÉJUDICE SUBI</p>
-    <table style="width:100%;border-collapse:collapse;font-size:15px">
-      <tbody>
-        ${ligne('Nature du préjudice', d.prejudice.nature)}
-        ${d.prejudice.montant ? ligne('Montant estimé', d.prejudice.montant + ' FCFA') : ''}
-        ${d.prejudice.detail  ? ligne('Précisions', d.prejudice.detail) : ''}
-      </tbody>
-    </table>` : '';
+  const expediteur =
+    '<strong>' + esc(c ? (c.sexe === 'F' ? 'Mme ' : 'M. ') + nomCitoyen(c) : d.plaignant) + '</strong><br>' +
+    (c && c.profession ? esc(c.profession) + '<br>' : '') +
+    (c && c.adresse ? esc(c.adresse) + '<br>' : '') +
+    (d.contact && d.contact.telephone ? 'Tél : ' + esc(d.contact.telephone) + '<br>' : '') +
+    (d.contact && d.contact.email ? esc(d.contact.email) : '');
 
-  return (
-    enteteOfficielle() +
-    titreDocument('Déclaration de Plainte', d.numero) + `
-    <p style="font-weight:bold;margin:0 0 8px">I. IDENTITÉ ET OBJET</p>
-    <table style="width:100%;border-collapse:collapse;font-size:15px">
-      <tbody>
-        ${ligne('Plaignant', '<strong>' + d.plaignant + '</strong>')}
-        ${ligne("Nature de l'infraction", d.type)}
-        ${ligne('Date des faits', dateEnClair(d.date))}
-        ${ligne('Lieu des faits', d.lieu)}
-        ${ligne('Commissariat compétent', d.commissariat)}
-        ${d.enqueteur ? ligne('Enquêteur désigné', d.enqueteur) : ''}
-      </tbody>
-    </table>
+  const destinataire =
+    'À Monsieur le Commissaire,<br>' +
+    'Chef du ' + esc(d.commissariat) + '<br>' +
+    '<span style="font-weight:normal;font-style:italic">Sous couvert de Monsieur le Procureur de la ' +
+    'République près le Tribunal de Première Instance de ' + esc(ville) + '</span>';
 
-    <p style="font-weight:bold;margin:26px 0 8px">II. EXPOSÉ DES FAITS</p>
-    <div style="font-size:15px;line-height:1.85;text-align:justify;border:1px solid #000;padding:16px 18px">
-      ${d.declaration
-        ? '« ' + d.declaration + ' »'
-        : '<em>Aucune déclaration enregistrée pour ce dossier.</em>'}
-    </div>
-    ${prej}
+  const objet = `
+    <table style="width:100%;border-collapse:collapse;margin-bottom:28px;font-size:14.5px">
+      <tr>
+        <td style="width:70px;vertical-align:top;font-weight:bold;text-decoration:underline">Objet :</td>
+        <td style="vertical-align:top">Plainte contre ${esc(mis)}</td>
+      </tr>
+      <tr>
+        <td style="width:70px;vertical-align:top;font-weight:bold;text-decoration:underline">Pour :</td>
+        <td style="vertical-align:top">${esc(inc.qualification)}<br>
+          <span style="font-style:italic;font-size:13.5px">(${esc(inc.articles)})</span></td>
+      </tr>
+      <tr>
+        <td style="width:70px;vertical-align:top;font-weight:bold;text-decoration:underline">Réf. :</td>
+        <td style="vertical-align:top">Dossier PlainteCam n° <strong>${esc(d.numero)}</strong></td>
+      </tr>
+    </table>`;
 
-    <p style="font-weight:bold;margin:26px 0 8px">IV. MIS EN CAUSE</p>
-    <div style="font-size:15px;line-height:1.7;border:1px solid #000;padding:14px 18px">
-      ${d.misEnCause || '<em>Mis en cause inconnu du plaignant à la date de la déclaration.</em>'}
-    </div>
+  const para = (t, style) =>
+    '<p style="text-align:justify;margin:0 0 15px;' + (style || '') + '">' + t + '</p>';
 
-    <div style="font-size:14px;line-height:1.6;text-align:justify;margin:30px 0 36px;border-left:4px solid #000;padding-left:18px;font-style:italic">
-      <strong>Mention légale :</strong> la présente déclaration reproduit les informations saisies par le plaignant sur la plateforme PlainteCam. Elle ne constitue pas un procès-verbal d'audition : celui-ci est établi par l'officier de police judiciaire lors de l'audition. Toute fausse déclaration expose son auteur aux sanctions prévues par le Code pénal camerounais.
-    </div>` +
-    blocVerification(d.numero, `
-      <div style="margin-bottom:26px">Déclaration établie le ${dateEnClair(d.date)}${d.heure ? ' à ' + d.heure : ''}</div>
-      <div style="font-weight:bold;margin-bottom:44px">Signature du déclarant<br><span style="font-weight:normal;font-size:14px">${d.plaignant}</span></div>
-      <div style="display:inline-block;border-bottom:1px solid #000;width:220px"></div>`)
-  );
+  let corps =
+    para('Monsieur le Commissaire,', 'margin-bottom:20px') +
+    para('J’ai l’honneur de vous exposer, en vous remerciant par avance pour l’attention que vous ' +
+         'porterez à la lecture de ma plainte, les faits suivants, afin que toute lumière soit faite et que ' +
+         'les auteurs en répondent.') +
+    para('Je soussigné' + (c && c.sexe === 'F' ? 'e' : '') + ' ' + etatCivilPlaignant(d) + '.');
+
+  /* Le recit du plaignant est reproduit tel qu'il a ete saisi. Il n'est
+     ni resume ni reformule : c'est sa parole qui est versee au dossier. */
+  corps += para('<strong>Exposé des faits.</strong> Les faits se sont produits le <strong>' +
+                dateEnClair(d.date) + '</strong>, à <strong>' + esc(d.lieu || 'un lieu que je précise ci-après') + '</strong>.');
+  corps += d.declaration
+    ? para('« ' + esc(d.declaration) + ' »', 'font-style:italic;padding-left:20px;border-left:2px solid #000')
+    : para('<em>Aucun récit n’a été enregistré pour ce dossier.</em>');
+
+  if (d.prejudice) {
+    corps += para('<strong>Préjudice subi.</strong> ' + esc(d.prejudice.nature) +
+      (d.prejudice.montant ? ', évalué à <strong>' + esc(d.prejudice.montant) + ' FCFA</strong>' : '') +
+      (d.prejudice.detail ? ' — ' + esc(d.prejudice.detail) : '') + '.');
+  }
+
+  corps += para('<strong>Personne mise en cause.</strong> ' +
+    (d.misEnCause
+      ? esc(d.misEnCause)
+      : 'L’auteur des faits ne m’est pas connu à ce jour. Je porte donc plainte contre X.'));
+
+  if (d.pieces && d.pieces.length) {
+    corps += para('<strong>Pièces jointes.</strong> À l’appui de ma plainte, je verse les pièces ' +
+      'suivantes : ' + d.pieces.map(p => esc(p.nom)).join(', ') + '.');
+  }
+
+  corps += para('C’est pourquoi je vous prie de bien vouloir enregistrer la présente plainte, diligenter ' +
+    'l’enquête qu’elle appelle et lui réserver la suite que de droit.', 'margin-top:18px');
+  corps += para('Je certifie sur l’honneur l’exactitude des faits exposés ci-dessus et n’ignore ' +
+    'pas que toute dénonciation calomnieuse expose son auteur aux peines prévues par le Code pénal.');
+  corps += para('Dans l’attente d’une suite favorable, je vous prie d’agréer, Monsieur le Commissaire, ' +
+    'l’expression de ma haute considération.', 'margin-bottom:34px');
+
+  corps += `
+    <table style="width:100%;border-collapse:collapse">
+      <tr>
+        <td style="width:52%"></td>
+        <td style="width:48%;text-align:center;font-size:14px">
+          Le plaignant,<br>
+          <span style="display:block;border-top:1px solid #000;width:82%;margin:56px auto 4px"></span>
+          <strong>${esc(d.plaignant)}</strong>
+        </td>
+      </tr>
+    </table>`;
+
+  return gabaritLettre({
+    expediteur: expediteur,
+    lieuDate: esc(ville) + ', le ' + dateEnClair(d.date),
+    destinataire: destinataire,
+    objet: objet,
+    corps: corps,
+    pied: piedVerification(d.numero)
+  });
 }
 
 /* ============================================================
@@ -397,48 +780,92 @@ function blocPieceIndisponible(piece, ext, message) {
    l'expose a des represailles. La plateforme permet donc l'envoi
    electronique quand une adresse ou un numero est connu — et, a defaut,
    produit le document a remettre en main propre.
+
+   Le modele reel est une piece a en-tete bilingue pleine largeur : elle
+   ne porte pas de colonne administrative, contrairement au PV.
    ============================================================ */
 function htmlConvocation(d, conv, destinataire) {
   const versLePlaignant = destinataire === 'plaignant';
   const nom = versLePlaignant ? d.plaignant : (conv.nom || 'La personne mise en cause');
   const qualite = versLePlaignant ? 'plaignant' : 'personne mise en cause';
 
-  return enteteOfficielle() +
-    titreDocument('Convocation', d.id) + `
-    <p style="text-align:right;font-size:14px;margin:0 0 26px">
-      ${/* Une convocation est datée du jour où elle est écrite, non du jour
-           où l'on comparaît : l'en-tête reprenait la date de comparution,
-           si bien que le document semblait rédigé le jour même. */
-         d.commissariat || 'Commissariat compétent'}, le ${dateEnClair(conv.emise || conv.date)}
-    </p>
+  /* Les accords etaient figes au feminin — « munie de ses pieces »,
+     « entendue » — parce que le modele de reference visait une femme.
+     Ils se reglent sur la fiche du plaignant ; du mis en cause, dont le
+     sexe n'est pas au dossier, on garde le masculin generique. */
+  const fiche = (versLePlaignant && d.citoyen && typeof citoyen === 'function')
+    ? citoyen(d.citoyen) : null;
+  const e = (fiche && fiche.sexe === 'F') ? 'e' : '';
+  const il = (fiche && fiche.sexe === 'F') ? 'elle' : 'il';
+  const inc = qualificationDe(d.type);
+  const ville = (d.commissariat || '').split(',').pop().trim() || 'Yaoundé';
+  const visas = (typeof VISAS_CONVOCATION !== 'undefined')
+    ? VISAS_CONVOCATION : 'articles 79, 82 à 92, 103 à 115 du Code de Procédure Pénale';
 
-    <p style="font-size:16px;line-height:1.9;text-align:justify">
-      Nous, officier de police judiciaire près le ${d.commissariat || 'commissariat compétent'},
-      invitons <strong>${nom}</strong>, en qualité de <strong>${qualite}</strong>,
-      à se présenter dans nos locaux&nbsp;:
-    </p>
+  /* Une convocation est datée du jour où elle est écrite, non du jour
+     où l'on comparaît : l'en-tête reprenait la date de comparution,
+     si bien que le document semblait rédigé le jour même. */
+  const emise = conv.emise || conv.date;
 
-    <table style="width:100%;border-collapse:collapse;font-size:15px;margin:24px 0">
-      <tbody>
-        ${ligne('Date de comparution', '<strong>' + dateEnClair(conv.date) + '</strong>')}
-        ${ligne('Heure', '<strong>' + (conv.heure || '') + '</strong>')}
-        ${ligne('Lieu', d.commissariat || '—')}
-        ${ligne('Dossier concerné', 'N° ' + d.id + ' — ' + d.type)}
-        ${ligne('Rang de la convocation', (conv.ordre || 1) + (conv.ordre === 1 ? 're' : 'e') + ' convocation')}
-      </tbody>
-    </table>
+  /* Le plaignant n'est pas identifie dans le fichier des citoyens quand
+     la convocation vise le mis en cause : on ne decline alors que ce
+     que le dossier connait de lui. */
+  const identite = versLePlaignant
+    ? etatCivilPlaignant({ citoyen: d.citoyen, plaignant: d.plaignant })
+    : '<strong>' + esc(nom) + '</strong>' +
+      (conv.adresse ? ', domicilié à ' + esc(conv.adresse) : '');
 
-    <p style="font-size:15px;line-height:1.8;text-align:justify">${conv.motif || ''}</p>
+  const corps =
+    ligneP(ouvertureActe(emise, conv.heureEmission || '') + ',') +
+    ligneP('Nous, <strong>' + esc(d.enqueteur || 'l’Officier de Police Judiciaire de permanence') +
+           '</strong>, Officier de Police Judiciaire près le ' + esc(d.commissariat) + ',') +
+    ligneP('Auxiliaire de Monsieur le Procureur de la République ;') +
+    ligneP('Vu les ' + esc(visas) + ' ;') +
+    ligneP('Agissant pour faire suite à l’enquête préliminaire en cours au ' +
+           esc(d.commissariat) + ', sous le dossier n° <strong>' + esc(d.id) + '</strong> ;') +
 
-    <p style="font-size:14px;line-height:1.7;text-align:justify;border-left:4px solid #000;padding-left:18px;font-style:italic;margin:24px 0 40px">
-      Munissez-vous d'une pièce d'identité. ${versLePlaignant
-        ? "Votre présence permet le recueil de vos déclarations et l'établissement du procès-verbal d'audition."
-        : "En cas d'absence non justifiée, une nouvelle convocation vous sera adressée. Après trois absences, le dossier est transmis au procureur de la République."}
-    </p>` +
-    blocVerification(d.id, `
-      <div style="font-weight:bold;margin-bottom:44px">L'officier de police judiciaire<br>
-        <span style="font-weight:normal;font-size:14px">${d.enqueteur || ''}</span></div>
-      <div style="display:inline-block;border-bottom:1px solid #000;width:220px"></div>`);
+    ligneP('<strong>Invitons à comparaître devant nous</strong>, au ' + esc(d.commissariat) +
+           ', le <strong>' + dateEnClair(conv.date) + '</strong> à <strong>' +
+           heureRonde(conv.heure) + '</strong> précises ;', 'margin-top:14px') +
+    ligneP(identite + ', en qualité de <strong>' + qualite + '</strong>, ' +
+           'muni' + e + ' de ses pièces d’identité, pour être entendu' + e +
+           ' sur les faits ' + esc(deQualif(inc.qualification)) + '.') +
+
+    (conv.motif ? ligneP(esc(conv.motif), 'margin-top:10px') : '') +
+
+    ligneP('L’avisons qu’' + il +
+           ' est libre de se faire assister d’un conseil de son choix' +
+           (versLePlaignant
+             ? '. Sa présence permet le recueil de ses déclarations et l’établissement du ' +
+               'procès-verbal d’audition.'
+             : ' et qu’en cas de défaillance, ' + (conv.ordre >= 3
+                 ? 'la procédure sera transmise en l’état à Monsieur le Procureur de la République'
+                 : 'une nouvelle convocation lui sera adressée, la troisième valant dernier avertissement ' +
+                   'avant transmission au Parquet') +
+               ', conformément aux dispositions du Code de Procédure Pénale.'),
+           'margin-top:10px') +
+
+    ligneFin('La présente convocation vaut ' +
+             ((typeof ORDINAUX !== 'undefined' && ORDINAUX[(conv.ordre || 1) - 1]) ||
+              (conv.ordre || 1) + 'e') + ' convocation.') +
+
+    `<table class="doc-sign"><tr>
+       <td style="width:48%"></td>
+       <td style="width:52%">
+         <span style="font-weight:normal;font-size:13px">${esc(ville)}, le ${dateEnClair(emise)}</span><br>
+         L’OFFICIER DE POLICE JUDICIAIRE<br>
+         <span style="font-weight:normal;font-size:13px">${esc(d.enqueteur || '')}</span>
+         <span class="trait"></span>
+       </td>
+     </tr></table>`;
+
+  return gabaritConvocation({
+    service: d.commissariat,
+    numero: numeroOrdre(d.id),
+    titre: 'Convocation',
+    corps: corps,
+    pied: piedVerification(d.id)
+  });
 }
 
 function lireConvocation(d, conv, destinataire) {

@@ -19,107 +19,149 @@ const CITOYENS = [
     cni: 'CM0012345678', naissance: '12/03/1988', lieuNaissance: 'Yaoundé',
     profession: 'Commerçant', adresse: 'Mvog-Ada, Yaoundé 4ème',
     email: 'j.mbida@gmail.com',    telephone: '+237 677 100 001',
-    pays: 'Cameroun', region: 'Centre', ville: 'Yaoundé' },
+    pays: 'Cameroun', region: 'Centre', ville: 'Yaoundé',
+    pere: 'MBIDA Antoine', mere: 'AMOUGOU Jeanne', matrimonial: 'marié', enfants: 3,
+    religion: 'catholique', coutume: 'Ewondo', cniDate: '04/02/2015' },
   { id: 'CIT-002', nom: 'ESSOMBA',  prenom: 'Marie',   sexe: 'F',
     cni: 'CM0012345679', naissance: '04/09/1992', lieuNaissance: 'Douala',
     profession: 'Coiffeuse', adresse: 'Biyem-Assi, Yaoundé 6ème',
     email: 'm.essomba@gmail.com',  telephone: '+237 677 100 002',
-    pays: 'Cameroun', region: 'Centre', ville: 'Yaoundé' },
+    pays: 'Cameroun', region: 'Centre', ville: 'Yaoundé',
+    pere: 'ESSOMBA Pierre', mere: 'NGO MAKON Régine', matrimonial: 'célibataire', enfants: 1,
+    religion: 'catholique', coutume: 'Bassa', cniDate: '17/09/2016' },
   { id: 'CIT-003', nom: 'ATANGANA', prenom: 'Paul',    sexe: 'M',
     cni: 'CM0012345680', naissance: '27/01/1979', lieuNaissance: 'Ebolowa',
     profession: 'Enseignant', adresse: 'Nlongkak, Yaoundé 1er',
     email: 'p.atangana@gmail.com', telephone: '+237 677 100 003',
-    pays: 'Cameroun', region: 'Centre', ville: 'Yaoundé' },
+    pays: 'Cameroun', region: 'Centre', ville: 'Yaoundé',
+    pere: 'ATANGANA Michel', mere: 'MENGUE Thérèse', matrimonial: 'marié', enfants: 4,
+    religion: 'protestante', coutume: 'Bulu', cniDate: '22/06/2012' },
   { id: 'CIT-004', nom: 'BELLO',    prenom: 'Fatima',  sexe: 'F',
     cni: 'CM0012345681', naissance: '15/06/1995', lieuNaissance: 'Garoua',
     profession: 'Secrétaire', adresse: 'Mendong, Yaoundé 6ème',
     email: 'f.bello@gmail.com',    telephone: '+237 677 100 004',
-    pays: 'Cameroun', region: 'Centre', ville: 'Yaoundé' },
+    pays: 'Cameroun', region: 'Centre', ville: 'Yaoundé',
+    pere: 'BELLO Amadou', mere: 'HAOUA Aïssatou', matrimonial: 'célibataire', enfants: 0,
+    religion: 'musulmane', coutume: 'Peuhl', cniDate: '08/03/2018' },
   { id: 'CIT-005', nom: 'FOKO',     prenom: 'Alain',   sexe: 'M',
     cni: 'CM0012345682', naissance: '08/11/1984', lieuNaissance: 'Bafoussam',
     profession: 'Mototaximan', adresse: 'Obili, Yaoundé 1er',
     email: 'a.foko@gmail.com',     telephone: '+237 677 100 005',
-    pays: 'Cameroun', region: 'Centre', ville: 'Yaoundé' },
+    pays: 'Cameroun', region: 'Centre', ville: 'Yaoundé',
+    pere: 'FOKO Jean-Marie', mere: 'KENFACK Madeleine', matrimonial: 'marié', enfants: 2,
+    religion: 'catholique', coutume: 'Bamiléké', cniDate: '15/11/2014' },
   { id: 'CIT-006', nom: 'NANA',     prenom: 'Sylvie',  sexe: 'F',
     cni: 'CM0012345683', naissance: '21/04/1990', lieuNaissance: 'Yaoundé',
     profession: 'Revendeuse', adresse: 'Nkolbisson, Yaoundé 7ème',
     email: 's.nana@gmail.com',     telephone: '+237 677 100 006',
-    pays: 'Cameroun', region: 'Centre', ville: 'Yaoundé' },
+    pays: 'Cameroun', region: 'Centre', ville: 'Yaoundé',
+    pere: 'NANA Robert', mere: 'TCHOUTA Angèle', matrimonial: 'célibataire', enfants: 2,
+    religion: 'protestante', coutume: 'Bamiléké', cniDate: '30/04/2017' },
   { id: 'CIT-007', nom: 'TCHOUMI',  prenom: 'Georges', sexe: 'M',
     cni: 'CM0012345684', naissance: '30/07/1981', lieuNaissance: 'Dschang',
     profession: 'Comptable', adresse: 'Essos, Yaoundé 4ème',
     email: 'g.tchoumi@gmail.com',  telephone: '+237 677 100 007',
-    pays: 'Cameroun', region: 'Centre', ville: 'Yaoundé' },
+    pays: 'Cameroun', region: 'Centre', ville: 'Yaoundé',
+    pere: 'TCHOUMI Daniel', mere: 'DJUISSI Pauline', matrimonial: 'marié', enfants: 3,
+    religion: 'catholique', coutume: 'Bamiléké', cniDate: '11/07/2013' },
   { id: 'CIT-008', nom: 'ONANA',    prenom: 'Clarisse', sexe: 'F',
     cni: 'CM0012345685', naissance: '02/02/1998', lieuNaissance: 'Mbalmayo',
     profession: 'Étudiante', adresse: 'Ngoa-Ekelle, Yaoundé 3ème',
     email: 'c.onana@gmail.com',    telephone: '+237 677 100 008',
-    pays: 'Cameroun', region: 'Centre', ville: 'Yaoundé' },
+    pays: 'Cameroun', region: 'Centre', ville: 'Yaoundé',
+    pere: 'ONANA Sylvain', mere: 'EBODE Marguerite', matrimonial: 'célibataire', enfants: 0,
+    religion: 'catholique', coutume: 'Ewondo', cniDate: '26/02/2019' },
   { id: 'CIT-009', nom: 'NJOYA',    prenom: 'Emmanuel', sexe: 'M',
     cni: 'CM0012345686', naissance: '19/12/1976', lieuNaissance: 'Foumban',
     profession: 'Chauffeur', adresse: 'Mvan, Yaoundé 3ème',
     email: 'e.njoya@gmail.com',    telephone: '+237 677 100 009',
-    pays: 'Cameroun', region: 'Centre', ville: 'Yaoundé' },
+    pays: 'Cameroun', region: 'Centre', ville: 'Yaoundé',
+    pere: 'NJOYA Ibrahim', mere: 'NSANGOU Fadimatou', matrimonial: 'marié', enfants: 5,
+    religion: 'musulmane', coutume: 'Bamoun', cniDate: '09/05/2011' },
   { id: 'CIT-010', nom: 'MEKA',     prenom: 'Rachel',  sexe: 'F',
     cni: 'CM0012345687', naissance: '11/05/1993', lieuNaissance: 'Yaoundé',
     profession: 'Infirmière', adresse: 'Emana, Yaoundé 1er',
     email: 'r.meka@gmail.com',     telephone: '+237 677 100 010',
-    pays: 'Cameroun', region: 'Centre', ville: 'Yaoundé' },
+    pays: 'Cameroun', region: 'Centre', ville: 'Yaoundé',
+    pere: 'MEKA Étienne', mere: 'ZANGA Christine', matrimonial: 'mariée', enfants: 1,
+    religion: 'catholique', coutume: 'Éton', cniDate: '19/08/2016' },
   { id: 'CIT-011', nom: 'TALLA',    prenom: 'Hervé',   sexe: 'M',
     cni: 'CM0012345688', naissance: '23/08/1986', lieuNaissance: 'Bafang',
     profession: 'Menuisier', adresse: 'Etoudi, Yaoundé 1er',
     email: 'h.talla@gmail.com',    telephone: '+237 677 100 011',
-    pays: 'Cameroun', region: 'Centre', ville: 'Yaoundé' },
+    pays: 'Cameroun', region: 'Centre', ville: 'Yaoundé',
+    pere: 'TALLA Marcel', mere: 'NGUEKAM Rose', matrimonial: 'marié', enfants: 3,
+    religion: 'protestante', coutume: 'Bamiléké', cniDate: '03/10/2015' },
   { id: 'CIT-012', nom: 'MANGA',    prenom: 'Brigitte', sexe: 'F',
     cni: 'CM0012345689', naissance: '06/10/1989', lieuNaissance: 'Kribi',
     profession: 'Caissière', adresse: 'Mimboman, Yaoundé 4ème',
     email: 'b.manga@gmail.com',    telephone: '+237 677 100 012',
-    pays: 'Cameroun', region: 'Centre', ville: 'Yaoundé' },
+    pays: 'Cameroun', region: 'Centre', ville: 'Yaoundé',
+    pere: 'MANGA Joseph', mere: 'NGO BILOA Cécile', matrimonial: 'célibataire', enfants: 1,
+    religion: 'catholique', coutume: 'Bassa', cniDate: '28/01/2017' },
   { id: 'CIT-013', nom: 'EYENGA',   prenom: 'Serge',   sexe: 'M',
     cni: 'CM0012345690', naissance: '14/02/1983', lieuNaissance: 'Sangmélima',
     profession: 'Vigile', adresse: 'Nkoldongo, Yaoundé 4ème',
     email: 's.eyenga@gmail.com',   telephone: '+237 677 100 013',
-    pays: 'Cameroun', region: 'Centre', ville: 'Yaoundé' },
+    pays: 'Cameroun', region: 'Centre', ville: 'Yaoundé',
+    pere: 'EYENGA Bernard', mere: 'MEZUI Julienne', matrimonial: 'marié', enfants: 2,
+    religion: 'protestante', coutume: 'Bulu', cniDate: '07/12/2013' },
   { id: 'CIT-014', nom: 'ABANDA',   prenom: 'Léonie', sexe: 'F',
     cni: 'CM0012345691', naissance: '17/07/1991', lieuNaissance: 'Yaoundé',
     profession: 'Restauratrice', adresse: 'Mokolo, Yaoundé 2ème',
     email: 'l.abanda@gmail.com',   telephone: '+237 677 100 014',
-    pays: 'Cameroun', region: 'Centre', ville: 'Yaoundé' },
+    pays: 'Cameroun', region: 'Centre', ville: 'Yaoundé',
+    pere: 'ABANDA Félix', mere: 'NGONO Émilienne', matrimonial: 'veuve', enfants: 3,
+    religion: 'catholique', coutume: 'Ewondo', cniDate: '21/06/2016' },
   { id: 'CIT-015', nom: 'KAMGA',    prenom: 'Théodore', sexe: 'M',
     cni: 'CM0012345692', naissance: '05/03/1974', lieuNaissance: 'Bafoussam',
     profession: 'Transporteur', adresse: 'Nsam, Yaoundé 3ème',
     email: 't.kamga@gmail.com',    telephone: '+237 677 100 015',
-    pays: 'Cameroun', region: 'Centre', ville: 'Yaoundé' },
+    pays: 'Cameroun', region: 'Centre', ville: 'Yaoundé',
+    pere: 'KAMGA Samuel', mere: 'FOTSO Bernadette', matrimonial: 'marié', enfants: 6,
+    religion: 'catholique', coutume: 'Bamiléké', cniDate: '14/09/2010' },
   { id: 'CIT-016', nom: 'NGO BASSONG', prenom: 'Adèle', sexe: 'F',
     cni: 'CM0012345693', naissance: '29/11/1996', lieuNaissance: 'Édéa',
     profession: 'Aide-soignante', adresse: 'Nkomo, Yaoundé 5ème',
     email: 'a.ngobassong@gmail.com', telephone: '+237 677 100 016',
-    pays: 'Cameroun', region: 'Centre', ville: 'Yaoundé' },
+    pays: 'Cameroun', region: 'Centre', ville: 'Yaoundé',
+    pere: 'BASSONG Lucas', mere: 'NGO MBOG Henriette', matrimonial: 'célibataire', enfants: 0,
+    religion: 'protestante', coutume: 'Bassa', cniDate: '05/04/2019' },
   { id: 'CIT-017', nom: 'OWONA',    prenom: 'Vincent', sexe: 'M',
     cni: 'CM0012345694', naissance: '12/09/1987', lieuNaissance: 'Yaoundé',
     profession: 'Électricien', adresse: 'Efoulan, Yaoundé 3ème',
     email: 'v.owona@gmail.com',    telephone: '+237 677 100 017',
-    pays: 'Cameroun', region: 'Centre', ville: 'Yaoundé' },
+    pays: 'Cameroun', region: 'Centre', ville: 'Yaoundé',
+    pere: 'OWONA Gaston', mere: 'BELINGA Agathe', matrimonial: 'divorcé', enfants: 2,
+    religion: 'catholique', coutume: 'Ewondo', cniDate: '12/03/2015' },
   { id: 'CIT-018', nom: 'DJOUMESSI', prenom: 'Nadège', sexe: 'F',
     cni: 'CM0012345695', naissance: '08/05/1994', lieuNaissance: 'Bandjoun',
     profession: 'Couturière', adresse: 'Mvog-Mbi, Yaoundé 4ème',
     email: 'n.djoumessi@gmail.com', telephone: '+237 677 100 018',
-    pays: 'Cameroun', region: 'Centre', ville: 'Yaoundé' },
+    pays: 'Cameroun', region: 'Centre', ville: 'Yaoundé',
+    pere: 'DJOUMESSI Albert', mere: 'KAMDEM Delphine', matrimonial: 'célibataire', enfants: 1,
+    religion: 'protestante', coutume: 'Bamiléké', cniDate: '23/07/2018' },
   { id: 'CIT-019', nom: 'ETOUNDI',  prenom: 'Blaise', sexe: 'M',
     cni: 'CM0012345696', naissance: '24/01/1980', lieuNaissance: 'Akonolinga',
     profession: 'Boulanger', adresse: 'Etoa-Meki, Yaoundé 2ème',
     email: 'b.etoundi@gmail.com',  telephone: '+237 677 100 019',
-    pays: 'Cameroun', region: 'Centre', ville: 'Yaoundé' },
+    pays: 'Cameroun', region: 'Centre', ville: 'Yaoundé',
+    pere: 'ETOUNDI André', mere: 'AYISSI Véronique', matrimonial: 'marié', enfants: 4,
+    religion: 'catholique', coutume: 'Éton', cniDate: '16/05/2012' },
   { id: 'CIT-020', nom: 'MBALLA',   prenom: 'Solange', sexe: 'F',
     cni: 'CM0012345697', naissance: '03/12/1989', lieuNaissance: 'Yaoundé',
     profession: 'Gérante de boutique', adresse: 'Tsinga, Yaoundé 1er',
     email: 's.mballa@gmail.com',   telephone: '+237 677 100 020',
-    pays: 'Cameroun', region: 'Centre', ville: 'Yaoundé' },
+    pays: 'Cameroun', region: 'Centre', ville: 'Yaoundé',
+    pere: 'MBALLA Raymond', mere: 'ONDOA Lucie', matrimonial: 'mariée', enfants: 2,
+    religion: 'catholique', coutume: 'Ewondo', cniDate: '02/11/2016' },
   { id: 'CIT-021', nom: 'NDJOMO',   prenom: 'Aristide', sexe: 'M',
     cni: 'CM0012345698', naissance: '19/06/1985', lieuNaissance: 'Mbalmayo',
     profession: 'Mécanicien', adresse: 'Odza, Yaoundé 4ème',
     email: 'a.ndjomo@gmail.com',   telephone: '+237 677 100 021',
-    pays: 'Cameroun', region: 'Centre', ville: 'Yaoundé' }
+    pays: 'Cameroun', region: 'Centre', ville: 'Yaoundé',
+    pere: 'NDJOMO Charles', mere: 'MVONDO Suzanne', matrimonial: 'célibataire', enfants: 2,
+    religion: 'protestante', coutume: 'Bulu', cniDate: '27/08/2014' }
 ];
 
 /* Compte ouvert dans l'espace citoyen. Une seule ligne à changer pour
@@ -203,6 +245,109 @@ function citoyen(idCitoyen) {
 }
 function citoyenCourant() { return citoyen(CITOYEN_CONNECTE); }
 function nomCitoyen(c) { return c ? c.prenom + ' ' + c.nom : ''; }
+
+/* ── État civil des procès-verbaux ──────────────────────────
+   Le procès-verbal camerounais ne se contente pas d'un nom : il décline
+   la filiation, la profession, le domicile, la situation matrimoniale,
+   la religion, la coutume, les antécédents et le numéro de CNI, en une
+   seule phrase. C'est ce qui distingue une pièce de procédure d'une
+   fiche informatique, et c'est ce que les modèles réels imposent.
+   ─────────────────────────────────────────────────────────── */
+
+const NOMBRES_LETTRES = ['zéro', 'un', 'deux', 'trois', 'quatre', 'cinq', 'six',
+  'sept', 'huit', 'neuf', 'dix', 'onze', 'douze', 'treize', 'quatorze', 'quinze',
+  'seize', 'dix-sept', 'dix-huit', 'dix-neuf', 'vingt'];
+
+function enLettres(n) {
+  return (n >= 0 && n <= 20) ? NOMBRES_LETTRES[n] : String(n);
+}
+
+/* « né le 12 Mars 1988 à Yaoundé, fils de MBIDA Antoine et de AMOUGOU
+   Jeanne, Commerçant, domicilié à Mvog-Ada, marié père de trois
+   enfants, de religion catholique, de mœurs et coutume Ewondo, sans
+   antécédent judiciaire, titulaire de la CNI n° … du … à Yaoundé » */
+function etatCivilComplet(c) {
+  if (!c) return '';
+  const f = c.sexe === 'F';
+  const parts = [];
+
+  /* « né le 12 mars 1988 » : un acte ecrit la date en clair, jamais en
+     chiffres separes par des barres obliques. */
+  const naiss = (typeof dateEnClair === 'function') ? dateEnClair(c.naissance) : c.naissance;
+  parts.push('né' + (f ? 'e' : '') + ' le ' + naiss + ' à ' + c.lieuNaissance);
+
+  if (c.pere || c.mere) {
+    parts.push((f ? 'fille' : 'fils') + ' de ' +
+               (c.pere || 'père non déclaré') + ' et de ' + (c.mere || 'mère non déclarée'));
+  }
+  if (c.profession) parts.push(c.profession);
+  if (c.adresse)    parts.push('domicilié' + (f ? 'e' : '') + ' à ' + c.adresse);
+
+  /* « marié père de trois enfants » — sans enfant, la mention tombe,
+     comme sur les modèles où elle n'apparaît simplement pas. */
+  if (c.matrimonial) {
+    let sit = c.matrimonial;
+    if (c.enfants > 0) {
+      sit += ' ' + (f ? 'mère' : 'père') + ' de ' + enLettres(c.enfants) +
+             ' enfant' + (c.enfants > 1 ? 's' : '');
+    } else if (c.enfants === 0) {
+      sit += ' sans enfant';
+    }
+    parts.push(sit);
+  }
+
+  parts.push(c.religion ? 'de religion ' + c.religion : 'sans religion déclarée');
+  if (c.coutume) parts.push('de mœurs et coutume ' + c.coutume);
+
+  /* Mention obligatoire : son absence vaut casier vierge, elle ne se
+     déduit pas du silence de la fiche. */
+  parts.push(c.antecedents || 'sans antécédent judiciaire');
+
+  if (c.cni) {
+    parts.push('titulaire de la Carte Nationale d’Identité n° ' + c.cni +
+               (c.cniDate ? ' du ' + c.cniDate : '') +
+               ' à ' + (c.cniLieu || c.ville || 'Yaoundé'));
+  }
+  return parts.join(', ');
+}
+
+/* Le plaignant d'un dossier est un citoyen enregistré : son état civil
+   se retrouve par l'identifiant du compte, pas par le nom affiché. */
+function etatCivilDuDossier(d) {
+  if (!d) return '';
+  const c = citoyen(d.citoyen);
+  return c ? etatCivilComplet(c) : '';
+}
+
+/* ── Qualification pénale ───────────────────────────────────
+   Le procès-verbal porte une incrimination, pas un libellé de menu.
+   La correspondance est établie ici pour que les quatre documents la
+   citent à l'identique.
+
+   Articles du Code pénal camerounais (loi n° 2016/007). À faire
+   confirmer par l'encadreur avant impression d'un document réel.
+   ─────────────────────────────────────────────────────────── */
+const INCRIMINATIONS = {
+  'Vol simple':            { qualification: 'Vol',                          articles: 'article 318 du Code pénal' },
+  'Vol avec violence':     { qualification: 'Vol aggravé',                  articles: 'article 320 du Code pénal' },
+  'Agression physique':    { qualification: 'Coups et blessures',           articles: 'articles 277 à 280 du Code pénal' },
+  'Escroquerie / Fraude':  { qualification: 'Escroquerie',                  articles: 'article 318 du Code pénal' },
+  'Harcèlement':           { qualification: 'Harcèlement et menaces',       articles: 'articles 301 et 302-1 du Code pénal' },
+  'Dégradation de biens':  { qualification: 'Destruction de biens',         articles: 'article 316 du Code pénal' },
+  'Accident de la route':  { qualification: 'Blessures involontaires',      articles: 'article 289 du Code pénal' },
+  'Autre':                 { qualification: 'Faits à qualifier',            articles: 'Code pénal' }
+};
+
+function incriminationDe(type) {
+  return INCRIMINATIONS[type] ||
+         { qualification: type || 'Faits à qualifier', articles: 'Code pénal' };
+}
+
+/* Articles de procédure visés en tête de chaque pièce. Ils diffèrent
+   selon l'acte : le PV vise les pouvoirs d'audition, la convocation
+   vise en plus les articles sur la comparution. */
+const VISAS_PV          = 'articles 79, 81, 82, 83 à 92, 116 et 117 du Code de Procédure Pénale';
+const VISAS_CONVOCATION = 'articles 79, 82 à 92, 103 à 115 du Code de Procédure Pénale';
 
 /* Dossiers du compte connecté, du plus récent au plus ancien. */
 function mesDossiers(idCitoyen) {
@@ -1189,68 +1334,88 @@ function historiqueCitoyen(numeroDossier) {
    supabase/schema.sql — et les trois états possibles.
    ============================================================ */
 
+/* `date` est la date de comparution, `emise` celle de la signature de
+   l'acte. Les deux etaient confondues : le document se datait du jour
+   ou l'on devait s'y presenter, comme s'il avait ete redige sur place.
+   Six jours les separent — le delai d'acheminement ordinaire. */
 const CONVOCATIONS = {
   /* Le mis en cause ne se présente pas : deux absences constatées, la
      troisième convocation est en cours. */
   '2026-00438': [
-    { ordre: 1, nom: 'NKOLO Bertrand', date: '22/05/2026', heure: '09h00', statut: 'ABSENT',
+    { ordre: 1, nom: 'NKOLO Bertrand', date: '22/05/2026', heure: '09h00',
+      emise: '16/05/2026', heureEmission: '11h00', statut: 'ABSENT',
       motif: "Audition dans le cadre de l'instruction d'une plainte pour escroquerie." },
-    { ordre: 2, nom: 'NKOLO Bertrand', date: '29/05/2026', heure: '09h00', statut: 'ABSENT',
+    { ordre: 2, nom: 'NKOLO Bertrand', date: '29/05/2026', heure: '09h00',
+      emise: '23/05/2026', heureEmission: '11h00', statut: 'ABSENT',
       motif: 'Seconde convocation — absence non justifiée à la première.' },
-    { ordre: 3, nom: 'NKOLO Bertrand', date: '05/06/2026', heure: '09h00', statut: 'EN_ATTENTE',
+    { ordre: 3, nom: 'NKOLO Bertrand', date: '05/06/2026', heure: '09h00',
+      emise: '30/05/2026', heureEmission: '11h00', statut: 'EN_ATTENTE',
       motif: 'Troisième et dernière convocation avant transmission au procureur.' }
   ],
   '2026-00412': [
-    { ordre: 1, nom: 'FOUDA Ernest', date: '13/05/2026', heure: '09h30', statut: 'COMPARU',
+    { ordre: 1, nom: 'FOUDA Ernest', date: '13/05/2026', heure: '09h30',
+      emise: '07/05/2026', heureEmission: '11h00', statut: 'COMPARU',
       motif: "Audition dans le cadre de l'instruction d'une plainte pour agression physique." }
   ],
   /* Le mis en cause a comparu : l'instruction a pu aller a son terme. */
   '2026-00429': [
-    { ordre: 1, nom: 'ONANA Serge', date: '22/05/2026', heure: '10h00', statut: 'COMPARU',
+    { ordre: 1, nom: 'ONANA Serge', date: '22/05/2026', heure: '10h00',
+      emise: '16/05/2026', heureEmission: '11h00', statut: 'COMPARU',
       motif: "Audition dans le cadre de l'instruction d'une plainte pour vol avec violence." }
   ],
   '2026-00455': [
-    { ordre: 1, nom: 'AYISSI Léon', date: '27/05/2026', heure: '09h00', statut: 'COMPARU',
+    { ordre: 1, nom: 'AYISSI Léon', date: '27/05/2026', heure: '09h00',
+      emise: '21/05/2026', heureEmission: '11h00', statut: 'COMPARU',
       motif: "Audition dans le cadre de l'instruction d'une plainte pour escroquerie." }
   ],
   '2026-00405': [
-    { ordre: 1, nom: 'ABEGA Cyrille', date: '15/05/2026', heure: '09h00', statut: 'COMPARU',
+    { ordre: 1, nom: 'ABEGA Cyrille', date: '15/05/2026', heure: '09h00',
+      emise: '09/05/2026', heureEmission: '11h00', statut: 'COMPARU',
       motif: "Audition dans le cadre de l'instruction d'une plainte pour harcèlement." }
   ],
   /* Trois absences constatees : c'est ce qui a fonde la saisine du
      parquet, conformement au compte rendu d'entretien. */
   '2026-00389': [
-    { ordre: 1, nom: 'NDONGO Alphonse', date: '11/05/2026', heure: '09h00', statut: 'ABSENT',
+    { ordre: 1, nom: 'NDONGO Alphonse', date: '11/05/2026', heure: '09h00',
+      emise: '05/05/2026', heureEmission: '11h00', statut: 'ABSENT',
       motif: "Audition dans le cadre de l'instruction d'une plainte pour vol avec violence." },
-    { ordre: 2, nom: 'NDONGO Alphonse', date: '19/05/2026', heure: '09h00', statut: 'ABSENT',
+    { ordre: 2, nom: 'NDONGO Alphonse', date: '19/05/2026', heure: '09h00',
+      emise: '13/05/2026', heureEmission: '11h00', statut: 'ABSENT',
       motif: 'Seconde convocation — absence non justifiée à la première.' },
-    { ordre: 3, nom: 'NDONGO Alphonse', date: '27/05/2026', heure: '09h00', statut: 'ABSENT',
+    { ordre: 3, nom: 'NDONGO Alphonse', date: '27/05/2026', heure: '09h00',
+      emise: '21/05/2026', heureEmission: '11h00', statut: 'ABSENT',
       motif: 'Troisième et dernière convocation avant transmission au procureur.' }
   ],
 
   /* ── Deuxième trimestre ───────────────────────────────────── */
   /* Convoqué, la comparution reste attendue. */
   '2026-00466': [
-    { ordre: 1, nom: 'TAGNE Fabrice', date: '10/06/2026', heure: '09h00', statut: 'EN_ATTENTE',
+    { ordre: 1, nom: 'TAGNE Fabrice', date: '10/06/2026', heure: '09h00',
+      emise: '04/06/2026', heureEmission: '11h00', statut: 'EN_ATTENTE',
       motif: "Audition dans le cadre de l'instruction d'une plainte pour escroquerie." }
   ],
   /* Absent une première fois, une seconde convocation est en cours. */
   '2026-00448': [
-    { ordre: 1, nom: 'NKOUE Guy-Bertrand', date: '26/05/2026', heure: '09h00', statut: 'ABSENT',
+    { ordre: 1, nom: 'NKOUE Guy-Bertrand', date: '26/05/2026', heure: '09h00',
+      emise: '20/05/2026', heureEmission: '11h00', statut: 'ABSENT',
       motif: "Audition dans le cadre de l'instruction d'une plainte pour escroquerie." },
-    { ordre: 2, nom: 'NKOUE Guy-Bertrand', date: '05/06/2026', heure: '09h00', statut: 'EN_ATTENTE',
+    { ordre: 2, nom: 'NKOUE Guy-Bertrand', date: '05/06/2026', heure: '09h00',
+      emise: '30/05/2026', heureEmission: '11h00', statut: 'EN_ATTENTE',
       motif: 'Seconde convocation — absence non justifiée à la première.' }
   ],
   '2026-00431': [
-    { ordre: 1, nom: 'ESSOMBA Rodrigue', date: '19/05/2026', heure: '09h00', statut: 'COMPARU',
+    { ordre: 1, nom: 'ESSOMBA Rodrigue', date: '19/05/2026', heure: '09h00',
+      emise: '13/05/2026', heureEmission: '11h00', statut: 'COMPARU',
       motif: "Audition dans le cadre de l'instruction d'une plainte pour vol simple." }
   ],
   '2026-00420': [
-    { ordre: 1, nom: 'NGONO Pauline', date: '12/05/2026', heure: '09h00', statut: 'COMPARU',
+    { ordre: 1, nom: 'NGONO Pauline', date: '12/05/2026', heure: '09h00',
+      emise: '06/05/2026', heureEmission: '11h00', statut: 'COMPARU',
       motif: "Audition dans le cadre de l'instruction d'une plainte pour agression physique." }
   ],
   '2026-00402': [
-    { ordre: 1, nom: 'MEKONGO Jules', date: '22/05/2026', heure: '09h00', statut: 'COMPARU',
+    { ordre: 1, nom: 'MEKONGO Jules', date: '22/05/2026', heure: '09h00',
+      emise: '16/05/2026', heureEmission: '11h00', statut: 'COMPARU',
       motif: "Audition dans le cadre de l'instruction d'une plainte pour escroquerie." }
   ]
 };

@@ -227,11 +227,87 @@ function pvExiste(d, audition) {
          convocationsDe(d.id).some(function (c) { return c.statut === 'COMPARU'; });
 }
 
-/* Texte d'origine, avant toute correction. */
+/* Texte d'origine, avant toute correction.
+
+   Les modeles reels montrent deux facons de consigner une audition, et
+   la difference n'est pas cosmetique :
+
+     • le plaignant se raconte — recit libre, puis des mentions « SIR »
+       (sur interpellation repond) qui precisent les points que
+       l'officier a voulu faire prendre acte ;
+     • le mis en cause est interroge — la contradiction se mene en
+       Question / Reponse, et c'est cette alternance qui rend le PV
+       opposable.
+
+   Le texte est produit ligne a ligne : chaque ligne devient une ligne de
+   procedure a l'affichage, et reste modifiable en bloc en mode
+   correction. Il s'agit de la deposition par defaut, celle que
+   l'officier reecrit au moment de l'audition reelle. */
 function declarationOriginale(d, audition) {
-  return audition === 'plaignant'
-    ? '« ' + d.declaration + ' »'
-    : '« Je conteste les faits qui me sont reprochés et m\'en explique devant l\'officier. »';
+  var inc = (typeof incriminationDe === 'function')
+    ? incriminationDe(d.type) : { qualification: d.type };
+  var lignes = [];
+
+  if (audition === 'plaignant') {
+    lignes.push('Je déclare ce qui suit : « ' + d.declaration + ' »');
+    lignes.push('SIR : Je maintiens l\'intégralité de ma déclaration et en assume la responsabilité.');
+    /* d.heure est l'heure d'enregistrement de la plainte, non celle des
+       faits : la porter ici faisait dire au plaignant une heure qu'il
+       n'avait jamais declaree. */
+    lignes.push('SIR : Les faits se sont produits le ' + dateEnClair(d.date) +
+                ', à ' + (d.lieu || 'l\'endroit susmentionné') + '.');
+    /* Designer quelqu'un et le decrire ne sont pas le meme acte : le PV
+       faisait « designer comme auteur » un signalement physique, ce qui
+       aurait suffi a fonder une convocation contre personne. */
+    lignes.push('SIR : ' + (!d.misEnCause
+      ? 'Je ne connais pas l\'auteur des faits et ne suis pas en mesure de le désigner.'
+      : misEnCauseIdentifie(d)
+        ? 'Je désigne comme auteur des faits : ' + d.misEnCause
+        : 'Je ne connais pas l\'auteur des faits. Je le décris comme suit : ' + d.misEnCause));
+    if (d.prejudice) {
+      lignes.push('SIR : Mon préjudice est d\'ordre ' + d.prejudice.nature.toLowerCase() +
+                  (d.prejudice.montant ? ' et je l\'évalue à ' + d.prejudice.montant + ' FCFA' : '') +
+                  (d.prejudice.detail ? ' — ' + d.prejudice.detail : '') + '.');
+    }
+    if (d.pieces && d.pieces.length) {
+      lignes.push('SIR : Je verse au dossier les pièces suivantes : ' +
+                  d.pieces.map(function (p) { return p.nom; }).join(', ') + '.');
+    }
+    lignes.push('SIR : Je dépose plainte et entends que la procédure suive son cours.');
+    return lignes.join('\n');
+  }
+
+  lignes.push('J\'ai pris connaissance de l\'objet de mon audition ainsi que des faits qui me sont ' +
+              'reprochés. En effet, je ne les reconnais pas.');
+  lignes.push('Question : Reconnaissez-vous les faits ' + deQualif(inc.qualification) +
+              ' qui vous sont reprochés ?');
+  lignes.push('Réponse : Je conteste ces faits et m\'en explique devant vous.');
+  lignes.push('Question : Où vous trouviez-vous le ' + dateEnClair(d.date) + ' ?');
+  lignes.push('Réponse : Je vaquais à mes occupations habituelles et n\'étais pas sur les lieux.');
+  lignes.push('Question : Connaissez-vous le nommé ' + d.plaignant + ' ?');
+  lignes.push('Réponse : Je le connais, mais je ne lui connais aucun différend qui ' +
+              'justifierait une telle accusation à mon encontre.');
+  if (d.prejudice && d.prejudice.montant) {
+    lignes.push('Question : Que répondez-vous au préjudice de ' + d.prejudice.montant +
+                ' FCFA dont il fait état ?');
+    lignes.push('Réponse : Je n\'en suis pas l\'auteur et ne saurais en répondre.');
+  }
+  lignes.push('Question : Avez-vous quelque chose à ajouter à votre décharge ?');
+  lignes.push('Réponse : Je demande que la lumière soit faite et m\'en remets à votre appréciation.');
+  return lignes.join('\n');
+}
+
+/* Chaque ligne de la deposition devient une ligne de procedure. Le
+   marqueur de tete — SIR, Question, Reponse — est mis en evidence,
+   comme sur les modeles ou il est souligne a la machine. */
+function corpsPVRendu(texte) {
+  return String(texte || '').split('\n')
+    .filter(function (l) { return l.trim(); })
+    .map(function (l) {
+      var t = ech(l.trim()).replace(/^(SIR|Question|R&#233;ponse|Réponse)\s*:/,
+                                    '<strong>$1 :</strong>');
+      return (typeof ligneP === 'function') ? ligneP(t) : '<p>----' + t + '</p>';
+    }).join('');
 }
 
 /* Commandes propres au proces-verbal : quelle audition, la revision, la
@@ -665,6 +741,17 @@ function ouvrirConvocationActe(id, destinataire, ordre) {
   var liste = convocationsDe(id);
   var conv = liste.filter(function (c) { return c.ordre === ordre; })[0] || liste[liste.length - 1];
   if (conv) lireConvocation(d, conv, 'mis_en_cause');
+}
+
+/* Horodatage de l'acte en cours de redaction, au format du jeu de
+   donnees (« 23/09/2026 », « 14h05 »). */
+function dateDuJour() {
+  var n = new Date(), dd = function (x) { return String(x).padStart(2, '0'); };
+  return dd(n.getDate()) + '/' + dd(n.getMonth() + 1) + '/' + n.getFullYear();
+}
+function heureDuJour() {
+  var n = new Date(), dd = function (x) { return String(x).padStart(2, '0'); };
+  return dd(n.getHours()) + 'h' + dd(n.getMinutes());
 }
 
 /* Une chaîne destinée à un argument de fonction dans un attribut onclick :
@@ -1618,6 +1705,45 @@ function majKPI() {
 }
 
 
+/* Age au jour de l'audition : le modele le porte en tete de l'objet
+   (« Audition du nomme X, age de 50 ans »). */
+function ageDe(naissance) {
+  var p = String(naissance || '').split('/');
+  if (p.length !== 3) return null;
+  var n = new Date(+p[2], +p[1] - 1, +p[0]);
+  var a = new Date().getFullYear() - n.getFullYear();
+  var m = new Date().getMonth() - n.getMonth();
+  if (m < 0 || (m === 0 && new Date().getDate() < n.getDate())) a--;
+  return a > 0 ? a : null;
+}
+
+/* Un proces-verbal est date du jour de l'audition, non du jour du
+   depot : le document reprenait la date de la plainte, ce qui faisait
+   auditionner le plaignant avant meme sa convocation. */
+function momentAudition(d, audition) {
+  var evts = (typeof HISTORIQUE !== 'undefined' && HISTORIQUE[d.id]) || [];
+  if (audition === 'plaignant') {
+    var a = evts.filter(function (e) { return e.type === 'audition'; }).pop();
+    var pv = evts.filter(function (e) { return e.type === 'pv'; }).pop();
+    if (a) return { date: a.date, heure: a.heure, fin: pv ? pv.heure : null };
+  } else {
+    var c = convocationsDe(d.id).filter(function (x) { return x.statut === 'COMPARU'; }).pop();
+    if (c) return { date: c.date, heure: c.heure, fin: null };
+  }
+  return { date: d.date, heure: d.heure, fin: null };
+}
+
+/* Heure de cloture : celle du registre, ou a defaut l'ouverture
+   majoree d'une heure et demie — duree ordinaire d'une audition. */
+function heureCloture(m) {
+  if (m.fin) return m.fin;
+  var p = String(m.heure || '').match(/(\d{1,2})\s*[h:]\s*(\d{0,2})/);
+  if (!p) return '';
+  var t = parseInt(p[1], 10) * 60 + (p[2] ? parseInt(p[2], 10) : 0) + 90;
+  return String(Math.floor(t / 60) % 24).padStart(2, '0') + 'h' +
+         String(t % 60).padStart(2, '0');
+}
+
 /* ============================================================
    PROCES-VERBAUX
    Le document etait entierement statique : il annoncait « Escroquerie,
@@ -1625,11 +1751,12 @@ function majKPI() {
    et son recit etait celui d'un autre dossier.
 
    Le compte rendu decrit deux auditions distinctes — le plaignant, puis
-   le mis en cause — donnant chacune lieu a un PV. Les deux sont ici.
+   le mis en cause — donnant chacune lieu a un PV. Les deux sont ici,
+   sur le gabarit des modeles reels : colonne administrative a gauche,
+   acte en lignes de procedure a droite, deux blocs de signature.
    ============================================================ */
-/* Le proces-verbal rend desormais son HTML, comme la plainte et
-   l'attestation : il s'affiche dans le meme apercu et dans la meme
-   visionneuse. */
+/* Le proces-verbal rend son HTML, comme la plainte et l'attestation :
+   il s'affiche dans le meme apercu et dans la meme visionneuse. */
 function htmlPV(id, audition) {
   var d = dossierParId(id);
   if (!d) return '';
@@ -1665,50 +1792,140 @@ function htmlPV(id, audition) {
     }
   }
 
+  var estPlaignant = audition === 'plaignant';
   var signe = pvEstSigne(d.id);
-  var auditionne = audition === 'plaignant' ? d.plaignant : (d.misEnCause || '').split(',')[0];
-  var qualite = audition === 'plaignant' ? 'plaignant' : 'mis en cause';
+  var auditionne = estPlaignant ? d.plaignant : (d.misEnCause || '').split(',')[0].trim();
+  var qualite = estPlaignant ? 'plaignant' : 'personne mise en cause';
   var revisions = pvRevisions(d.id, audition);
+  var moment = momentAudition(d, audition);
+  var cloture = heureCloture(moment);
+  var inc = (typeof incriminationDe === 'function')
+    ? incriminationDe(d.type) : { qualification: d.type, articles: 'Code pénal' };
+  var visas = (typeof VISAS_PV !== 'undefined')
+    ? VISAS_PV : 'articles 79, 81, 82, 83 à 92, 116 et 117 du Code de Procédure Pénale';
+  var agent = (typeof agentParNom === 'function') ? agentParNom(ENQUETEUR_COURANT) : null;
+  var grade = agent ? agent.grade : 'Officier de Police';
 
-  return (typeof enteteOfficielle === 'function' ? enteteOfficielle() : '') +
-    '<div style="text-align:center;margin-bottom:34px">' +
-      '<h1 style="margin:0;font-size:24px;text-transform:uppercase;text-decoration:underline;letter-spacing:1px">Procès-verbal d\'audition</h1>' +
-      '<p style="margin:12px 0 0;font-size:17px">Dossier N° <strong>' + d.id + '</strong> — audition du ' + qualite + '</p>' +
-    '</div>' +
-    '<div style="font-size:15px;line-height:1.85;text-align:justify">' +
-      '<p>L\'an deux mille vingt-six, le <strong>' + dateEnClair(d.date) + '</strong>,</p>' +
-      '<p>Nous, <strong>' + ech(ENQUETEUR_COURANT) + '</strong>, officier de police judiciaire au ' + ech(d.commissariat) + ',</p>' +
-      '<p>avons procédé à l\'audition de :</p>' +
-      '<p style="margin-left:18px"><strong>' + ech(auditionne) + '</strong>, en qualité de ' + qualite + '.</p>' +
-      '<p>Lequel nous a déclaré ce qui suit, après avoir prêté serment de dire la vérité :</p>' +
-      /* Seul le corps de la déclaration est révisable : l'en-tête, les
-         mentions légales et les signatures ne se corrigent pas. */
-      '<div id="pv-corps"' + (modeCorrection && !signe ? ' contenteditable="true" class="pv-editable"' : '') +
-        ' style="border:1px solid #000;padding:14px 16px;font-style:italic;margin:12px 0">' +
-        ech(pvTexte(d.id, audition, declarationOriginale(d, audition))) +
-      '</div>' +
-      (audition === 'plaignant' && d.prejudice
-        ? '<p><strong>Préjudice déclaré :</strong> ' + ech(d.prejudice.nature) +
-          (d.prejudice.montant ? ', estimé à ' + ech(d.prejudice.montant) + ' FCFA' : '') +
-          (d.prejudice.detail ? ' — ' + ech(d.prejudice.detail) : '') + '.</p>'
-        : '') +
-      '<p>Lecture faite du présent procès-verbal, le comparant déclare qu\'il est fidèle à ses déclarations et le signe.</p>' +
-      /* Mention obligatoire si le document a été corrigé : elle rend le
-         nombre de versions opposable, sans exposer leur contenu. */
-      (revisions.length
-        ? '<p style="font-size:13px;font-style:italic">Le présent procès-verbal a fait l\'objet de ' +
-          revisions.length + ' correction' + (revisions.length > 1 ? 's' : '') +
-          ', dont la dernière le ' + revisions[revisions.length - 1].date +
-          ' à ' + revisions[revisions.length - 1].heure + '. Le détail des versions est conservé au dossier.</p>'
-        : '') +
-      (signe
-        ? '<p style="border:1px solid #000;padding:9px 12px;font-weight:bold">Signé électroniquement par ' + ech(ENQUETEUR_COURANT) + '.</p>'
-        : '') +
-    '</div>' +
-    '<table style="width:100%;font-size:14px;margin-top:34px"><tr>' +
-      '<td style="width:50%;text-align:center"><div style="border-top:1px solid #000;width:170px;margin:0 auto;padding-top:6px">Signature du comparant<br>' + ech(auditionne) + '</div></td>' +
-      '<td style="width:50%;text-align:center"><div style="border-top:1px solid #000;width:190px;margin:0 auto;padding-top:6px">Signature de l\'enquêteur<br>' + ech(ENQUETEUR_COURANT) + '</div></td>' +
+  /* L'etat civil complet ne se decline que pour le plaignant : il est
+     le seul dont la fiche citoyen est au dossier. Du mis en cause, on
+     ne consigne que ce que l'enquete a etabli. */
+  var c = (typeof citoyen === 'function') ? citoyen(d.citoyen) : null;
+  var identite = (estPlaignant && c && typeof etatCivilComplet === 'function')
+    ? '<strong>' + ech(nomCitoyen(c)) + '</strong>, ' + ech(etatCivilComplet(c))
+    : '<strong>' + ech(auditionne) + '</strong>' +
+      (estPlaignant ? '' : ', dont l\'identité a été établie au cours de l\'enquête préliminaire') +
+      (d.misEnCause && !estPlaignant && d.misEnCause.indexOf(',') !== -1
+        ? ' (' + ech(d.misEnCause.split(',').slice(1).join(',').trim()
+            .replace(/\.$/, '')) + ')' : '');
+
+  var age = (estPlaignant && c) ? ageDe(c.naissance) : null;
+
+  /* Corps de la deposition. En consultation, chaque ligne devient une
+     ligne de procedure ; en correction, le bloc redevient un texte brut
+     editable — c'est lui que enregistrerCorrectionPV() relit. */
+  var texte = pvTexte(d.id, audition, declarationOriginale(d, audition));
+  var corpsDeposition = (modeCorrection && !signe)
+    ? '<div id="pv-corps" contenteditable="true" class="pv-editable" ' +
+      'style="white-space:pre-line;text-align:justify;padding:10px 12px;margin:8px 0">' +
+        ech(texte) +
+      '</div>'
+    : corpsPVRendu(texte);
+
+  var lp = function (t, s) {
+    return (typeof ligneP === 'function') ? ligneP(t, s) : '<p>----' + t + '</p>';
+  };
+
+  var corps =
+    lp(ouvertureActe(moment.date, moment.heure) + ',') +
+    lp('Nous, <strong>' + ech(ENQUETEUR_COURANT) + '</strong>, ' + ech(grade) +
+       ' au ' + ech(d.commissariat) + ',') +
+    lp('Officier de Police Judiciaire, auxiliaire de Monsieur le Procureur de la République ;') +
+    lp('Vu les ' + ech(visas) + ' ;') +
+    lp('Vu ce qui précède ;') +
+    lp('Poursuivant notre enquête préliminaire ouverte sous le dossier n° <strong>' +
+       ech(d.id) + '</strong> du chef ' + ech(deQualif(inc.qualification)) + ' ;') +
+
+    lp((estPlaignant ? 'Entendons' : 'Notifions au nommé') + ' ' + identite +
+       ', en qualité de <strong>' + qualite + '</strong> ;', 'margin-top:12px');
+
+  /* Notification des droits : elle n'est due qu'a la personne mise en
+     cause. L'omettre rendrait le proces-verbal attaquable. */
+  if (!estPlaignant) {
+    corps +=
+      lp('Lui notifions qu\'' + (auditionne ? 'il' : 'elle') +
+         ' se trouve devant un officier de police judiciaire pour être entendu' +
+         ' sur les faits retenus à son encontre ;') +
+      lp('L\'avisons de son droit de se faire assister d\'un conseil de son choix, ' +
+         'ou de garder le silence ;') +
+      lp('Sur ce, l\'intéressé déclare : « Je suis disposé à me faire entendre sans assistance ».');
+  } else {
+    corps += lp('Qui nous déclare librement ce qui suit, après avoir été avisé de la ' +
+                'sanction encourue en cas de dénonciation calomnieuse ;');
+  }
+
+  /* Premier bloc de signature : les modeles le placent avant l'expose
+     des faits, parce qu'il vaut acceptation d'etre entendu. */
+  corps +=
+    '<table class="doc-sign"><tr>' +
+      '<td style="width:50%">LE COMPARANT<span class="trait" style="margin-top:34px"></span></td>' +
+      '<td style="width:50%">L\'OFFICIER DE POLICE JUDICIAIRE<span class="trait" style="margin-top:34px"></span></td>' +
     '</tr></table>';
+
+  corps += '<p class="doc-section">SUR LES FAITS</p>' + corpsDeposition;
+
+  /* Le prejudice figure deja dans la deposition, sous la mention SIR
+     qui lui est consacree : le repeter en pied d'acte le faisait
+     declarer deux fois, avec le risque que les deux divergent apres
+     correction du corps. */
+
+  /* Mention obligatoire si le document a été corrigé : elle rend le
+     nombre de versions opposable, sans exposer leur contenu. */
+  if (revisions.length) {
+    corps += lp('Le présent procès-verbal a fait l\'objet de ' + revisions.length +
+      ' correction' + (revisions.length > 1 ? 's' : '') + ', dont la dernière le ' +
+      revisions[revisions.length - 1].date + ' à ' + revisions[revisions.length - 1].heure +
+      '. Le détail des versions est conservé au dossier.', 'margin-top:10px;font-style:italic;font-size:13.5px');
+  }
+
+  corps += lp('Plus rien ne déclare, lecture faite par lui-même, l\'intéressé persiste et signe ' +
+    'avec nous le présent procès-verbal, clos les jour, mois et an que dessus' +
+    (cloture ? ' à ' + heureEnClair(cloture) : '') + '.', 'margin-top:12px');
+
+  if (signe) {
+    corps += lp('<strong>Signé électroniquement par ' + ech(ENQUETEUR_COURANT) +
+                '</strong> — signature vérifiable au pied du présent document.');
+  }
+
+  corps +=
+    '<table class="doc-sign"><tr>' +
+      '<td style="width:50%">LE COMPARANT<br>' +
+        '<span style="font-weight:normal;font-size:13px">' + ech(auditionne) + '</span>' +
+        '<span class="trait"></span></td>' +
+      '<td style="width:50%">L\'OFFICIER DE POLICE JUDICIAIRE<br>' +
+        '<span style="font-weight:normal;font-size:13px">' + ech(ENQUETEUR_COURANT) + '</span>' +
+        '<span class="trait"></span></td>' +
+    '</tr></table>';
+
+  return gabaritProcedure({
+    services: ['DÉLÉGATION GÉNÉRALE<br>À LA SÛRETÉ NATIONALE<br>GENERAL DELEGATION<br>FOR NATIONAL SECURITY',
+               ech(d.commissariat).toUpperCase()],
+    numero: numeroOrdre(d.id),
+    champs: [
+      ['OBJET', 'Audition du nommé ' + ech(auditionne) +
+        (age ? ', âgé de ' + age + ' ans' : '') +
+        (estPlaignant && c && c.profession ? ', ' + ech(c.profession) : '') +
+        (estPlaignant && c && c.adresse ? ', domicilié à ' + ech(c.adresse) : '')],
+      ['AFFAIRE', ech(d.plaignant) + '<br>C/<br>' + ech(nomMisEnCause(d))],
+      ['INCRIMINATION', ech(inc.qualification) +
+        '<br><span style="font-style:italic">' + ech(inc.articles) + '</span>'],
+      (estPlaignant && c && c.telephone) ? ['Tél', ech(c.telephone)] : null
+    ],
+    titre: estPlaignant
+      ? 'Procès-verbal d\'audition du plaignant'
+      : 'Procès-verbal d\'audition du suspect',
+    corps: corps,
+    pied: (typeof piedVerification === 'function') ? piedVerification(d.id) : ''
+  });
 }
 
 function signerPVDossier(id) {
@@ -1881,6 +2098,10 @@ function apercuConvocation(id) {
     nom: (document.getElementById('conv-nom') || {}).value || '',
     date: p[2] + '/' + p[1] + '/' + p[0],
     heure: ((document.getElementById('conv-heure') || {}).value || '09:00').replace(':', 'h'),
+    /* Une convocation redigee maintenant est emise maintenant : sans ces
+       deux champs, l'acte se datait du jour de la comparution. */
+    emise: dateDuJour(),
+    heureEmission: heureDuJour(),
     motif: (document.getElementById('conv-motif') || {}).value || ''
   }, convDestinataire);
 }
