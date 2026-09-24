@@ -1,0 +1,45 @@
+@startuml procedure_actuelle
+' ==============================================================
+'  PlainteCam — La procédure actuelle, entièrement manuelle
+'  Vue « avant » : à opposer à l'architecture fonctionnelle.
+'  Source : Compte_rendu_entretien_commissariat.md
+'           (Ngoa-Ekélé et Mimboman, Yaoundé)
+'
+'  COMPILATION
+'    java -jar plantuml.jar -tpng -charset UTF-8 procedure_actuelle.puml
+' ==============================================================
+
+skinparam dpi 150
+skinparam backgroundColor #FFFFFF
+skinparam shadowing false
+skinparam defaultFontName Helvetica
+skinparam defaultFontSize 12
+skinparam ArrowColor #006432
+skinparam ArrowThickness 1.6
+skinparam nodesep 22
+skinparam ranksep 34
+skinparam packageStyle rectangle
+
+skinparam rectangle {
+  BorderColor #006432
+  BorderThickness 1.4
+  FontColor #0B3A22
+  RoundCorner 10
+}
+
+left to right direction
+
+rectangle "**1. RÉCEPTION**\n<i>Secrétariat</i>\n\n<size:10>Le plaignant se déplace</size>\n<size:10>Enregistrement au registre</size>\n<size:10>Attestation de dépôt</size>" as A #E4F0E9
+
+rectangle "**2. COTATION**\n<i>Chef d'unité</i>\n\n<size:10>Dossier confié à un enquêteur</size>\n<size:10>Parafeur remis en main propre</size>\n<size:10>Aucune règle formalisée</size>" as B #E4F0E9
+
+rectangle "**3. AUDITIONS**\n<i>Enquêteur</i>\n\n<size:10>Plaignant, puis mis en cause</size>\n<size:10>Un procès-verbal manuscrit</size>\n<size:10>par audition</size>" as C #E4F0E9
+
+rectangle "**4. SUITES**\n<i>Enquêteur</i>\n\n<size:10>Convocation portée</size>\n<size:10>par le plaignant lui-même</size>\n<size:10>Transmission au parquet</size>" as D #E4F0E9
+
+A -[#006432]-> B
+B -[#006432]-> C
+C -[#006432]-> D
+
+
+@enduml

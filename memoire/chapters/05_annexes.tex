@@ -3,9 +3,11 @@
 \chapter{Annexes}
 \label{ch:annexes}
 
-\section*{Annexe A — Manuel utilisateur (extrait)}
+\section*{Annexe A : manuel utilisateur (extrait)}
 
-\subsection*{A.1 — Déposer une plainte (espace citoyen)}
+Cette annexe reprend les quatre procédures les plus courantes, une par espace métier, telles qu'elles seraient remises aux utilisateurs lors de la formation.
+
+\subsection*{A.1 : déposer une plainte (espace citoyen)}
 
 \begin{enumerate}
     \item Se connecter à l'espace citoyen avec son adresse électronique. Un code à usage unique est envoyé par courriel ; il est valable dix minutes.
@@ -17,31 +19,23 @@
     \item Vérifier l'\textbf{aperçu}, signer, puis valider. Le \textbf{récépissé} au format PDF, portant le numéro de dossier et un QR code de vérification, est téléchargeable immédiatement.
 \end{enumerate}
 
-\figopt{ecran_depot_nature.png}{0.68}{Étape 1 — nature de l'infraction et cascade de localisation}{fig:man_depot_nature}
-
-\figopt{ecran_depot_apercu.png}{0.68}{Étape 5 — aperçu de la déclaration avant signature}{fig:man_depot_apercu}
-
-\subsection*{A.2 — Suivre son dossier}
+\subsection*{A.2 : suivre son dossier}
 
 Depuis \textbf{Mes plaintes}, le plaignant consulte l'état de chacun de ses dossiers. Les statuts successifs sont : \textit{Reçu}, \textit{Audition}, \textit{En instruction}, \textit{Décision}, \textit{Transmis}, \textit{Clôturé}. Toute convocation reçue apparaît dans le dossier concerné.
 
-\figopt{ecran_suivi.png}{0.68}{Espace citoyen — suivi de l'avancement d'un dossier}{fig:man_suivi}
-
-\subsection*{A.3 — Coter un dossier (espace commissaire)}
+\subsection*{A.3 : coter un dossier (espace commissaire)}
 
 Depuis le tableau de bord, sélectionner un dossier au statut \textit{Reçu}, cliquer sur \textbf{Coter}, désigner l'enquêteur destinataire et confirmer la priorité proposée. La cotation est inscrite au journal d'audit et notifiée à l'enquêteur.
 
-\figopt{ecran_cotation.png}{0.68}{Espace commissaire — cotation d'un dossier à un enquêteur}{fig:man_cotation}
-
-\subsection*{A.4 — Dresser un procès-verbal (espace enquêteur)}
+\subsection*{A.4 : dresser un procès-verbal (espace enquêteur)}
 
 Ouvrir un dossier coté, puis choisir \textbf{Nouveau PV} et sélectionner l'audition concernée. Une proposition rédigée à partir de la déclaration s'affiche dans l'éditeur. \textbf{La relecture est obligatoire} : corriger, compléter, puis valider et signer. Le PV n'est enregistré qu'après validation explicite.
 
-\figopt{ecran_pv.png}{0.68}{Espace enquêteur — éditeur de procès-verbal, proposition révisable}{fig:man_pv}
+\section*{Annexe B : extraits de code}
 
-\section*{Annexe B — Extraits de code}
+Les trois extraits qui suivent portent sur les points où une erreur d'implémentation aurait des conséquences directes sur la validité de la procédure ou sur la confidentialité des dossiers.
 
-\subsection*{B.1 — Dépôt d'une plainte et rattachement au commissariat}
+\subsection*{B.1 : dépôt d'une plainte et rattachement au commissariat}
 
 \begin{lstlisting}[language=Python,caption={Endpoint Flask de dépôt d'une plainte},label={lst:depot}]
 @app.route("/api/plaintes", methods=["POST"])
@@ -74,7 +68,7 @@ def deposer_plainte():
     return jsonify(PlainteSchema().dump(plainte)), 201
 \end{lstlisting}
 
-\subsection*{B.2 — Rédaction assistée du procès-verbal}
+\subsection*{B.2 : rédaction assistée du procès-verbal}
 
 \begin{lstlisting}[language=Python,caption={Appel au modèle génératif (Llama 3.1 via Groq), côté serveur},label={lst:ia}]
 from groq import Groq
@@ -102,7 +96,7 @@ def proposer_proces_verbal(plainte):
     return reponse.choices[0].message.content
 \end{lstlisting}
 
-\subsection*{B.3 — Cloisonnement des accès au niveau du SGBD}
+\subsection*{B.3 : cloisonnement des accès au niveau du SGBD}
 
 \begin{lstlisting}[language=SQL,caption={Politique d'accès par ligne sur la table des plaintes},label={lst:rls}]
 -- Un plaignant ne voit que ses propres dossiers.
@@ -118,7 +112,11 @@ CREATE POLICY plaintes_select_commissaire ON plaintes
   FOR SELECT USING (commissariat_id = current_user_commissariat());
 \end{lstlisting}
 
-\section*{Annexe C — Fiches de tests}
+\section*{Annexe C : fiches de tests}
+
+La recette a été conduite manuellement sur un jeu de dossiers couvrant les huit natures d'infraction gérées. Le tableau~\ref{tab:fiches_tests} en consigne les dix cas retenus : quatre portent sur le parcours de dépôt, deux sur le cloisonnement des accès, et les autres sur la cotation, les documents produits et la dictée vocale.
+
+La colonne \textbf{Verdict} demande une lecture attentive. « Conforme » signifie que le comportement observé correspond à l'attente. « Refusé comme attendu » qualifie les deux tests de sécurité, où c'est le \textbf{rejet} qui constitue le succès. Enfin, deux lignes ne sont ni des réussites ni des échecs mais des \textbf{points signalés} : T-08 montre qu'un procès-verbal peut être validé sans relecture (le système le trace au nom de l'enquêteur mais ne l'empêche pas), et T-10 constate que la transcription vocale exige des corrections manuelles. Ces deux constats alimentent les préconisations du chapitre~\ref{ch:bilan}.
 
 \begin{table}[H]
     \centering
@@ -151,7 +149,11 @@ CREATE POLICY plaintes_select_commissaire ON plaintes
     \label{tab:fiches_tests}
 \end{table}
 
-\section*{Annexe D — Glossaire technique}
+\section*{Annexe D : glossaire technique}
+
+Le tableau~\ref{tab:glossaire} rassemble les termes employés dans ce mémoire. Il en mêle délibérément deux familles, car le sujet se tient à leur intersection : d'un côté le vocabulaire de la \textbf{procédure} (cotation, procès-verbal, récépissé), dont la signification est fixée par l'usage des commissariats et non par l'informatique ; de l'autre le vocabulaire \textbf{technique} : API REST, jeton JWT, politique d'accès par ligne.
+
+Les définitions du premier groupe reprennent le sens que leur donnent les personnels rencontrés lors de l'audit. Celles du second précisent l'emploi qui en est fait dans la plateforme, qui n'est pas toujours l'emploi le plus courant : ainsi l'entrée « IA générative » rappelle que le modèle ne produit ici que des propositions soumises à validation.
 
 \begin{table}[H]
     \centering

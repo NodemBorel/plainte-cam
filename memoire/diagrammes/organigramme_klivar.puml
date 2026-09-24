@@ -1,6 +1,6 @@
 @startuml organigramme_klivar
 ' ==============================================================
-'  Organigramme de l'entreprise KLIVAR — mémoire PlainteCam
+'  Organigramme de l'entreprise Access Finance & RH SARL — mémoire PlainteCam
 '  Correspond au texte du chapitre 1, section « Organigramme ».
 '
 '  COMPILATION
@@ -21,26 +21,26 @@ skinparam shadowing false
 skinparam defaultFontName Helvetica
 skinparam defaultFontSize 13
 skinparam linetype ortho
-skinparam ArrowColor #24405E
+skinparam ArrowColor #006432
 skinparam ArrowThickness 1.3
 skinparam nodesep 45
 skinparam ranksep 45
 
 skinparam rectangle {
   BackgroundColor #FFFFFF
-  BorderColor #24405E
+  BorderColor #006432
   BorderThickness 1.5
-  FontColor #14243A
+  FontColor #0B3A22
   RoundCorner 12
 }
 
 ' ── Niveau 1 : direction ──────────────────────────────────────
-rectangle "**DIRECTION GÉNÉRALE**\n//Dirigeante//\n<size:10>Stratégie · Relation clients</size>" as DG #EDF2FA
+rectangle "**DIRECTION GÉNÉRALE**\n//Dirigeante//\n<size:10>Stratégie · Relation clients</size>" as DG #E4F0E9
 
 ' ── Niveau 2 : directions opérationnelles ─────────────────────
 ' Attention : une balise <size> ne peut pas enjamber un \n.
 ' Chaque ligne doit ouvrir et refermer la sienne.
-rectangle "**DIRECTION TECHNIQUE**\n//CTO//\n<size:10>Architecture · Technologies · Qualité</size>" as CTO #F5F9FF
+rectangle "**DIRECTION TECHNIQUE**\n//CTO//\n<size:10>Architecture · Technologies · Qualité</size>" as CTO #EFF7F2
 rectangle "**ÉQUIPE COMMERCIALE**\n<size:10>Prospection · Consultations</size>\n<size:10>Suivi de la relation client</size>" as COM
 
 ' ── Niveau 3 : encadrement technique et design ────────────────

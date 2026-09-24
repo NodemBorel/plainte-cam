@@ -7,7 +7,7 @@
 \section*{Synthèse des missions}
 \addcontentsline{toc}{section}{Synthèse des missions}
 
-Ce stage de six mois au sein de \textbf{KLIVAR} avait pour objectif de répondre à un défi concret : dématérialiser le dépôt et le traitement des plaintes citoyennes, qui reposaient jusqu'alors entièrement sur des échanges physiques et des pièces papier.
+Ce stage de six mois au sein de \textbf{Access Finance \& RH SARL} avait pour objectif de répondre à un défi concret : dématérialiser le dépôt et le traitement des plaintes citoyennes, qui reposaient jusqu'alors entièrement sur des échanges physiques et des pièces papier.
 
 La solution développée, \textbf{PlainteCam}, est une plateforme web full-stack intégrant un frontend React.js, un backend Flask exposant une API REST, et le modèle génératif Llama 3.1 servi par la plateforme d'inférence Groq. Elle couvre l'ensemble du cycle de vie d'un dossier : dépôt guidé par le citoyen, rattachement automatique au commissariat compétent, cotation de l'enquête par le commissaire, rédaction assistée du procès-verbal par l'enquêteur, convocation, suivi en ligne par le plaignant et clôture.
 
@@ -56,6 +56,10 @@ PlainteCam, dans sa version actuelle, constitue une base opérationnelle. Plusie
 \textbf{À moyen terme :} Transcription vocale côté serveur, afin d'affranchir la dictée des limites du navigateur et d'ouvrir la voie au traitement des langues nationales. Ajout de la géolocalisation du lieu des faits pour affiner le rattachement territorial.
 
 \textbf{À long terme :} Analyse des données consolidées pour identifier les zones et les périodes de forte sinistralité et adapter l'allocation des effectifs. Interconnexion avec les systèmes d'information judiciaires pour la transmission dématérialisée des dossiers au parquet.
+
+\medskip
+
+Une dernière perspective mérite d'être soulignée, car elle dépasse le périmètre initial. Le dépôt de plainte n'est pas propre à la police : la \textbf{gendarmerie} en reçoit également, et d'autres corps administratifs traitent des réclamations selon des logiques voisines. PlainteCam peut donc s'étendre à ces structures, à condition de rendre \textbf{paramétrable} ce qui leur est propre : les intitulés et les mentions légales des pièces produites, l'en-tête des documents, et le découpage territorial dont dépend le rattachement automatique. Le modèle de données s'y prête déjà : le référentiel des unités est une entité à part entière, et non une valeur codée en dur.
 
 \medskip
 

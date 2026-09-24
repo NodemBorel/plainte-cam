@@ -1,0 +1,64 @@
+@startuml architecture_fonctionnelle
+' ==============================================================
+'  PlainteCam — Architecture globale des besoins fonctionnels
+'  Vue destinée à faire saisir d'un seul regard ce que fait la
+'  plateforme. Aucune référence technologique n'y figure, et
+'  l'acteur responsable est nommé dans chaque bloc.
+'
+'  LISIBILITÉ EN PROJECTION
+'    La figure sert aussi de diapositive. Elle est donc volontairement
+'    sobre — un intitulé, l'acteur, une ligne — et sa police est
+'    grande : ramenée à la largeur d'un écran, une figure trop
+'    bavarde tombe sous le seuil du lisible. Le détail de chaque
+'    fonction est porté par le texte du mémoire, pas par le schéma.
+'
+'  MISE EN PAGE
+'    Deux rangées : le cycle de vie en 5 temps, puis les deux
+'    fonctions qui le traversent de bout en bout. En mode
+'    left-to-right, une arête invisible entre F6 et F7 les place
+'    côte à côte au lieu de les empiler.
+'
+'  COMPILATION
+'    java -jar plantuml.jar -tpng -charset UTF-8 architecture_fonctionnelle.puml
+' ==============================================================
+
+skinparam dpi 150
+skinparam backgroundColor #FFFFFF
+skinparam shadowing false
+skinparam defaultFontName Helvetica
+skinparam defaultFontSize 20
+skinparam ArrowColor #006432
+skinparam ArrowThickness 2.2
+skinparam nodesep 18
+skinparam ranksep 30
+
+skinparam rectangle {
+  BorderColor #006432
+  BorderThickness 2
+  FontColor #0B3A22
+  RoundCorner 14
+}
+
+left to right direction
+
+' ── Les fonctions qui traversent tout le cycle ────────────────
+rectangle "**SUIVRE**\n<size:16>//Plaignant//</size>\n<size:17>État du dossier en ligne</size>" as F6 #F3F9F5
+rectangle "**TRACER ET PILOTER**\n<size:16>//Commissaire//</size>\n<size:17>Journal d'audit, tableau de bord</size>" as F7 #F3F9F5
+
+' En mode left-to-right, une arete placee ici met les deux blocs
+' cote a cote et les renvoie sous la chaine.
+F6 -[hidden]-> F7
+
+' ── Le cycle de vie d'une plainte ─────────────────────────────
+rectangle "**1. DÉPOSER**\n<size:16>//Plaignant//</size>\n<size:17>Déclaration guidée</size>" as F1 #E4F0E9
+rectangle "**2. ORIENTER**\n<size:16>//Automatique//</size>\n<size:17>Commissariat compétent</size>" as F2 #E4F0E9
+rectangle "**3. COTER**\n<size:16>//Commissaire//</size>\n<size:17>Enquêteur et priorité</size>" as F3 #FFF7E8
+rectangle "**4. INSTRUIRE**\n<size:16>//Enquêteur//</size>\n<size:17>Auditions, PV, convocations</size>" as F4 #FFF7E8
+rectangle "**5. CLÔTURER**\n<size:16>//Enquêteur//</size>\n<size:17>Décision ou transmission</size>" as F5 #FFF7E8
+
+F1 --> F2
+F2 --> F3
+F3 --> F4
+F4 --> F5
+
+@enduml

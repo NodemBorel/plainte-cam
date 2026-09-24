@@ -18,19 +18,19 @@ skinparam shadowing false
 skinparam defaultFontName Helvetica
 skinparam defaultFontSize 11
 skinparam linetype ortho
-skinparam ArrowColor #24405E
+skinparam ArrowColor #006432
 
 skinparam class {
-  BorderColor #24405E
+  BorderColor #006432
   BackgroundColor #FFFFFF
-  FontColor #14243A
+  FontColor #0B3A22
   AttributeFontSize 10
 }
 hide methods
 hide circle
 
 ' ── Referentiel ──────────────────────────────────────────────
-class Commissariat #EDF2FA {
+class Commissariat #E4F0E9 {
   + id : UUID
   --
   nom : Text
@@ -42,7 +42,7 @@ class Commissariat #EDF2FA {
 }
 
 ' ── Utilisateurs ─────────────────────────────────────────────
-class Profil #EDF2FA {
+class Profil #E4F0E9 {
   + id : UUID
   --
   role : RoleUtilisateur
@@ -60,7 +60,8 @@ class Plainte #FFF7E8 {
   + id : UUID
   --
   numero_dossier : Text
-  type_infraction : TypeInfraction
+  types_infraction : TypeInfraction [1..*]
+  prejudices : Prejudice [1..*]
   statut : StatutPlainte
   priorite : PrioritePlainte
   date_faits : Date
@@ -95,7 +96,7 @@ note bottom of PieceJointe
   designe par storage_path.
 end note
 
-class ProcesVerbal #F1FBF4 {
+class ProcesVerbal #E4F0E9 {
   + id : UUID
   --
   contenu : Text
@@ -155,6 +156,13 @@ enum PrioritePlainte #F5F5F5 {
   URGENTE
 }
 
+enum Prejudice #F5F5F5 {
+  Materiel
+  Corporel
+  Financier
+  Moral
+}
+
 enum TypeInfraction #F5F5F5 {
   Vol simple
   Vol avec violence
@@ -193,7 +201,8 @@ Profil "0..1" -- "0..*" Historique        : auteur >
 Profil        ..> RoleUtilisateur
 Plainte       ..> StatutPlainte
 Plainte       ..> PrioritePlainte
-Plainte       ..> TypeInfraction
+Plainte "1" --> "1..*" TypeInfraction : qualifiee par >
+Plainte "1" --> "1..*" Prejudice      : cause >
 Convocation   ..> StatutConvocation
 
 note right of Plainte

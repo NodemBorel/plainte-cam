@@ -15,16 +15,16 @@ skinparam backgroundColor #FFFFFF
 skinparam shadowing false
 skinparam defaultFontName Helvetica
 skinparam defaultFontSize 12
-skinparam ArrowColor #24405E
+skinparam ArrowColor #006432
 skinparam ArrowThickness 1.3
 skinparam nodesep 30
 skinparam ranksep 45
 skinparam packageStyle rectangle
 
 skinparam rectangle {
-  BorderColor #24405E
+  BorderColor #006432
   BorderThickness 1.4
-  FontColor #14243A
+  FontColor #0B3A22
   RoundCorner 10
 }
 
@@ -32,13 +32,13 @@ skinparam rectangle {
 rectangle "**SERVICE EXTERNE**\n<size:11>Llama 3.1 via Groq</size>\n<size:10>Rédaction assistée du procès-verbal</size>" as IA #FFF7E8
 
 ' ── Tier 1 : présentation ─────────────────────────────────────
-rectangle "**COUCHE PRÉSENTATION**\n<size:11>Frontend React.js</size>\n<size:10>Espace citoyen</size>\n<size:10>Espace enquêteur</size>\n<size:10>Espace commissaire</size>\n<size:10>Espace administrateur</size>" as FE #EDF2FA
+rectangle "**COUCHE PRÉSENTATION**\n<size:11>Frontend React.js</size>\n<size:10>Espace citoyen</size>\n<size:10>Espace enquêteur</size>\n<size:10>Espace commissaire</size>\n<size:10>Espace administrateur</size>" as FE #E4F0E9
 
 ' ── Tier 2 : logique métier ───────────────────────────────────
-rectangle "**COUCHE MÉTIER**\n<size:11>Backend Flask (Python)</size>\n<size:10>API REST</size>\n<size:10>Authentification JWT</size>\n<size:10>Règles de la procédure</size>" as API #EDF2FA
+rectangle "**COUCHE MÉTIER**\n<size:11>Backend Flask (Python)</size>\n<size:10>API REST</size>\n<size:10>Authentification JWT</size>\n<size:10>Règles de la procédure</size>" as API #E4F0E9
 
 ' ── Tier 3 : persistance ──────────────────────────────────────
-rectangle "**COUCHE PERSISTANCE**" as DATA #F7F9FC {
+rectangle "**COUCHE PERSISTANCE**" as DATA #F3F9F5 {
   rectangle "**PostgreSQL**\n<size:10>Données structurées</size>\n<size:10>Politiques d'accès par ligne</size>" as PG #FFFFFF
   rectangle "**Supabase Storage**\n<size:10>Pièces jointes</size>\n<size:10>Bucket privé</size>" as ST #FFFFFF
 }

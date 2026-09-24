@@ -1,268 +1,152 @@
-% CHAPITRE 2 — Méthodologie et Réalisation des Missions (7-8 pages)
+% CHAPITRE 2 — Conception de la plateforme PlainteCam
 
-\chapter{Méthodologie et Réalisation des Missions}
-\label{ch:realisation}
+\chapter{Conception de la plateforme PlainteCam}
+\label{ch:conception}
 
-Ce chapitre constitue le cœur de la partie « action ». Il décrit la démarche adoptée, les choix technologiques justifiés, la conception de la solution et les étapes de mise en œuvre de la plateforme PlainteCam.
+Le chapitre précédent a établi ce que la procédure manuelle ne permet pas de faire. Le présent chapitre répond à la question inverse : que doit faire la plateforme, et comment doit-elle être organisée pour le faire ?
 
-\section{Démarche adoptée}
+Il progresse du besoin vers la structure. La première section décrit les fonctionnalités attendues, les cas d'utilisation majeurs, puis les besoins fonctionnels et non fonctionnels qui en découlent, avant de les formaliser dans un diagramme de cas d'utilisation. La deuxième expose la démarche retenue pour conduire le projet. La troisième présente l'architecture de la solution, d'abord sous son angle fonctionnel puis sous son angle modulaire. La quatrième complète cette vue par la modélisation UML des données et des échanges.
 
-\subsection{Méthodologie de gestion de projet : Agile / Scrum}
+Aucun outil ni aucune technologie n'est nommé dans ce chapitre : la conception y est tenue indépendante des moyens de sa réalisation, de sorte qu'elle reste valable si ces moyens changent. Le choix des technologies et la mise en œuvre effective font l'objet du chapitre~\ref{ch:realisation}.
 
-Face à la complexité et à l'évolutivité du projet, la méthodologie \textbf{Agile Scrum}~\cite{agile:manifesto} a été adoptée. Cette approche itérative et incrémentale permet de livrer des fonctionnalités en continu, de s'adapter aux retours des parties prenantes et de maîtriser les risques tout au long du développement. Six sprints de trois à quatre semaines ont structuré les six mois de mission.
+\section{Conception fonctionnelle}
 
-\begin{table}[H]
-    \centering
-    \begin{tabularx}{\textwidth}{|l|>{\raggedright\arraybackslash}X|>{\raggedright\arraybackslash}X|}
-        \hline
-        \textbf{Sprint} & \textbf{Objectif} & \textbf{Fonctionnalités livrées} \\
-        \hline
-        Sprint 1 & Fondations & Authentification par jeton, gestion des profils, navigation par rôle \\
-        \hline
-        Sprint 2 & Dépôt de plainte & Formulaire en 5 étapes, cascade géographique, pièces jointes \\
-        \hline
-        Sprint 3 & Assistance à la déclaration & Questions complémentaires, dictée vocale, rédaction assistée du procès-verbal \\
-        \hline
-        Sprint 4 & Instruction de l'enquête & Espace enquêteur, procès-verbaux d'audition, convocations \\
-        \hline
-        Sprint 5 & Supervision et suivi & Espace commissaire, cotation, statistiques, suivi du plaignant \\
-        \hline
-        Sprint 6 & Consolidation & Journal d'audit, pièces PDF, recette et corrections \\
-        \hline
-    \end{tabularx}
-    \caption{Planification des sprints Agile du projet PlainteCam}
-    \label{tab:sprints}
-\end{table}
+Concevoir la plateforme suppose d'abord de dire ce qu'elle fait, pour qui et sous quelles contraintes. Cette section procède en quatre temps : l'inventaire des fonctionnalités, les cas d'utilisation qui les mobilisent, les besoins fonctionnels qui en découlent, et leur formalisation graphique.
 
-\section{Choix des outils et technologies}
+\subsection{Description des fonctionnalités}
 
-\subsection{Frontend : React.js}
+PlainteCam s'organise en quatre espaces, un par profil d'utilisateur. Chacun ne donne accès qu'aux fonctions relevant de son rôle, ce cloisonnement étant une exigence et non une commodité : un plaignant ne doit en aucun cas apercevoir le dossier d'un autre.
 
-Pour le frontend, React.js~\cite{react:web} a été sélectionné après évaluation comparative des technologies d'interface utilisateur web les plus utilisées.
+L'\textbf{espace citoyen} permet au plaignant de déposer sa plainte au terme d'un parcours guidé en cinq écrans, d'y joindre les pièces dont il dispose, de télécharger son récépissé et de suivre en ligne l'avancement de son dossier sans se déplacer. Pendant la rédaction des faits, un indicateur de complétude lui signale les éléments encore absents de sa déclaration.
 
-\begin{table}[H]
-    \centering
-    \begin{tabularx}{\linewidth}{|l|>{\raggedright\arraybackslash}X|>{\raggedright\arraybackslash}X|>{\raggedright\arraybackslash}X|}
-        \hline
-        \textbf{Critère} & \textbf{React.js} & \textbf{Vue.js} & \textbf{Angular} \\
-        \hline
-        Langage & JavaScript / TypeScript & JavaScript / TypeScript & TypeScript \\
-        \hline
-        Performances & Excellentes (Virtual DOM) & Très bonnes, léger & Bonnes, plus lourd \\
-        \hline
-        Écosystème & Très large, bibliothèques variées & Solide mais restreint & Complet mais rigide \\
-        \hline
-        Courbe d'apprentissage & Modérée & Douce & Abrupte \\
-        \hline
-    \end{tabularx}
-    \caption{Comparaison des technologies frontend}
-    \label{tab:frontend}
-\end{table}
+L'\textbf{espace commissaire} donne au chef d'unité la vue d'ensemble dont la procédure papier le privait. Il y cote les dossiers entrants à un enquêteur en fixant leur priorité, consulte le tableau de bord et les statistiques de son commissariat, gère les comptes de ses agents et accède au journal d'audit.
 
-React a été retenu parce que ses composants permettent à quatre espaces — citoyen, enquêteur, commissaire, administrateur — de partager les mêmes briques d'interface sans duplication, et parce que sa gestion d'état convient au formulaire de dépôt en cinq étapes, dont la saisie doit survivre à la navigation entre écrans.
+L'\textbf{espace enquêteur} regroupe les actes d'instruction. L'enquêteur y consulte les dossiers qui lui ont été cotés, consigne les auditions, obtient une proposition de procès-verbal qu'il révise et valide, émet les convocations et fait progresser le statut du dossier jusqu'à sa clôture.
 
-\begin{figure}[H]
-    \centering
-    \includegraphics[width=0.22\textwidth]{images/react.png}
-    \caption{React.js — Bibliothèque frontend}
-    \label{fig:react}
-\end{figure}
+L'\textbf{espace administrateur} se limite à l'administration technique : création et désactivation des comptes, tenue du référentiel des commissariats et de leur ressort territorial. Il n'ouvre aucun accès au contenu des plaintes.
 
-\subsection{Backend : Flask}
+\subsection{Cas d'utilisation majeurs}
 
-\textbf{Flask}~\cite{flask:web} a été retenu pour l'exposition des API et l'orchestration de la logique métier côté serveur. Ce micro-framework Python suit la spécification \textbf{WSGI} et laisse à l'équipe le choix de ses composants plutôt que d'imposer une pile complète.
+Quatre cas d'utilisation structurent le fonctionnement de la plateforme. Ils correspondent aux quatre moments où un acteur agit sur le dossier et en modifie l'état.
 
-\begin{table}[H]
-    \centering
-    \begin{tabularx}{\linewidth}{|l|>{\raggedright\arraybackslash}X|>{\raggedright\arraybackslash}X|>{\raggedright\arraybackslash}X|}
-        \hline
-        \textbf{Critère} & \textbf{Flask} & \textbf{Django} & \textbf{Node.js Express} \\
-        \hline
-        Langage & Python & Python & JavaScript \\
-        \hline
-        Architecture & Micro-framework, modulaire & Monolithique, « batteries incluses » & Minimaliste \\
-        \hline
-        Courbe d'apprentissage & Douce, faible surface d'API & Abrupte, conventions nombreuses & Douce \\
-        \hline
-        Sécurité & Extensions dédiées (JWT, CORS) & Intégrée et complète & Middlewares manuels \\
-        \hline
-        Écosystème IA / données & Excellent (Python) & Excellent (Python) & Limité \\
-        \hline
-    \end{tabularx}
-    \caption{Comparaison des technologies backend}
-    \label{tab:backend}
-\end{table}
+Le \textbf{dépôt d'une plainte} est le point d'entrée. Le plaignant déclare la nature de l'infraction et le lieu des faits, à partir duquel la plateforme détermine le commissariat territorialement compétent. Il rédige ensuite son récit, renseigne l'identité du mis en cause lorsqu'elle est connue, répond aux questions complémentaires que la plateforme lui pose, puis signe et confirme. Un récépissé numéroté lui est délivré immédiatement.
 
-Flask a été retenu d'abord pour la \textbf{continuité de langage avec l'IA} — le client Python de Groq s'intègre au backend sans passerelle ni service intermédiaire, et c'est le critère qui a tranché —, ensuite parce qu'un périmètre fonctionnel maîtrisé permet de choisir explicitement chaque brique plutôt que d'en hériter d'une pile imposée : SQLAlchemy pour la persistance, Flask-JWT-Extended pour l'authentification, pour une empreinte et un coût d'exploitation réduits derrière un serveur WSGI de production.
+La \textbf{cotation d'un dossier} est l'acte du commissaire. Il examine les plaintes reçues par son unité, désigne l'enquêteur chargé de l'affaire et fixe la priorité du dossier. Cette opération fait basculer le dossier de l'attente vers l'instruction et déclenche la notification de l'enquêteur.
 
-% La figure s'affiche automatiquement dès que images/flask.png existe.
-\IfFileExists{images/flask.png}{%
-\begin{figure}[H]
-    \centering
-    \includegraphics[width=0.28\textwidth]{images/flask.png}
-    \caption{Flask — Micro-framework backend Python}
-    \label{fig:flask}
-\end{figure}
-}{}
+L'\textbf{instruction d'un dossier} couvre le travail de l'enquêteur. Il convoque les parties, tient les auditions et en dresse les procès-verbaux, en s'appuyant sur une proposition rédigée automatiquement à partir de la déclaration du plaignant. Il reste seul responsable du contenu : rien n'est enregistré sans sa validation explicite.
 
-\subsection{Persistance : PostgreSQL et Supabase Storage}
+Le \textbf{suivi du dossier} est le cas d'utilisation transverse. Le plaignant consulte à tout moment l'état de sa procédure depuis son espace, tandis que le commissaire en suit l'avancement consolidé sur son tableau de bord. Ce suivi n'existait sous aucune forme dans la procédure papier.
 
-Le \textbf{SGBD} \textbf{PostgreSQL} assure la persistance des données structurées : son typage fort, ses types énumérés natifs — statuts, priorités, natures d'infraction — et son moteur transactionnel garantissent la cohérence des dossiers tout au long de l'enquête.
+\subsection{Besoins fonctionnels}
 
-Les \textbf{pièces jointes} sont en revanche confiées à \textbf{Supabase Storage}~\cite{supabase:storage}, la base ne conservant que leurs métadonnées et le chemin de l'objet. Le dépôt est un \textbf{bucket privé} réservé aux utilisateurs authentifiés : aucune pièce n'est accessible par une URL publique, ce qui serait inacceptable pour un certificat médical ou l'identité d'un mis en cause.
+De ces cas d'utilisation découlent les besoins fonctionnels que la plateforme doit satisfaire, c'est-à-dire les services qu'elle doit rendre. Ils sont énumérés ci-dessous et serviront de référence à la recette présentée au chapitre~\ref{ch:realisation}.
 
-\subsection{Intelligence Artificielle : Llama 3.1 servi par Groq}
+\begin{itemize}
+    \item \textbf{BF1. Dépôt en ligne.} Permettre le dépôt intégral d'une plainte sans déplacement au commissariat, au terme d'un parcours compréhensible par un public non juriste.
+    \item \textbf{BF2. Rattachement territorial automatique.} Déterminer le commissariat compétent à partir du lieu des faits, sans que le plaignant ait à le connaître.
+    \item \textbf{BF3. Assistance à la déclaration.} Signaler au plaignant les éléments manquants de son récit et lui poser les questions complémentaires propres à la nature d'infraction déclarée.
+    \item \textbf{BF4. Cotation.} Permettre au commissaire de désigner un enquêteur et de fixer une priorité, et notifier l'agent désigné.
+    \item \textbf{BF5. Rédaction assistée du procès-verbal.} Produire une proposition de procès-verbal à partir de la déclaration, systématiquement soumise à la révision et à la validation de l'enquêteur.
+    \item \textbf{BF6. Suivi par le plaignant.} Rendre l'état d'avancement du dossier consultable en ligne à tout moment, et notifier chaque changement de statut.
+    \item \textbf{BF7. Production des pièces.} Générer le récépissé, les procès-verbaux et les convocations au format imprimable, munis d'un identifiant vérifiable.
+    \item \textbf{BF8. Pilotage.} Fournir au commissaire des indicateurs consolidés sur le volume, la répartition et la charge des enquêteurs de son ressort.
+\end{itemize}
 
-La rédaction assistée des procès-verbaux s'appuie sur le modèle \textbf{Llama 3.1} de Meta, exploité via la plateforme d'inférence \textbf{Groq}~\cite{groq:api} — à ne pas confondre avec \textit{Grok}, le modèle de la société xAI. Son \textbf{palier gratuit} couvre les besoins du projet, son inférence rapide rend la proposition quasi instantanée, les poids ouverts de Llama autorisent un réhébergement ultérieur sur infrastructure maîtrisée, et l'appel reste exclusivement côté serveur : la clé d'API n'est jamais exposée au navigateur.
+\subsection{Besoins non fonctionnels}
 
-Le procès-verbal produit reste une \textbf{proposition} : il est présenté à l'enquêteur dans un éditeur, qui le corrige et le valide avant signature. L'IA assiste la rédaction, elle ne se substitue pas à l'officier de police judiciaire, seul habilité à dresser le procès-verbal au sens du Code de procédure pénale~\cite{cameroun:cpp}.
+Les besoins précédents disent ce que la plateforme doit faire. Ceux qui suivent disent sous quelles conditions elle doit le faire, et ils pèsent ici plus lourd que dans une application ordinaire : une plainte est un acte de procédure, dont la valeur dépend autant de la manière dont il est conservé que de son contenu.
+
+\begin{itemize}
+    \item \textbf{BNF1. Confidentialité et cloisonnement.} Restreindre la visibilité des dossiers selon le rôle : le plaignant aux siens, l'enquêteur à ceux qui lui sont cotés, le commissaire à ceux de son unité. Le cloisonnement doit résister à une requête mal formée, et pas seulement aux parcours prévus par l'interface.
+    \item \textbf{BNF2. Traçabilité et auditabilité.} Horodater chaque acte de procédure et le rattacher à son auteur dans un journal consultable et non modifiable, y compris par un administrateur. C'est la condition pour reconstituer une procédure a posteriori.
+    \item \textbf{BNF3. Intégrité et valeur probante.} Garantir qu'aucune pièce produite ne puisse être altérée après signature, et qu'un procès-verbal ne soit jamais enregistré sans validation explicite de l'officier de police judiciaire, seul habilité à le dresser.
+    \item \textbf{BNF4. Accessibilité.} Rester utilisable par un plaignant sans culture juridique ni aisance informatique. Le vocabulaire des écrans doit éviter les termes de procédure, et le parcours doit tolérer qu'une tierce personne assiste un plaignant qui ne sait ni lire ni écrire.
+    \item \textbf{BNF5. Temps de réponse.} Maintenir un délai d'affichage compatible avec les connexions disponibles localement, et borner l'attente de la proposition de procès-verbal, dont la génération dépend d'un service externe.
+    \item \textbf{BNF6. Portabilité.} Fonctionner sur les navigateurs courants, sur poste comme sur téléphone, sans installation préalable : le plaignant ne doit rien avoir à installer pour déposer.
+    \item \textbf{BNF7. Maintenabilité.} Isoler les éléments appelés à changer, en particulier le référentiel des commissariats et les libellés des pièces, afin qu'une évolution du maillage territorial ou de la réglementation n'impose pas de reprendre le code.
+\end{itemize}
+
+La suite du chapitre décrit les conceptions retenues pour couvrir ces deux séries de besoins.
+
+\subsection{Diagramme de cas d'utilisation}
+
+La figure~\ref{fig:usecase} formalise ces cas d'utilisation et les répartit entre \textbf{quatre acteurs}. Le \textbf{plaignant} dépose sa plainte, suit l'avancement de son dossier et télécharge son récépissé. Le \textbf{commissaire} cote les dossiers entrants, consulte le tableau de bord de son unité, gère ses agents et accède au journal d'audit. L'\textbf{enquêteur} instruit les dossiers qui lui sont cotés, émet les convocations, dresse les procès-verbaux et fait progresser le statut. L'\textbf{administrateur} n'intervient que sur les comptes et le référentiel des commissariats.
 
 \begin{figure}[H]
     \centering
-    \includegraphics[width=0.34\textwidth]{images/grok_ai.png}
-    \caption{Intelligence Artificielle générative intégrée à PlainteCam}
-    \label{fig:ia}
-\end{figure}
-
-\subsection{Environnement de développement}
-
-Le développement s'est effectué sous \textbf{Windows 10}, avec \textbf{Visual Studio Code} pour l'édition du frontend React et du backend Python. Le versionnement est assuré par \textbf{Git / GitHub}. \textbf{Docker} conteneurise l'API et le SGBD : le backend Python et PostgreSQL s'exécutent ainsi dans un environnement Linux identique à celui visé en production, ce qui neutralise les écarts entre le poste de développement Windows et le serveur cible — chemins de fichiers, fins de ligne et dépendances système. Enfin, \textbf{Postman} a servi à la recette des endpoints REST avant leur intégration au frontend.
-
-\section{Conception et architecture de la solution}
-
-\subsection{Architecture globale}
-
-La plateforme PlainteCam suit une architecture \textbf{trois-tiers découplée} : le frontend React.js communique exclusivement avec le backend Flask via des API REST sécurisées par jeton. Le backend orchestre la logique métier, la persistance des données et les appels au service d'IA générative.
-
-\begin{figure}[H]
-    \centering
-    \includegraphics[width=0.78\textwidth]{diagrammes/architecture.png}
-    \caption{Structure technique et organisation}
-    \label{fig:architecture}
-\end{figure}
-
-\subsection{Conception UML}
-
-\subsubsection{Diagramme de cas d'utilisation}
-\begin{figure}[H]
-    \centering
-    \includegraphics[width=0.78\textwidth]{diagrammes/usecase.png}
-    \caption{Diagramme de cas d'utilisation — PlainteCam}
+    \includegraphics[width=\linewidth]{diagrammes/usecase.png}
+    \caption{Diagramme de cas d'utilisation de PlainteCam}
     \label{fig:usecase}
 \end{figure}
 
-\subsubsection{Diagramme de classes}
-Le diagramme de classes constitue l'élément central de la modélisation orientée objet. Il décrit comment les entités du domaine interagissent pour concrétiser les différents cas d'utilisation.
+Deux relations méritent l'attention, car elles portent des règles métier et non de simples commodités d'écriture. La cascade géographique, le calcul du taux de complétude et les questions complémentaires sont des cas \textbf{inclus} dans « déposer une plainte » : ils ne s'exécutent jamais séparément, et le dépôt ne peut aboutir sans eux. De la même façon, « obtenir une proposition de procès-verbal » est inclus dans « dresser un procès-verbal », et non offert comme cas autonome. Le modèle traduit ainsi le principe selon lequel l'intelligence artificielle n'intervient qu'à l'intérieur d'un acte dont l'enquêteur reste responsable. Seule la dictée vocale constitue une \textbf{extension} : elle enrichit le dépôt sans lui être nécessaire.
+
+\section{Démarche adoptée}
+
+Les besoins étant posés, reste à décrire la manière dont le projet a été conduit pour y répondre.
+
+\subsection{Méthodologie de gestion de projet : Agile / Scrum}
+
+Face à la complexité et à l'évolutivité du projet, la méthodologie \textbf{Agile Scrum}~\cite{agile-manifesto} a été adoptée. Cette approche itérative et incrémentale permet de livrer des fonctionnalités en continu, de s'adapter aux retours des parties prenantes et de maîtriser les risques tout au long du développement. Six sprints de trois à quatre semaines ont structuré les six mois de mission.
+
+Le premier sprint a posé les fondations : authentification par jeton, gestion des profils et navigation par rôle. Le deuxième a livré le dépôt de plainte, avec son formulaire en cinq étapes, sa cascade géographique et ses pièces jointes. Le troisième a introduit l'assistance à la déclaration, c'est-à-dire les questions complémentaires, la dictée vocale et la rédaction assistée du procès-verbal. Le quatrième a ouvert l'espace enquêteur, avec les procès-verbaux d'audition et les convocations. Le cinquième a construit l'espace commissaire, sa cotation, ses statistiques et le suivi offert au plaignant. Le sixième et dernier sprint a été consacré à la consolidation : journal d'audit, production des pièces PDF, recette et corrections.
+
+\section{Architecture de la solution}
+
+L'architecture de PlainteCam est présentée sous deux angles complémentaires : ce que la plateforme fait, puis comment elle se découpe en modules. La traduction de ces modules en technologies est traitée au chapitre suivant, car elle relève de la réalisation et non de la conception.
+
+\subsection{Architecture fonctionnelle}
+
+La figure~\ref{fig:archi_fonctionnelle} donne la vue d'ensemble des fonctions de la plateforme. Le cycle de vie d'une plainte s'y lit de gauche à droite en cinq temps, chacun rattaché à l'acteur qui en a la charge : le plaignant \textbf{dépose} sa déclaration, la plateforme \textbf{oriente} le dossier vers le commissariat territorialement compétent, le commissaire le \textbf{cote} à un enquêteur, celui-ci \textbf{instruit} l'affaire puis la \textbf{clôture}.
+
 \begin{figure}[H]
     \centering
-    \includegraphics[width=0.88\textwidth]{diagrammes/classe.png}
-    \caption{Diagramme de classes — Modèle conceptuel de PlainteCam}
+    \includegraphics[width=\linewidth]{diagrammes/architecture_fonctionnelle.png}
+    \caption{Architecture fonctionnelle : les grandes fonctions de PlainteCam}
+    \label{fig:archi_fonctionnelle}
+\end{figure}
+
+Deux fonctions échappent à cette séquence parce qu'elles la traversent de bout en bout. Le \textbf{suivi} rend chaque transition visible du plaignant, sans qu'il ait à se déplacer. La \textbf{traçabilité} inscrit ces mêmes transitions au journal d'audit et alimente le tableau de bord du commissaire. Elles ne constituent pas une étape du cycle mais une propriété de l'ensemble, et c'est à ce titre qu'elles figurent à part sur le schéma.
+
+\subsection{Architecture de conception}
+
+La figure~\ref{fig:archi_conception} décompose la solution en modules, indépendamment de toute technologie. Trois ensembles se dégagent autour d'un noyau.
+
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=0.86\linewidth]{diagrammes/architecture_conception.png}
+    \caption{Architecture de conception : modules et connexions}
+    \label{fig:archi_conception}
+\end{figure}
+
+Les \textbf{modules de saisie} recueillent la déclaration : le parcours guidé, l'analyse qui en déduit le taux de complétude et les questions à poser, et le référentiel territorial qui détermine l'unité compétente. Les \textbf{modules d'instruction} prennent le relais après le dépôt, avec la cotation, l'étapier qui contraint le cycle de vie, et la rédaction assistée du procès-verbal. Les \textbf{modules transverses} servent les deux précédents : contrôle d'accès, production des documents, traçabilité et notification.
+
+Au centre, le \textbf{dossier de plainte} concentre l'état, les qualifications, les préjudices, les pièces et les intervenants. Tous les modules s'y rattachent, aucun ne dialogue directement avec un autre groupe. Ce choix évite qu'une évolution du parcours de saisie n'affecte l'instruction, et réciproquement.
+
+\section{Modélisation UML}
+
+Les deux diagrammes qui suivent précisent la conception en descendant d'un niveau : le premier décrit les entités manipulées, le second l'enchaînement des échanges entre acteurs et composants.
+
+\subsection{Diagramme de classes}
+
+Le diagramme de classes constitue l'élément central de la modélisation orientée objet. Il décrit comment les entités du domaine interagissent pour concrétiser les différents cas d'utilisation.
+
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=\linewidth]{diagrammes/classe.png}
+    \caption{Diagramme de classes : modèle conceptuel de PlainteCam}
     \label{fig:classe}
 \end{figure}
 
-\subsubsection{Diagramme de séquence}
+\subsection{Diagramme de séquence}
+
 La figure~\ref{fig:sequence} illustre la séquence du dépôt d'une plainte, depuis la saisie guidée jusqu'à la rédaction assistée du procès-verbal.
+
 \begin{figure}[H]
     \centering
-    \includegraphics[width=0.74\textwidth]{diagrammes/sequence.png}
-    \caption{Diagramme de séquence — Dépôt et instruction d'une plainte}
+    \includegraphics[width=\linewidth]{diagrammes/sequence.png}
+    \caption{Diagramme de séquence : dépôt et instruction d'une plainte}
     \label{fig:sequence}
 \end{figure}
 
-\section{Mise en œuvre de la solution}
-
-\subsection{Parcours de dépôt du plaignant (5 étapes)}
-
-Le dépôt de plainte est implémenté comme un \textbf{formulaire multi-étapes} en 5 écrans enchaînés :
-
-\begin{enumerate}
-    \item \textbf{Nature de l'infraction} — choix parmi les natures gérées (vol simple, vol avec violence, agression physique, escroquerie, harcèlement, dégradation de biens, accident de la route, autre) et cascade géographique Région / Département / Arrondissement / Quartier. Le \textbf{commissariat compétent} est déduit automatiquement du quartier des faits.
-    \item \textbf{Déclaration des faits} — récit libre du plaignant, avec dictée vocale optionnelle s'appuyant sur la Web Speech API du navigateur.
-    \item \textbf{Identité du mis en cause} — renseignée lorsqu'elle est connue, facultative dans le cas contraire.
-    \item \textbf{Questions complémentaires} — un jeu de questions propre à la nature de l'infraction est proposé ; celles dont la réponse figure déjà dans le récit des faits sont automatiquement écartées, afin de ne pas faire répéter le plaignant.
-    \item \textbf{Aperçu et confirmation} — récapitulatif de la déclaration, signature puis dépôt définitif, avec délivrance d'un \textbf{récépissé} portant le numéro de dossier.
-\end{enumerate}
-
-\paragraph{Analyse en direct de la déclaration.} Pendant que le plaignant rédige son récit, un bloc d'analyse affiche en continu un \textbf{taux de complétude} : la part des éléments attendus pour la nature d'infraction déclarée — objet concerné, moment des faits, description du suspect, témoins, justificatif — effectivement repérés dans le texte. Chaque élément apparaît sous forme d'étiquette, verte s'il est présent, rouge s'il manque, et une jauge situe le niveau atteint : rouge en dessous de 50~\%, orange de 50 à 80~\%, vert au-delà.
-
-Ce pourcentage n'a qu'une seule fonction : \textbf{montrer au plaignant ce qui manque encore à sa déclaration}, afin qu'il le complète de lui-même avant de poursuivre. Il ne mesure ni la gravité des faits, ni l'avancement du dossier. Les éléments restés non détectés deviennent précisément les questions posées à l'étape 4, ce qui évite d'interroger le plaignant sur ce qu'il a déjà écrit.
-
-\paragraph{Choix retenu pour la compétence territoriale.} L'audit a établi que le commissariat compétent peut être celui du lieu des faits \textbf{ou} celui du secteur de résidence du mis en cause. La plateforme retient le \textbf{lieu des faits}, seul critère systématiquement connu du plaignant au moment du dépôt — l'identité du mis en cause, et a fortiori son adresse, étant fréquemment ignorées. Ce choix ne ferme aucune option : le commissariat destinataire conserve la faculté de se dessaisir au profit d'une autre unité, le transfert étant alors inscrit au journal d'audit.
-
-\subsection{Du dépôt à la clôture : le cycle de vie du dossier}
-
-Une fois la plainte déposée, le dossier est rattaché au commissariat compétent et apparaît dans le tableau de bord du \textbf{commissaire}. Celui-ci procède à la \textbf{cotation} : il désigne l'\textbf{enquêteur} chargé de l'affaire et fixe la priorité du dossier.
-
-L'enquêteur conduit ensuite l'instruction : il convoque le plaignant et le mis en cause, tient les \textbf{auditions} et dresse les \textbf{procès-verbaux} correspondants. Chaque changement d'état est inscrit au journal d'audit. Le statut du dossier suit un cycle contraint par un type énuméré : \textit{Reçu}, \textit{Audition}, \textit{En instruction}, \textit{Décision}, \textit{Transmis}, \textit{Clôturé}. Le plaignant suit cette progression depuis son espace, sans avoir à se déplacer ni à téléphoner.
-
-L'\textbf{avancement du dossier} est calculé comme la part de la procédure réellement accomplie : les étapes franchies, plus la fraction des actes déjà réalisés au sein de l'étape en cours. Un dossier transmis au parquet ou clôturé est à 100~\%. Cette valeur ne se saisit jamais à la main — un dossier ne peut donc pas être déclaré avancé sans que les actes correspondants figurent effectivement au dossier. L'enquêteur la retrouve détaillée dans son \textbf{étapier}, une frise qui énumère pour chaque étape les actes requis et barre ceux qui sont accomplis ; le commissaire en suit la moyenne sur son tableau de bord.
-
-Ces deux pourcentages ne mesurent donc pas la même chose et ne s'adressent pas aux mêmes personnes. La \textbf{complétude} qualifie la \textit{déclaration} et regarde le citoyen pendant qu'il rédige ; l'\textbf{avancement} qualifie la \textit{procédure} et regarde le commissaire qui supervise. Les confondre conduirait à présenter comme avancé un dossier simplement bien raconté, alors que rien n'y aurait encore été fait.
-
-\subsection{Modèle de données}
-
-Le schéma relationnel compte huit entités.
-
-\begin{table}[H]
-\centering
-\begin{tabularx}{\linewidth}{|l|X|l|}
-\hline
-\textbf{Entité}       & \textbf{Rôle}                                                     & \textbf{Accès} \\
-\hline
-Commissariat          & Référentiel des commissariats et de leur ressort territorial      & Lecture publique \\
-\hline
-Profil                & Citoyens et personnels, porteurs du rôle applicatif               & Par rôle \\
-\hline
-Plainte               & Dossiers déposés et leur cycle de vie complet                     & Plaignant ou commissariat \\
-\hline
-Pièce jointe          & Métadonnées des documents et photos ; le fichier lui-même réside dans le dépôt d'objets & Par dossier \\
-\hline
-Procès-verbal         & PV d'audition proposés par l'IA puis validés par l'enquêteur      & Par enquêteur \\
-\hline
-Convocation           & Convocations émises et suites données                             & Par commissariat \\
-\hline
-Historique            & Journal d'audit de toutes les transitions de statut               & Lecture seule \\
-\hline
-Notification          & Messages adressés au plaignant et aux personnels                  & Par destinataire \\
-\hline
-\end{tabularx}
-\caption{Entités principales du modèle de données PlainteCam}
-\label{tab:entites}
-\end{table}
-
-\subsection{Sécurité et contrôle d'accès}
-
-L'authentification repose sur des jetons \textbf{JWT}~\cite{jwt:rfc} signés côté serveur. Le citoyen s'identifie par adresse électronique et code à usage unique ; les personnels par matricule et mot de passe. Chaque requête est ensuite autorisée selon le rôle porté par le jeton : un plaignant n'accède qu'à ses propres dossiers, un enquêteur à ceux qui lui ont été cotés, un commissaire à l'ensemble des dossiers de son commissariat. Ce cloisonnement est doublé au niveau du SGBD par des politiques d'accès par ligne, de sorte qu'une requête mal formée ne puisse pas contourner la règle métier.
-
-\subsection{Tests effectués}
-
-La recette a été conduite manuellement sur un jeu de dossiers de test couvrant les huit natures d'infraction gérées.
-
-\begin{table}[H]
-    \centering
-    \begin{tabularx}{\textwidth}{|l|>{\raggedright\arraybackslash}X|l|}
-        \hline
-        \textbf{Type de test} & \textbf{Scénario testé} & \textbf{Résultat} \\
-        \hline
-        Fonctionnel & Dépôt complet d'une plainte (5 étapes) & Conforme \\
-        \hline
-        Fonctionnel & Détermination du commissariat compétent par cascade géographique & Conforme \\
-        \hline
-        Fonctionnel & Cotation d'un dossier à un enquêteur avec priorité & Conforme \\
-        \hline
-        IA & Rédaction d'un PV depuis la déclaration du plaignant & Conforme, relecture de l'enquêteur requise \\
-        \hline
-        Sécurité & Consultation d'un dossier tiers par un citoyen non plaignant & Refusé \\
-        \hline
-        Sécurité & Appel d'un endpoint sans jeton valide & Refusé (HTTP 401) \\
-        \hline
-        Document & Génération PDF du récépissé et du PV, contrôle du QR code & Conforme \\
-        \hline
-        Qualité & Fidélité de la transcription vocale & Partiel — relecture nécessaire \\
-        \hline
-    \end{tabularx}
-    \caption{Résultats des tests fonctionnels et de sécurité}
-    \label{tab:tests}
-\end{table}
-
-Deux limites sont assumées à ce stade. La dictée vocale fonctionne sur l'ensemble des navigateurs testés, mais la \textbf{fidélité de la transcription reste imparfaite} : le texte obtenu ne restitue pas toujours exactement les propos du plaignant, en particulier sur les noms propres, les toponymes et les tournures propres au français parlé localement. Une relecture à l'écran est donc indispensable avant de passer à l'étape suivante, et la dictée est présentée comme une aide à la saisie plutôt que comme un mode de déclaration autonome. Par ailleurs, aucun test de charge n'a été mené faute d'environnement de production représentatif. Ces deux points figurent dans les préconisations du chapitre~\ref{ch:bilan}.
+La conception étant arrêtée, le chapitre suivant en présente la réalisation effective.

@@ -1,0 +1,81 @@
+\babel@toc {french}{}\relax 
+\contentsline {chapter}{Dédicace}{i}{chapter*.2}%
+\contentsline {chapter}{Remerciements}{ii}{chapter*.4}%
+\contentsline {chapter}{Résumé}{iii}{chapter*.6}%
+\contentsline {chapter}{Abstract}{iv}{chapter*.8}%
+\contentsline {chapter}{Liste des Sigles et Abréviations}{x}{chapter*.13}%
+\contentsline {chapter}{Introduction Générale}{1}{chapter*.15}%
+\contentsline {section}{Contexte}{1}{section*.16}%
+\contentsline {section}{Problématique}{1}{section*.17}%
+\contentsline {section}{Objectifs}{2}{section*.18}%
+\contentsline {section}{Méthodologie}{2}{section*.19}%
+\contentsline {section}{Plan du mémoire}{3}{section*.20}%
+\contentsline {chapter}{\numberline {1}Diagnostic et Analyse de l'Existant}{4}{chapter.1}%
+\contentsline {section}{\numberline {1.1}Présentation de l'entreprise Access Finance \& RH SARL}{4}{section.1.1}%
+\contentsline {subsection}{\numberline {1.1.1}Historique et positionnement}{4}{subsection.1.1.1}%
+\contentsline {subsection}{\numberline {1.1.2}Localisation et implantation}{5}{subsection.1.1.2}%
+\contentsline {subsection}{\numberline {1.1.3}Mission et vision}{5}{subsection.1.1.3}%
+\contentsline {subsection}{\numberline {1.1.4}Domaines d'activité}{5}{subsection.1.1.4}%
+\contentsline {subsection}{\numberline {1.1.5}Organigramme}{6}{subsection.1.1.5}%
+\contentsline {section}{\numberline {1.2}Analyse de la situation existante}{7}{section.1.2}%
+\contentsline {subsection}{\numberline {1.2.1}Déroulement du stage et missions effectuées}{7}{subsection.1.2.1}%
+\contentsline {subsection}{\numberline {1.2.2}Description de la procédure manuelle actuelle}{7}{subsection.1.2.2}%
+\contentsline {subsection}{\numberline {1.2.3}Difficultés et limites identifiées lors de l'audit}{9}{subsection.1.2.3}%
+\contentsline {section}{\numberline {1.3}Ce qui existe ailleurs}{10}{section.1.3}%
+\contentsline {section}{\numberline {1.4}Analyse SWOT liée à la mission}{11}{section.1.4}%
+\contentsline {section}{\numberline {1.5}Identification du besoin}{12}{section.1.5}%
+\contentsline {subsection}{\numberline {1.5.1}Pourquoi les méthodes actuelles ne suffisent plus}{12}{subsection.1.5.1}%
+\contentsline {chapter}{\numberline {2}Conception de la plateforme PlainteCam}{14}{chapter.2}%
+\contentsline {section}{\numberline {2.1}Conception fonctionnelle}{14}{section.2.1}%
+\contentsline {subsection}{\numberline {2.1.1}Description des fonctionnalités}{14}{subsection.2.1.1}%
+\contentsline {subsection}{\numberline {2.1.2}Cas d'utilisation majeurs}{15}{subsection.2.1.2}%
+\contentsline {subsection}{\numberline {2.1.3}Besoins fonctionnels}{16}{subsection.2.1.3}%
+\contentsline {subsection}{\numberline {2.1.4}Besoins non fonctionnels}{16}{subsection.2.1.4}%
+\contentsline {subsection}{\numberline {2.1.5}Diagramme de cas d'utilisation}{17}{subsection.2.1.5}%
+\contentsline {section}{\numberline {2.2}Démarche adoptée}{19}{section.2.2}%
+\contentsline {subsection}{\numberline {2.2.1}Méthodologie de gestion de projet : Agile / Scrum}{19}{subsection.2.2.1}%
+\contentsline {section}{\numberline {2.3}Architecture de la solution}{19}{section.2.3}%
+\contentsline {subsection}{\numberline {2.3.1}Architecture fonctionnelle}{19}{subsection.2.3.1}%
+\contentsline {subsection}{\numberline {2.3.2}Architecture de conception}{20}{subsection.2.3.2}%
+\contentsline {section}{\numberline {2.4}Modélisation UML}{21}{section.2.4}%
+\contentsline {subsection}{\numberline {2.4.1}Diagramme de classes}{21}{subsection.2.4.1}%
+\contentsline {subsection}{\numberline {2.4.2}Diagramme de séquence}{22}{subsection.2.4.2}%
+\contentsline {chapter}{\numberline {3}Réalisation de la plateforme PlainteCam}{24}{chapter.3}%
+\contentsline {section}{\numberline {3.1}Choix des outils et technologies}{24}{section.3.1}%
+\contentsline {subsection}{\numberline {3.1.1}Frontend : React.js}{24}{subsection.3.1.1}%
+\contentsline {subsection}{\numberline {3.1.2}Backend : Flask}{25}{subsection.3.1.2}%
+\contentsline {subsection}{\numberline {3.1.3}Persistance : PostgreSQL et Supabase Storage}{25}{subsection.3.1.3}%
+\contentsline {subsection}{\numberline {3.1.4}Intelligence artificielle : Llama 3.1 servi par Groq}{26}{subsection.3.1.4}%
+\contentsline {subsection}{\numberline {3.1.5}Environnement de développement}{26}{subsection.3.1.5}%
+\contentsline {section}{\numberline {3.2}Architecture d'implémentation}{26}{section.3.2}%
+\contentsline {section}{\numberline {3.3}Mise en œuvre de la solution}{27}{section.3.3}%
+\contentsline {subsection}{\numberline {3.3.1}Parcours de dépôt du plaignant}{27}{subsection.3.3.1}%
+\contentsline {paragraph}{Analyse en direct de la déclaration.}{28}{section*.37}%
+\contentsline {paragraph}{Choix retenu pour la compétence territoriale.}{28}{section*.38}%
+\contentsline {subsection}{\numberline {3.3.2}Du dépôt à la clôture : le cycle de vie du dossier}{28}{subsection.3.3.2}%
+\contentsline {subsection}{\numberline {3.3.3}Modèle de données}{29}{subsection.3.3.3}%
+\contentsline {subsection}{\numberline {3.3.4}Sécurité et contrôle d'accès}{29}{subsection.3.3.4}%
+\contentsline {subsection}{\numberline {3.3.5}Tests effectués}{30}{subsection.3.3.5}%
+\contentsline {section}{\numberline {3.4}Analyse des résultats}{31}{section.3.4}%
+\contentsline {subsection}{\numberline {3.4.1}Méthode de mesure}{31}{subsection.3.4.1}%
+\contentsline {subsection}{\numberline {3.4.2}Portée et limites des mesures}{32}{subsection.3.4.2}%
+\contentsline {section}{\numberline {3.5}Apports pour l'organisation}{33}{section.3.5}%
+\contentsline {section}{\numberline {3.6}Préconisations}{33}{section.3.6}%
+\contentsline {section}{\numberline {3.7}Bilan critique de la mission}{34}{section.3.7}%
+\contentsline {subsection}{\numberline {3.7.1}Ce qui a fonctionné}{34}{subsection.3.7.1}%
+\contentsline {subsection}{\numberline {3.7.2}Ce qui a posé des défis}{34}{subsection.3.7.2}%
+\contentsline {subsection}{\numberline {3.7.3}Enseignements tirés}{35}{subsection.3.7.3}%
+\contentsline {section}{\numberline {3.8}Résultats : interfaces de la plateforme}{35}{section.3.8}%
+\contentsline {subsection}{\numberline {3.8.1}Tableau de bord du commissaire}{36}{subsection.3.8.1}%
+\contentsline {subsection}{\numberline {3.8.2}Dépôt d'une plainte}{37}{subsection.3.8.2}%
+\contentsline {subsection}{\numberline {3.8.3}Instruction du dossier par l'enquêteur}{38}{subsection.3.8.3}%
+\contentsline {subsection}{\numberline {3.8.4}Gestion des dossiers cotés}{38}{subsection.3.8.4}%
+\contentsline {subsection}{\numberline {3.8.5}Notifications}{39}{subsection.3.8.5}%
+\contentsline {subsection}{\numberline {3.8.6}Historique et traçabilité}{40}{subsection.3.8.6}%
+\contentsline {subsection}{\numberline {3.8.7}Statistiques et pilotage}{41}{subsection.3.8.7}%
+\contentsline {chapter}{Conclusion Générale}{42}{chapter*.47}%
+\contentsline {section}{Synthèse des missions}{42}{section*.48}%
+\contentsline {section}{Bilan personnel}{42}{section*.49}%
+\contentsline {section}{Perspectives d'évolution}{43}{section*.50}%
+\contentsline {chapter}{\numberline {A}Annexes}{44}{appendix.A}%
+\contentsline {chapter}{Bibliographie}{49}{section*.64}%

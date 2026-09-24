@@ -14,23 +14,23 @@ skinparam backgroundColor #FFFFFF
 skinparam shadowing false
 skinparam defaultFontName Helvetica
 skinparam defaultFontSize 11
-skinparam ArrowColor #24405E
+skinparam ArrowColor #006432
 skinparam packageStyle rectangle
 skinparam nodesep 25
 skinparam ranksep 35
 
 skinparam rectangle {
-  BorderColor #24405E
+  BorderColor #006432
   BackgroundColor #FFFFFF
-  FontColor #14243A
+  FontColor #0B3A22
 }
 skinparam component {
-  BorderColor #24405E
+  BorderColor #006432
   BackgroundColor #FFFFFF
 }
 
 ' ── FRONTEND ─────────────────────────────────────────────────
-rectangle "FRONTEND — React" as FRONT #F4F8FF {
+rectangle "FRONTEND — React" as FRONT #EFF7F2 {
 
   rectangle "Espaces par rôle" as ESP {
     component "Espace citoyen\n<size:9>dépôt · suivi · profil</size>"          as E1
@@ -49,7 +49,7 @@ rectangle "FRONTEND — React" as FRONT #F4F8FF {
 }
 
 ' ── BACKEND ──────────────────────────────────────────────────
-rectangle "BACKEND — Flask (WSGI)" as BACK #F1FBF4 {
+rectangle "BACKEND — Flask (WSGI)" as BACK #E4F0E9 {
 
   rectangle "Couche API REST" as APIL {
     component "/api/plaintes"      as A1

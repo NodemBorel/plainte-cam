@@ -19,16 +19,16 @@ skinparam backgroundColor #FFFFFF
 skinparam shadowing false
 skinparam defaultFontName Helvetica
 skinparam defaultFontSize 13
-skinparam ArrowColor #24405E
+skinparam ArrowColor #006432
 skinparam sequenceMessageAlign left
 
 skinparam participant {
-  BorderColor #24405E
+  BorderColor #006432
   BackgroundColor #FFFFFF
-  FontColor #14243A
+  FontColor #0B3A22
 }
 skinparam actor {
-  BorderColor #24405E
+  BorderColor #006432
   BackgroundColor #FFFFFF
 }
 skinparam note {

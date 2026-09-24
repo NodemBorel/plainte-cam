@@ -1,0 +1,8 @@
+\babel@toc {french}{}\relax 
+\beamer@sectionintoc {1}{INTRODUCTION}{3}{0}{1}
+\beamer@sectionintoc {2}{STRUCTURE DE STAGE}{5}{0}{2}
+\beamer@sectionintoc {3}{ETUDE DE L'EXISTANT}{6}{0}{3}
+\beamer@sectionintoc {4}{MISE EN PLACE DE LA SOLUTION}{10}{0}{4}
+\beamer@sectionintoc {5}{OUTILS ET LOGICIELS}{18}{0}{5}
+\beamer@sectionintoc {6}{RESULTATS}{19}{0}{6}
+\beamer@sectionintoc {7}{CONCLUSION}{21}{0}{7}
