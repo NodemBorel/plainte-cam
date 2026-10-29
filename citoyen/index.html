@@ -368,26 +368,12 @@
 
       <div class="grid-main-aside">
 
-        <!-- Document aperçu -->
-        <div class="pv-document" id="apercu-pv">
-          <div class="pv-stamp">COMMISSARIAT<br>CITÉ VERTE<br>YAOUNDÉ</div>
-          <div class="pv-header">
-            <div style="font-size:11px;color:#666;letter-spacing:.05em">RÉPUBLIQUE DU CAMEROUN · MINISTÈRE DE LA SÉCURITÉ</div>
-            <h2>DÉCLARATION DE PLAINTE</h2>
-            <div class="ref" id="apercu-ref">Réf. en attente de numérotation</div>
-          </div>
-          <div class="pv-body" id="apercu-body">
-            <!-- rempli par buildRecap() -->
-          </div>
-          <div class="pv-signature" style="margin-top:32px">
-            <div style="text-align:center">
-              <div style="border-top:1px solid #999;width:160px;padding-top:6px;font-size:12px;color:#666">Signature du déclarant<br><span id="moi-signature"></span></div>
-            </div>
-            <div style="text-align:center">
-              <div style="border-top:1px solid #ccc;width:180px;padding-top:6px;font-size:12px;color:#aaa;font-style:italic">Cachet du commissariat<br>(après réception)</div>
-            </div>
-          </div>
-        </div>
+        <!-- Document apercu : la piece reelle, celle que produit
+             htmlPlainte(). Elle etait auparavant redessinee ici a la
+             main, avec son propre en-tete et ses propres tableaux : le
+             plaignant validait donc un document et en telechargeait un
+             autre, qui ne lui ressemblait pas. -->
+        <div class="feuille feuille--inline" id="apercu-pv"></div>
 
         <!-- Panneau décision -->
         <div style="display:flex;flex-direction:column;gap:14px">
@@ -403,7 +389,7 @@
           <button class="btn btn-primary btn-lg btn-full" onclick="submitPlainte()">
             Transmettre au commissariat
           </button>
-          <button class="btn btn-outline btn-full" onclick="telechargerPlaintePDF()">
+          <button class="btn btn-outline btn-full" onclick="telechargerBrouillonPlainte()">
             Télécharger ma plainte
           </button>
           <!-- Le téléchargement seul n'envoie rien : c'est la seule chose qu'il

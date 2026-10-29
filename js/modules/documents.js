@@ -401,6 +401,7 @@ function donneesDossier(numero) {
       lieu: d.lieu || '', declaration: d.declaration || '',
       misEnCause: d.misEnCause || '', prejudice: d.prejudice || null,
       pieces: d.pieces || [],
+      precisions: d.precisions || null,
       contact: d.contact || null,
       commissariat: d.commissariat || 'Commissariat compétent',
       statut: (typeof STATUT_LABELS !== 'undefined' && STATUT_LABELS[d.statut])
@@ -435,7 +436,17 @@ function donneesDossier(numero) {
       montant: val('prejudice-montant'),
       detail: val('prejudice-detail')
     } : null,
-    pieces: [],
+    /* Les pieces et les reponses au questionnaire vivent dans l'espace
+       citoyen, en cours de saisie : la declaration les ignorait, alors
+       que ce sont elles qui l'etoffent. */
+    pieces: (typeof piecesJointes !== 'undefined' && piecesJointes.length)
+      ? piecesJointes.map(function (f) {
+          return { nom: f.name,
+                   taille: (typeof tailleLisible === 'function') ? tailleLisible(f.size) : '' };
+        })
+      : [],
+    precisions: (typeof qaAnswers !== 'undefined' && Object.keys(qaAnswers).length)
+      ? qaAnswers : null,
     contact: courant ? { email: courant.email, telephone: courant.telephone } : null,
     commissariat: infoComm ? infoComm.textContent.trim() : 'Commissariat compétent',
     statut: 'Transmis pour instruction',
@@ -476,7 +487,12 @@ function nomMisEnCause(d) {
   const identifie = (typeof misEnCauseIdentifie === 'function')
     ? misEnCauseIdentifie(d)
     : !/^(jeune homme|homme|femme|individu|inconnu)/i.test(String(d.misEnCause).trim());
-  return identifie ? d.misEnCause.split(',')[0].trim().replace(/\.$/, '') : 'X';
+  /* Le formulaire concatene le nom et le signalement (« NKOLO Bertrand
+     — agent de micro-finance ») : l'objet de la plainte ne retient que
+     le nom, sinon il recopie tout le signalement. */
+  return identifie
+    ? d.misEnCause.split(/[,—]/)[0].trim().replace(/\.$/, '')
+    : 'X';
 }
 
 /* ══════════════════════════════════════════════════════════
@@ -550,8 +566,15 @@ function htmlAttestation(numero) {
    adressee, elle porte un objet et elle se signe. Le document la
    presentait en sections numerotees, ce qu'aucun modele ne fait.
    ══════════════════════════════════════════════════════════ */
-function htmlPlainte(numero) {
-  const n = numero || numeroCourant();
+/* opts.provisoire : la plainte n'est pas encore transmise. Aucun numero
+   ne lui est attribue — l'apercu en affichait pourtant un, celui du
+   dossier de demonstration, et le telechargement produisait une piece
+   portant le numero de quelqu'un d'autre. Le pied de verification
+   disparait aussi : il n'y a rien a verifier tant que rien n'est
+   enregistre. */
+function htmlPlainte(numero, opts) {
+  const o = opts || {};
+  const n = o.provisoire ? '' : (numero || numeroCourant());
   const d = donneesDossier(n);
   const inc = qualificationDe(d.type);
   const c = (d.citoyen && typeof citoyen === 'function') ? citoyen(d.citoyen) : null;
@@ -584,7 +607,9 @@ function htmlPlainte(numero) {
       </tr>
       <tr>
         <td style="width:70px;vertical-align:top;font-weight:bold;text-decoration:underline">Réf. :</td>
-        <td style="vertical-align:top">Dossier PlainteCam n° <strong>${esc(d.numero)}</strong></td>
+        <td style="vertical-align:top">${o.provisoire
+          ? '<em>Numéro attribué à la transmission</em>'
+          : 'Dossier PlainteCam n° <strong>' + esc(d.numero) + '</strong>'}</td>
       </tr>
     </table>`;
 
@@ -622,6 +647,21 @@ function htmlPlainte(numero) {
       'suivantes : ' + d.pieces.map(p => esc(p.nom)).join(', ') + '.');
   }
 
+  /* Les reponses au questionnaire complementaire : ce sont les
+     precisions que l'officier serait autrement alle chercher en
+     audition. Elles se listent, elles ne se tabulent pas — une lettre
+     n'a pas de tableau. */
+  if (d.precisions && Object.keys(d.precisions).length) {
+    corps += para('<strong>Précisions apportées.</strong> En réponse aux questions qui m’ont été ' +
+      'posées lors du dépôt :') +
+      '<ul style="margin:0 0 15px 0;padding-left:26px;text-align:justify">' +
+        Object.keys(d.precisions).map(function (q) {
+          return '<li style="margin-bottom:5px">' + esc(q) + ' <strong>' +
+                 esc(d.precisions[q]) + '</strong></li>';
+        }).join('') +
+      '</ul>';
+  }
+
   corps += para('C’est pourquoi je vous prie de bien vouloir enregistrer la présente plainte, diligenter ' +
     'l’enquête qu’elle appelle et lui réserver la suite que de droit.', 'margin-top:18px');
   corps += para('Je certifie sur l’honneur l’exactitude des faits exposés ci-dessus et n’ignore ' +
@@ -647,7 +687,7 @@ function htmlPlainte(numero) {
     destinataire: destinataire,
     objet: objet,
     corps: corps,
-    pied: piedVerification(d.numero)
+    pied: o.provisoire ? '' : piedVerification(d.numero)
   });
 }
 
@@ -726,6 +766,11 @@ function lirePlainte(numero) {
 }
 function telechargerAttestationPDF(numero) { imprimerDocument(htmlAttestation(numero)); }
 function telechargerPlaintePDF(numero)     { imprimerDocument(htmlPlainte(numero)); }
+
+/* Telechargement depuis l'etape 5, avant transmission. */
+function telechargerBrouillonPlainte() {
+  imprimerDocument(htmlPlainte(null, { provisoire: true }));
+}
 
 /* ============================================================
    APERCU D'UNE PIECE JOINTE

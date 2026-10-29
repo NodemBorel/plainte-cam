@@ -31,88 +31,7 @@ Depuis le tableau de bord, sélectionner un dossier au statut \textit{Reçu}, cl
 
 Ouvrir un dossier coté, puis choisir \textbf{Nouveau PV} et sélectionner l'audition concernée. Une proposition rédigée à partir de la déclaration s'affiche dans l'éditeur. \textbf{La relecture est obligatoire} : corriger, compléter, puis valider et signer. Le PV n'est enregistré qu'après validation explicite.
 
-\section*{Annexe B : extraits de code}
-
-Les trois extraits qui suivent portent sur les points où une erreur d'implémentation aurait des conséquences directes sur la validité de la procédure ou sur la confidentialité des dossiers.
-
-\subsection*{B.1 : dépôt d'une plainte et rattachement au commissariat}
-
-\begin{lstlisting}[language=Python,caption={Endpoint Flask de dépôt d'une plainte},label={lst:depot}]
-@app.route("/api/plaintes", methods=["POST"])
-@jwt_required()
-def deposer_plainte():
-    """Enregistre une plainte et la rattache au commissariat competent."""
-    donnees = PlainteSchema().load(request.get_json())
-    citoyen_id = get_jwt_identity()
-
-    # Le ressort territorial determine le commissariat : le quartier
-    # des faits, et non le domicile du plaignant, fait autorite.
-    commissariat = Commissariat.query.filter_by(
-        quartier=donnees["quartier"]
-    ).first_or_404(description="Aucun commissariat pour ce quartier")
-
-    plainte = Plainte(
-        citoyen_id=citoyen_id,
-        commissariat_id=commissariat.id,
-        nature=donnees["nature"],
-        recit=donnees["recit"],
-        statut=StatutPlainte.RECU,
-        score_completude=calculer_score(donnees),
-    )
-    db.session.add(plainte)
-    db.session.flush()          # obtient l'id avant l'ecriture du journal
-
-    journaliser(plainte.id, "DEPOT", auteur=citoyen_id)
-    db.session.commit()
-
-    return jsonify(PlainteSchema().dump(plainte)), 201
-\end{lstlisting}
-
-\subsection*{B.2 : rédaction assistée du procès-verbal}
-
-\begin{lstlisting}[language=Python,caption={Appel au modèle génératif (Llama 3.1 via Groq), côté serveur},label={lst:ia}]
-from groq import Groq
-
-client = Groq(api_key=os.environ["GROQ_API_KEY"])   # jamais en dur
-
-def proposer_proces_verbal(plainte):
-    """Retourne une PROPOSITION de PV. La validation par l'enqueteur
-    reste obligatoire : cette fonction n'ecrit rien en base."""
-    consigne = (
-        "Tu rediges un projet de proces-verbal d'audition a partir de la "
-        "declaration ci-dessous. Style administratif, troisieme personne. "
-        "N'invente aucun fait absent de la declaration : en cas de donnee "
-        "manquante, ecris [A COMPLETER PAR L'ENQUETEUR]."
-    )
-    reponse = client.chat.completions.create(
-        model="llama-3.1-8b-instant",
-        messages=[
-            {"role": "system",  "content": consigne},
-            {"role": "user",    "content": f"Nature : {plainte.nature}\n"
-                                           f"Declaration : {plainte.recit}"},
-        ],
-        temperature=0.2,        # bas : on veut de la fidelite, pas du style
-    )
-    return reponse.choices[0].message.content
-\end{lstlisting}
-
-\subsection*{B.3 : cloisonnement des accès au niveau du SGBD}
-
-\begin{lstlisting}[language=SQL,caption={Politique d'accès par ligne sur la table des plaintes},label={lst:rls}]
--- Un plaignant ne voit que ses propres dossiers.
-CREATE POLICY plaintes_select_citoyen ON plaintes
-  FOR SELECT USING (citoyen_id = current_user_id());
-
--- Un enqueteur ne voit que les dossiers qui lui ont ete cotes.
-CREATE POLICY plaintes_select_enqueteur ON plaintes
-  FOR SELECT USING (enqueteur_id = current_user_id());
-
--- Un commissaire voit tous les dossiers de son commissariat.
-CREATE POLICY plaintes_select_commissaire ON plaintes
-  FOR SELECT USING (commissariat_id = current_user_commissariat());
-\end{lstlisting}
-
-\section*{Annexe C : fiches de tests}
+\section*{Annexe B : fiches de tests}
 
 La recette a été conduite manuellement sur un jeu de dossiers couvrant les huit natures d'infraction gérées. Le tableau~\ref{tab:fiches_tests} en consigne les dix cas retenus : quatre portent sur le parcours de dépôt, deux sur le cloisonnement des accès, et les autres sur la cotation, les documents produits et la dictée vocale.
 
@@ -149,7 +68,7 @@ La colonne \textbf{Verdict} demande une lecture attentive. « Conforme » signif
     \label{tab:fiches_tests}
 \end{table}
 
-\section*{Annexe D : glossaire technique}
+\section*{Annexe C : glossaire technique}
 
 Le tableau~\ref{tab:glossaire} rassemble les termes employés dans ce mémoire. Il en mêle délibérément deux familles, car le sujet se tient à leur intersection : d'un côté le vocabulaire de la \textbf{procédure} (cotation, procès-verbal, récépissé), dont la signification est fixée par l'usage des commissariats et non par l'informatique ; de l'autre le vocabulaire \textbf{technique} : API REST, jeton JWT, politique d'accès par ligne.
 

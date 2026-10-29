@@ -16,8 +16,8 @@
 \contentsline {subsection}{\numberline {1.1.2}Localisation et implantation}{5}{subsection.1.1.2}%
 \contentsline {subsection}{\numberline {1.1.3}Mission et vision}{5}{subsection.1.1.3}%
 \contentsline {subsection}{\numberline {1.1.4}Domaines d'activité}{5}{subsection.1.1.4}%
-\contentsline {subsection}{\numberline {1.1.5}Organigramme}{6}{subsection.1.1.5}%
-\contentsline {section}{\numberline {1.2}Analyse de la situation existante}{7}{section.1.2}%
+\contentsline {subsection}{\numberline {1.1.5}Organigramme}{5}{subsection.1.1.5}%
+\contentsline {section}{\numberline {1.2}Analyse de la situation existante}{6}{section.1.2}%
 \contentsline {subsection}{\numberline {1.2.1}Déroulement du stage et missions effectuées}{7}{subsection.1.2.1}%
 \contentsline {subsection}{\numberline {1.2.2}Description de la procédure manuelle actuelle}{7}{subsection.1.2.2}%
 \contentsline {subsection}{\numberline {1.2.3}Difficultés et limites identifiées lors de l'audit}{9}{subsection.1.2.3}%
@@ -50,8 +50,8 @@
 \contentsline {section}{\numberline {3.2}Architecture d'implémentation}{26}{section.3.2}%
 \contentsline {section}{\numberline {3.3}Mise en œuvre de la solution}{27}{section.3.3}%
 \contentsline {subsection}{\numberline {3.3.1}Parcours de dépôt du plaignant}{27}{subsection.3.3.1}%
-\contentsline {paragraph}{Analyse en direct de la déclaration.}{28}{section*.37}%
-\contentsline {paragraph}{Choix retenu pour la compétence territoriale.}{28}{section*.38}%
+\contentsline {paragraph}{Analyse en direct de la déclaration.}{28}{section*.36}%
+\contentsline {paragraph}{Choix retenu pour la compétence territoriale.}{28}{section*.37}%
 \contentsline {subsection}{\numberline {3.3.2}Du dépôt à la clôture : le cycle de vie du dossier}{28}{subsection.3.3.2}%
 \contentsline {subsection}{\numberline {3.3.3}Modèle de données}{29}{subsection.3.3.3}%
 \contentsline {subsection}{\numberline {3.3.4}Sécurité et contrôle d'accès}{29}{subsection.3.3.4}%
@@ -73,9 +73,9 @@
 \contentsline {subsection}{\numberline {3.8.5}Notifications}{39}{subsection.3.8.5}%
 \contentsline {subsection}{\numberline {3.8.6}Historique et traçabilité}{40}{subsection.3.8.6}%
 \contentsline {subsection}{\numberline {3.8.7}Statistiques et pilotage}{41}{subsection.3.8.7}%
-\contentsline {chapter}{Conclusion Générale}{42}{chapter*.47}%
-\contentsline {section}{Synthèse des missions}{42}{section*.48}%
-\contentsline {section}{Bilan personnel}{42}{section*.49}%
-\contentsline {section}{Perspectives d'évolution}{43}{section*.50}%
+\contentsline {chapter}{Conclusion Générale}{42}{chapter*.46}%
+\contentsline {section}{Synthèse des missions}{42}{section*.47}%
+\contentsline {section}{Bilan personnel}{42}{section*.48}%
+\contentsline {section}{Perspectives d'évolution}{43}{section*.49}%
 \contentsline {chapter}{\numberline {A}Annexes}{44}{appendix.A}%
-\contentsline {chapter}{Bibliographie}{49}{section*.64}%
+\contentsline {chapter}{Bibliographie}{48}{section*.59}%

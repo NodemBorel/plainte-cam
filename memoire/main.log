@@ -1,4 +1,4 @@
-This is pdfTeX, Version 3.141592653-2.6-1.40.29 (MiKTeX 26.5) (preloaded format=pdflatex 2026.7.8)  23 SEP 2026 19:11
+This is pdfTeX, Version 3.141592653-2.6-1.40.29 (MiKTeX 26.5) (preloaded format=pdflatex 2026.7.8)  22 OCT 2026 20:17
 entering extended mode
  restricted \write18 enabled.
  %&-line parsing enabled.
@@ -815,27 +815,21 @@ File: ot1ptm.fd 2001/06/04 font definitions for OT1/ptm.
 [4
 
 {C:/Users/USER/AppData/Local/Programs/MiKTeX/fonts/enc/dvips/base/8r.enc}]
-<images/localisation.jpg, id=566, 1284.8pt x 689.57625pt>
-File: images/localisation.jpg Graphic file (type jpg)
-<use images/localisation.jpg>
-Package pdftex.def Info: images/localisation.jpg  used on input line 26.
-(pdftex.def)             Requested size: 308.00542pt x 193.47986pt.
-
-[5 <./images/localisation.jpg>]
-<diagrammes/organigramme_klivar.png, id=572, 967.615pt x 627.34375pt>
+[5]
+<diagrammes/organigramme_klivar.png, id=568, 967.615pt x 627.34375pt>
 File: diagrammes/organigramme_klivar.png Graphic file (type png)
 <use diagrammes/organigramme_klivar.png>
 Package pdftex.def Info: diagrammes/organigramme_klivar.png  used on input line
- 58.
+ 53.
 (pdftex.def)             Requested size: 362.37569pt x 234.947pt.
  [6 <./diagrammes/organigramme_klivar.png (PNG copy)>] [7]
-<images/problematique_flux.png, id=582, 614.295pt x 409.53pt>
+<images/problematique_flux.png, id=579, 614.295pt x 409.53pt>
 File: images/problematique_flux.png Graphic file (type png)
 <use images/problematique_flux.png>
-Package pdftex.def Info: images/problematique_flux.png  used on input line 97.
+Package pdftex.def Info: images/problematique_flux.png  used on input line 92.
 (pdftex.def)             Requested size: 326.13744pt x 217.42479pt.
- [8] [9 <./images/problematique_flux.png>] [10] [11])
-(chapters/02_realisation.tex [12] [13]
+ [8] [9 <./images/problematique_flux.png>] [10] [11]) (chapters/02_realisation.
+tex [12] [13]
 Chapitre 2.
 [14
 
@@ -846,20 +840,20 @@ Pro-duire une pro-po-si-tion de procès-
  []
 
 [16]
-<diagrammes/usecase.png, id=636, 1713.40125pt x 1576.89125pt>
+<diagrammes/usecase.png, id=633, 1713.40125pt x 1576.89125pt>
 File: diagrammes/usecase.png Graphic file (type png)
 <use diagrammes/usecase.png>
 Package pdftex.def Info: diagrammes/usecase.png  used on input line 77.
 (pdftex.def)             Requested size: 452.9679pt x 416.86362pt.
  [17] [18 <./diagrammes/usecase.png (PNG copy)>]
-<diagrammes/architecture_fonctionnelle.png, id=647, 1885.0425pt x 319.1925pt>
+<diagrammes/architecture_fonctionnelle.png, id=644, 1885.0425pt x 319.1925pt>
 File: diagrammes/architecture_fonctionnelle.png Graphic file (type png)
 <use diagrammes/architecture_fonctionnelle.png>
 Package pdftex.def Info: diagrammes/architecture_fonctionnelle.png  used on inp
 ut line 104.
 (pdftex.def)             Requested size: 452.9679pt x 76.7003pt.
  [19]
-<diagrammes/architecture_conception.png, id=653, 979.66pt x 824.07875pt>
+<diagrammes/architecture_conception.png, id=650, 979.66pt x 824.07875pt>
 File: diagrammes/architecture_conception.png Graphic file (type png)
 <use diagrammes/architecture_conception.png>
 Package pdftex.def Info: diagrammes/architecture_conception.png  used on input 
@@ -867,13 +861,13 @@ line 117.
 (pdftex.def)             Requested size: 389.55266pt x 327.67662pt.
  [20 <./diagrammes/architecture_fonctionnelle.png (PNG copy)> <./diagrammes/arc
 hitecture_conception.png (PNG copy)>]
-<diagrammes/classe.png, id=659, 1885.0425pt x 1582.91376pt>
+<diagrammes/classe.png, id=656, 1885.0425pt x 1582.91376pt>
 File: diagrammes/classe.png Graphic file (type png)
 <use diagrammes/classe.png>
 Package pdftex.def Info: diagrammes/classe.png  used on input line 136.
 (pdftex.def)             Requested size: 452.9679pt x 380.36598pt.
  [21]
-<diagrammes/sequence.png, id=665, 1698.345pt x 2057.6875pt>
+<diagrammes/sequence.png, id=662, 1698.345pt x 2057.6875pt>
 File: diagrammes/sequence.png Graphic file (type png)
 <use diagrammes/sequence.png>
 Package pdftex.def Info: diagrammes/sequence.png  used on input line 147.
@@ -881,7 +875,7 @@ Package pdftex.def Info: diagrammes/sequence.png  used on input line 147.
  [22 <./diagrammes/classe.png (PNG copy)>])
 (chapters/03_bilan.tex [23 <./diagrammes/sequence.png (PNG copy)>]
 Chapitre 3.
-<images/react.png, id=675, 523.9575pt x 344.28625pt>
+<images/react.png, id=672, 523.9575pt x 344.28625pt>
 File: images/react.png Graphic file (type png)
 <use images/react.png>
 Package pdftex.def Info: images/react.png  used on input line 23.
@@ -889,18 +883,18 @@ Package pdftex.def Info: images/react.png  used on input line 23.
 [24
 
 ]
-<images/flask.png, id=680, 740.7675pt x 382.42876pt>
+<images/flask.png, id=677, 740.7675pt x 382.42876pt>
 File: images/flask.png Graphic file (type png)
 <use images/flask.png>
 Package pdftex.def Info: images/flask.png  used on input line 42.
 (pdftex.def)             Requested size: 126.83044pt x 65.47302pt.
  [25 <./images/react.png> <./images/flask.png>]
-<images/grok_ai.png, id=688, 740.7675pt x 415.5525pt>
+<images/grok_ai.png, id=685, 740.7675pt x 415.5525pt>
 File: images/grok_ai.png Graphic file (type png)
 <use images/grok_ai.png>
 Package pdftex.def Info: images/grok_ai.png  used on input line 58.
 (pdftex.def)             Requested size: 154.00742pt x 86.39355pt.
-<diagrammes/architecture.png, id=690, 845.1575pt x 659.46375pt>
+<diagrammes/architecture.png, id=687, 845.1575pt x 659.46375pt>
 File: diagrammes/architecture.png Graphic file (type png)
 <use diagrammes/architecture.png>
 Package pdftex.def Info: diagrammes/architecture.png  used on input line 75.
@@ -908,42 +902,42 @@ Package pdftex.def Info: diagrammes/architecture.png  used on input line 75.
  [26 <./images/grok_ai.png>] [27 <./diagrammes/architecture.png (PNG copy)>] [2
 8] [29] [30] [31] [32]
 [33] [34]
-<images/dashboard.png, id=740, 2364.835pt x 3071.475pt>
+<images/dashboard.png, id=737, 2364.835pt x 3071.475pt>
 File: images/dashboard.png Graphic file (type png)
 <use images/dashboard.png>
 Package pdftex.def Info: images/dashboard.png  used on input line 258.
 (pdftex.def)             Requested size: 262.7222pt x 341.19084pt.
  [35]
-<images/modelisation.png, id=745, 2477.255pt x 2678.005pt>
+<images/modelisation.png, id=742, 2477.255pt x 2678.005pt>
 File: images/modelisation.png Graphic file (type png)
 <use images/modelisation.png>
 Package pdftex.def Info: images/modelisation.png  used on input line 269.
 (pdftex.def)             Requested size: 262.7222pt x 283.99794pt.
  [36 <./images/dashboard.png (PNG copy)>]
-<images/configuration.png, id=750, 2364.835pt x 1449.415pt>
+<images/configuration.png, id=747, 2364.835pt x 1449.415pt>
 File: images/configuration.png Graphic file (type png)
 <use images/configuration.png>
 Package pdftex.def Info: images/configuration.png  used on input line 280.
 (pdftex.def)             Requested size: 262.7222pt x 161.0064pt.
  [37 <./images/modelisation.png (PNG copy)>]
-<images/task.png, id=755, 2364.835pt x 1541.76pt>
+<images/task.png, id=752, 2364.835pt x 1541.76pt>
 File: images/task.png Graphic file (type png)
 <use images/task.png>
 Package pdftex.def Info: images/task.png  used on input line 291.
 (pdftex.def)             Requested size: 262.7222pt x 171.26442pt.
-<images/notification.png, id=756, 2380.895pt x 1766.6pt>
+<images/notification.png, id=753, 2380.895pt x 1766.6pt>
 File: images/notification.png Graphic file (type png)
 <use images/notification.png>
 Package pdftex.def Info: images/notification.png  used on input line 302.
 (pdftex.def)             Requested size: 262.7222pt x 194.91963pt.
  [38 <./images/configuration.png (PNG copy)> <./images/task.png (PNG copy)>]
-<images/historique.png, id=762, 2364.835pt x 2836.5975pt>
+<images/historique.png, id=759, 2364.835pt x 2836.5975pt>
 File: images/historique.png Graphic file (type png)
 <use images/historique.png>
 Package pdftex.def Info: images/historique.png  used on input line 313.
 (pdftex.def)             Requested size: 262.7222pt x 315.09978pt.
  [39 <./images/notification.png (PNG copy)>]
-<images/avancee.png, id=767, 2364.835pt x 2714.14pt>
+<images/avancee.png, id=764, 2364.835pt x 2714.14pt>
 File: images/avancee.png Graphic file (type png)
 <use images/avancee.png>
 Package pdftex.def Info: images/avancee.png  used on input line 324.
@@ -955,20 +949,7 @@ images/avancee.png (PNG copy)>] [42
 Annexe A.
 [44
 
-]
-(C:\Users\USER\AppData\Local\Programs\MiKTeX\tex/latex/listings\lstlang1.sty
-File: lstlang1.sty 2025/11/14 1.11b listings language file
-)
-Package hyperref Info: bookmark level for unknown lstlisting defaults to 0 on i
-nput line 40.
-LaTeX Font Info:    Font shape `T1/cmtt/bx/n' in size <8> not available
-(Font)              Font shape `T1/cmtt/m/n' tried instead on input line 43.
-
-[45]
-(C:\Users\USER\AppData\Local\Programs\MiKTeX\tex/latex/listings\lstlang1.sty
-File: lstlang1.sty 2025/11/14 1.11b listings language file
-)
-[46] [47]) [48] (main.bbl) [49
+] [45] [46]) [47] (main.bbl) [48
 
 
 ] (main.aux)
@@ -977,37 +958,33 @@ LaTeX2e <2026-06-01>
 L3 programming layer <2026-06-18>
  ***********
 Package rerunfilecheck Info: File `main.out' has not changed.
-(rerunfilecheck)             Checksum: 03933B70966DE5BF1A548E94A82952F3;15068.
+(rerunfilecheck)             Checksum: 9084ABB903EAFBD544E38F7C608D6E6C;15068.
  ) 
 Here is how much of TeX's memory you used:
- 19222 strings out of 467509
- 315140 string characters out of 5409260
- 1226087 words of memory out of 5000000
- 47874 multiletter control sequences out of 15000+600000
- 645507 words of font info for 74 fonts, out of 8000000 for 9000
+ 18430 strings out of 467509
+ 306341 string characters out of 5409260
+ 741174 words of memory out of 5000000
+ 47162 multiletter control sequences out of 15000+600000
+ 643349 words of font info for 70 fonts, out of 8000000 for 9000
  1141 hyphenation exceptions out of 8191
- 86i,17n,117p,1726b,1481s stack positions out of 10000i,1000n,20000p,200000b,200000s
+ 86i,17n,117p,1726b,722s stack positions out of 10000i,1000n,20000p,200000b,200000s
  <C:\Users\USER\AppData\Local\MiKTeX\fonts/pk/ljfour/jknappen/ec/dpi600\tcrm1
 200.pk> <C:\Users\USER\AppData\Local\MiKTeX\fonts/pk/ljfour/jknappen/ec/dpi600\
 ectt1200.pk> <C:\Users\USER\AppData\Local\MiKTeX\fonts/pk/ljfour/jknappen/ec/dp
-i600\ecit0800.pk> <C:\Users\USER\AppData\Local\MiKTeX\fonts/pk/ljfour/jknappen/
-ec/dpi600\ectt0800.pk> <C:\Users\USER\AppData\Local\MiKTeX\fonts/pk/ljfour/jkna
-ppen/ec/dpi600\ecrm0600.pk> <C:\Users\USER\AppData\Local\MiKTeX\fonts/pk/ljfour
-/jknappen/ec/dpi600\eccc1200.pk> <C:\Users\USER\AppData\Local\MiKTeX\fonts/pk/l
-jfour/jknappen/ec/dpi600\ecbx1440.pk> <C:\Users\USER\AppData\Local\MiKTeX\fonts
-/pk/ljfour/jknappen/ec/dpi600\ecbx1728.pk> <C:\Users\USER\AppData\Local\MiKTeX\
-fonts/pk/ljfour/jknappen/ec/dpi600\ecbx1200.pk> <C:\Users\USER\AppData\Local\Mi
-KTeX\fonts/pk/ljfour/jknappen/ec/dpi600\ecrm1200.pk> <C:\Users\USER\AppData\Loc
-al\MiKTeX\fonts/pk/ljfour/jknappen/ec/dpi600\ecti1200.pk> <C:\Users\USER\AppDat
-a\Local\MiKTeX\fonts/pk/ljfour/jknappen/ec/dpi600\ecbx2488.pk><C:/Users/USER/Ap
-pData/Local/Programs/MiKTeX/fonts/type1/public/amsfonts/cm/cmmi12.pfb><C:/Users
-/USER/AppData/Local/Programs/MiKTeX/fonts/type1/public/amsfonts/cm/cmsy10.pfb><
-C:/Users/USER/AppData/Local/Programs/MiKTeX/fonts/type1/urw/helvetic/uhvr8a.pfb
-><C:/Users/USER/AppData/Local/Programs/MiKTeX/fonts/type1/urw/times/utmr8a.pfb>
-
-Output written on main.pdf (60 pages, 4098278 bytes).
+i600\eccc1200.pk> <C:\Users\USER\AppData\Local\MiKTeX\fonts/pk/ljfour/jknappen/
+ec/dpi600\ecbx1440.pk> <C:\Users\USER\AppData\Local\MiKTeX\fonts/pk/ljfour/jkna
+ppen/ec/dpi600\ecbx1728.pk> <C:\Users\USER\AppData\Local\MiKTeX\fonts/pk/ljfour
+/jknappen/ec/dpi600\ecbx1200.pk> <C:\Users\USER\AppData\Local\MiKTeX\fonts/pk/l
+jfour/jknappen/ec/dpi600\ecrm1200.pk> <C:\Users\USER\AppData\Local\MiKTeX\fonts
+/pk/ljfour/jknappen/ec/dpi600\ecti1200.pk> <C:\Users\USER\AppData\Local\MiKTeX\
+fonts/pk/ljfour/jknappen/ec/dpi600\ecbx2488.pk><C:/Users/USER/AppData/Local/Pro
+grams/MiKTeX/fonts/type1/public/amsfonts/cm/cmmi12.pfb><C:/Users/USER/AppData/L
+ocal/Programs/MiKTeX/fonts/type1/public/amsfonts/cm/cmsy10.pfb><C:/Users/USER/A
+ppData/Local/Programs/MiKTeX/fonts/type1/urw/helvetic/uhvr8a.pfb><C:/Users/USER
+/AppData/Local/Programs/MiKTeX/fonts/type1/urw/times/utmr8a.pfb>
+Output written on main.pdf (59 pages, 3874088 bytes).
 PDF statistics:
- 1577 PDF objects out of 1728 (max. 8388607)
- 270 named destinations out of 1000 (max. 500000)
- 735 words of extra memory for PDF output out of 10000 (max. 10000000)
+ 1366 PDF objects out of 1440 (max. 8388607)
+ 199 named destinations out of 1000 (max. 500000)
+ 730 words of extra memory for PDF output out of 10000 (max. 10000000)
 

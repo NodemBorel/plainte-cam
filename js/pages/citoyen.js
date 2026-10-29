@@ -40,78 +40,25 @@ function nextDepotStep() {
   if (depotStep !== 5 && typeof arreterLecture === 'function') arreterLecture();
 }
 
+/* L'apercu de l'etape 5 rend la declaration telle qu'elle sera
+   transmise et telechargee. Il en existait auparavant deux versions —
+   celle-ci, batie en tableaux, et celle de htmlPlainte() — qui ne
+   portaient ni le meme en-tete, ni les memes rubriques.
+
+   Le panneau lateral, lui, reste un resume de controle : il n'a pas
+   vocation a ressembler a un document. */
 function buildRecap() {
-  const nature   = document.getElementById('nature-infraction').value || 'Non renseigne';
-  const lieu     = document.getElementById('lieu-faits').value || 'Non renseigne';
+  const nature   = document.getElementById('nature-infraction').value || 'Non renseigné';
+  const lieu     = document.getElementById('lieu-faits').value || 'Non renseigné';
   const dateEl   = document.querySelector('[data-step="1"] input[type="date"]');
   const dateFait = dateEl ? dateEl.value : '';
-  const desc     = document.getElementById('declaration-text').value || '';
-
   const nomMec   = document.getElementById('mec-nom');
-  const descMec  = document.getElementById('mec-description');
-  const nomMecVal  = nomMec  && nomMec.value.trim()  ? nomMec.value.trim()  : null;
-  const descMecVal = descMec && descMec.value.trim() ? descMec.value.trim() : null;
+  const nomMecVal = nomMec && nomMec.value.trim() ? nomMec.value.trim() : null;
 
-  /* Les cles de qaAnswers sont desormais les intitules reels des questions,
-     plus 'Q1'/'Q2' : le document affichait « Q1 | Oui ». */
-  const reponsesHtml = Object.keys(qaAnswers).length
-    ? '<table style="width:100%;border-collapse:collapse;font-size:13px;margin-top:6px">' +
-        Object.entries(qaAnswers).map(([k,v]) =>
-          `<tr><td style="padding:5px 8px;border:1px solid var(--gray-2);color:var(--text-light);width:52%">${echapper(k)}</td><td style="padding:5px 8px;border:1px solid var(--gray-2)">${echapper(v)}</td></tr>`
-        ).join('') +
-      '</table>'
-    : '<em style="color:var(--gray-3)">Aucune question complémentaire</em>';
-
-  /* ── Préjudice subi (§7.2) ── */
-  const prejNature = (document.getElementById('prejudice-nature') || {}).value || '';
-  const prejMontant = ((document.getElementById('prejudice-montant') || {}).value || '').trim();
-  const prejDetail  = ((document.getElementById('prejudice-detail')  || {}).value || '').trim();
-  const prejudiceHtml = prejNature ? `
-      <p style="font-weight:600;font-size:13px;margin-bottom:6px">Préjudice subi :</p>
-      <table style="width:100%;border-collapse:collapse;font-size:13px;margin-bottom:18px">
-        <tr><td style="padding:6px 10px;border:1px solid var(--gray-2);font-weight:600;background:var(--gray-1);width:35%">Nature</td><td style="padding:6px 10px;border:1px solid var(--gray-2)">${echapper(prejNature)}</td></tr>
-        ${prejMontant ? `<tr><td style="padding:6px 10px;border:1px solid var(--gray-2);font-weight:600;background:var(--gray-1)">Montant estimé</td><td style="padding:6px 10px;border:1px solid var(--gray-2)">${echapper(prejMontant)} FCFA</td></tr>` : ''}
-        ${prejDetail  ? `<tr><td style="padding:6px 10px;border:1px solid var(--gray-2);font-weight:600;background:var(--gray-1)">Précisions</td><td style="padding:6px 10px;border:1px solid var(--gray-2)">${echapper(prejDetail)}</td></tr>` : ''}
-      </table>` : '';
-
-  /* ── Pièces jointes ── */
-  const pjHtml = piecesJointes.length ? `
-      <p style="font-weight:600;font-size:13px;margin-bottom:6px">Pièces jointes (${piecesJointes.length}) :</p>
-      <table style="width:100%;border-collapse:collapse;font-size:13px;margin-bottom:18px">
-        ${piecesJointes.map(f => `<tr><td style="padding:5px 10px;border:1px solid var(--gray-2)">${echapper(f.name)}</td><td style="padding:5px 10px;border:1px solid var(--gray-2);width:110px;text-align:right">${tailleLisible(f.size)}</td></tr>`).join('')}
-      </table>` : '';
-
-  const body = document.getElementById('apercu-body');
-  if (body) {
-    body.innerHTML = `
-      <table style="width:100%;border-collapse:collapse;font-size:13px;margin-bottom:18px">
-        <tr><td style="padding:6px 10px;border:1px solid #ddd;font-weight:600;background:#f8f8f8;width:35%">Type d'infraction</td><td style="padding:6px 10px;border:1px solid #ddd">${nature}</td></tr>
-        <tr><td style="padding:6px 10px;border:1px solid #ddd;font-weight:600;background:#f8f8f8">Date des faits</td><td style="padding:6px 10px;border:1px solid #ddd">${dateFait || 'Non precisee'}</td></tr>
-        <tr><td style="padding:6px 10px;border:1px solid #ddd;font-weight:600;background:#f8f8f8">Lieu des faits</td><td style="padding:6px 10px;border:1px solid #ddd">${lieu}</td></tr>
-        <tr><td style="padding:6px 10px;border:1px solid #ddd;font-weight:600;background:#f8f8f8">Commissariat competent</td><td style="padding:6px 10px;border:1px solid #ddd">${echapper(commissariatCompetent || 'Non renseigné')}</td></tr>
-        <tr><td style="padding:6px 10px;border:1px solid #ddd;font-weight:600;background:#f8f8f8">Plaignant</td><td style="padding:6px 10px;border:1px solid #ddd">${
-          typeof citoyenCourant === 'function' ? nomCitoyen(citoyenCourant()) : ''
-        }</td></tr>
-      </table>
-
-      <p style="font-weight:600;font-size:13px;margin-bottom:6px">Déclaration du plaignant :</p>
-      <div style="background:var(--gray-1);border-left:3px solid var(--primary);padding:12px;border-radius:var(--radius-sm);font-style:italic;font-size:13px;line-height:1.7;margin-bottom:18px">
-        "${echapper(desc) || 'Aucune déclaration saisie.'}"
-      </div>
-
-      ${nomMecVal || descMecVal ? `
-      <p style="font-weight:600;font-size:13px;margin-bottom:6px">Mis en cause :</p>
-      <table style="width:100%;border-collapse:collapse;font-size:13px;margin-bottom:18px">
-        ${nomMecVal  ? `<tr><td style="padding:6px 10px;border:1px solid var(--gray-2);font-weight:600;background:var(--gray-1);width:35%">Identité</td><td style="padding:6px 10px;border:1px solid var(--gray-2)">${echapper(nomMecVal)}</td></tr>` : ''}
-        ${descMecVal ? `<tr><td style="padding:6px 10px;border:1px solid var(--gray-2);font-weight:600;background:var(--gray-1)">Description physique</td><td style="padding:6px 10px;border:1px solid var(--gray-2)">${echapper(descMecVal)}</td></tr>` : ''}
-      </table>` : ''}
-
-      ${prejudiceHtml}
-      ${pjHtml}
-
-      <p style="font-weight:600;font-size:13px;margin-bottom:6px">Informations complémentaires :</p>
-      ${reponsesHtml}
-    `;
+  const doc = document.getElementById('apercu-pv');
+  if (doc && typeof htmlPlainte === 'function') {
+    /* provisoire : aucun numero n'est encore attribue. */
+    doc.innerHTML = htmlPlainte(null, { provisoire: true });
   }
 
   const mini = document.getElementById('recap-mini');
@@ -917,7 +864,6 @@ function majCompteCitoyen() {
   poser('moi-nom-barre', nom);
   poser('moi-nom-lateral', nom);
   poser('moi-nom-profil', nom);
-  poser('moi-signature', nom);
   poser('moi-nom-famille', c.nom);
   poser('moi-prenom', c.prenom);
   poser('moi-residence', c.ville + ', ' + c.region);
