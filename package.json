@@ -1,0 +1,15 @@
+{
+  "name": "plaintecam-local",
+  "version": "1.0.0",
+  "private": true,
+  "description": "PlainteCam avec stockage local SQLite et fichiers sur disque",
+  "scripts": {
+    "start": "node --disable-warning=ExperimentalWarning server.js",
+    "create-agent": "node scripts/create-agent.js",
+    "seed-demo": "node scripts/seed-demo-data.js",
+    "test": "node scripts/test-completion.js"
+  },
+  "engines": {
+    "node": ">=22.5.0"
+  }
+}

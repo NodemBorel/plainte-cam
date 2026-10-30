@@ -178,17 +178,23 @@ function analyserSignaux(texte, nature) {
 
 /* Score de completude sur 100, tel que l'exige le §7.3.
    C'est la part des signaux attendus effectivement detectes. */
-function scoreCompletude(texte, nature) {
+function scoreCompletude(texte, nature, reponses) {
   const d = analyserSignaux(texte, nature);
   if (!d.length) return 0;
-  return Math.round(d.filter(s => s.trouve).length / d.length * 100);
+  const answers = reponses || {};
+  return Math.round(d.filter(s => s.trouve || (s.question && String(answers[s.question.q] || '').trim())).length / d.length * 100);
+}
+
+function questionsManquantes(texte, nature, reponses) {
+  const answers = reponses || {};
+  return analyserSignaux(texte, nature)
+    .filter(signal => !signal.trouve && !(signal.question && String(answers[signal.question.q] || '').trim()))
+    .map(signal => signal.question)
+    .filter(Boolean);
 }
 
 function analyseDeclaration(texte, nature) {
-  return analyserSignaux(texte, nature)
-    .filter(s => !s.trouve)
-    .map(s => s.question)
-    .filter(Boolean);
+  return questionsManquantes(texte, nature, {});
 }
 
 function startQuestionnaire() {
@@ -197,9 +203,7 @@ function startQuestionnaire() {
   const container = document.getElementById('qa-container');
   container.innerHTML = '';
   qaIdx = 0;
-  qaAnswers = {};
-
-  const missing = analyseDeclaration(texte, nature);
+  const missing = questionsManquantes(texte, nature, qaAnswers);
   qaSequence = missing;
 
   if (missing.length === 0) {
@@ -223,6 +227,10 @@ function startQuestionnaire() {
 
 function showNextQuestion() {
   const container = document.getElementById('qa-container');
+  const nature = document.getElementById('nature-infraction').value || 'Autre';
+  const texte = document.getElementById('declaration-text').value || '';
+  qaSequence = questionsManquantes(texte, nature, qaAnswers);
+  qaIdx = 0;
   if (qaIdx >= qaSequence.length) {
     const done = document.createElement('div');
     done.className = 'chat-bubble';
@@ -306,8 +314,11 @@ function enregistrerReponse(question, answer) {
   userMsg.appendChild(bulle);
   container.appendChild(userMsg);
 
-  qaAnswers[question] = answer;
+  var cle = question && typeof question === 'object' ? question.q : question;
+  qaAnswers[cle] = answer;
   qaIdx++;
+  if (typeof majAnalyseLive === 'function') majAnalyseLive();
+  if (typeof sauverBrouillon === 'function') sauverBrouillon();
   container.scrollTop = container.scrollHeight;
   setTimeout(showNextQuestion, 600);
 }

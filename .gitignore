@@ -1,5 +1,9 @@
 # Secrets : ne doivent jamais rejoindre le depot.
 key.txt
+kexy.txt
+code.txt
 *.key
 .env
 .env.*
+node_modules/
+data/

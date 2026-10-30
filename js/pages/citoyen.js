@@ -68,7 +68,8 @@ function buildRecap() {
       `<div><strong>Date :</strong> ${dateFait || '—'}</div>` +
       `<div><strong>Lieu :</strong> ${lieu.split(',')[0] || lieu}</div>` +
       (nomMecVal ? `<div><strong>Mis en cause :</strong> ${nomMecVal}</div>` : '') +
-      `<div><strong>Questions completees :</strong> ${Object.keys(qaAnswers).length}</div>`;
+      `<div><strong>Complétude :</strong> ${scoreCompletude(document.getElementById('declaration-text').value, nature, qaAnswers)} %</div>` +
+      `<div><strong>Questions complétées :</strong> ${Object.keys(qaAnswers).length}</div>`;
   }
 }
 
@@ -83,13 +84,56 @@ function goToStep(step) {
   document.getElementById('btn-next-step').textContent = 'Continuer';
 }
 
-function submitPlainte() {
+async function submitPlainte() {
   arreterLecture();
-  /* La declaration est transmise : le brouillon local n'a plus de raison d'etre. */
-  supprimerBrouillon(false);
-  showPage('page-confirmation');
-  majAttestation();
-  toast('Plainte transmise au commissariat','success');
+  var bouton = document.getElementById('btn-next-step');
+  if (bouton) bouton.disabled = true;
+  try {
+    var citoyen = await AuthService.getUser();
+    if (!citoyen || citoyen.role !== 'citoyen') throw new Error('Connectez-vous à votre compte citoyen avant de déposer une plainte.');
+    var valeur = function (id) { var el = document.getElementById(id); return el ? el.value.trim() : ''; };
+    var numero = new Date().getFullYear() + '-' + String(Date.now()).slice(-5);
+    var pieceListe = [];
+    for (var i = 0; i < piecesJointes.length; i++) {
+      if (typeof piecesJointes[i].arrayBuffer === 'function') pieceListe.push(await LocalAPI.upload(piecesJointes[i], numero));
+    }
+    var plainte = {
+      id: numero, numero_dossier: numero, citoyen_id: citoyen.id,
+      type_infraction: valeur('nature-infraction') || 'Non renseigné', statut: 'RECU', priorite: 'NORMALE',
+      date_faits: (document.querySelector('[data-step="1"] input[type="date"]') || {}).value || '',
+      region: valeur('lieu-region'), departement: valeur('lieu-dept'), arrondissement: valeur('lieu-arrond'), quartier: valeur('lieu-quartier'), adresse_faits: valeur('lieu-adresse'),
+      lieu: valeur('lieu-adresse'), declaration: valeur('declaration-text'), prejudice_nature: valeur('prejudice-nature'), prejudice_montant: valeur('prejudice-montant'), prejudice_detail: valeur('prejudice-detail'),
+      mis_en_cause: valeur('mec-nom'), mis_en_cause_description: valeur('mec-description'), questionnaire: qaAnswers,
+      score_completude: scoreCompletude(valeur('declaration-text'), valeur('nature-infraction') || 'Autre', qaAnswers), pieces_jointes: pieceListe,
+      created_at: new Date().toISOString()
+    };
+    var result = await PlaintesService.creer(plainte);
+    if (result.error) throw new Error(result.error.message);
+    var profil = typeof citoyenCourant === 'function' ? citoyenCourant() : null;
+    var dateDepot = new Date(), dateTexte = dateDepot.toLocaleDateString('fr-FR');
+    var heureTexte = dateDepot.toLocaleTimeString('fr-FR', { hour: '2-digit', minute: '2-digit' }).replace(':', 'h');
+    DOSSIERS.unshift({ id: numero, citoyen: profil ? profil.id : 'CIT-001', type: plainte.type_infraction,
+      plaignant: profil ? nomCitoyen(profil) : 'Jean MBIDA', date: dateTexte, heure: heureTexte,
+      statut: 'RECU', score: plainte.score_completude, enqueteur: null, priorite: 'NORMALE', commissariat: 'Commissariat compétent',
+      lieu: [plainte.quartier, plainte.arrondissement, plainte.departement, plainte.region].filter(Boolean).join(', '),
+      precisions: Object.keys(qaAnswers).length ? Object.assign({}, qaAnswers) : null,
+      prejudice: { nature: plainte.prejudice_nature, montant: plainte.prejudice_montant, detail: plainte.prejudice_detail },
+      declaration: plainte.declaration, contact: { email: citoyen.email, telephone: profil && profil.telephone || '' },
+      precisions: Object.keys(qaAnswers).length ? Object.assign({}, qaAnswers) : null,
+      contactMisEnCause: null, pieces: pieceListe.map(function (piece) { return { nom: piece.name, taille: tailleLisible(piece.size) }; }),
+      misEnCause: plainte.mis_en_cause || null });
+    HISTORIQUE[numero] = [{ etape: 'RECU', type: 'depot', date: dateTexte, heure: heureTexte, libelle: 'Plainte déposée en ligne', detail: 'Enregistrée sur PlainteCam' }];
+    var numeroEl = document.querySelector('#page-confirmation .big-num');
+    if (numeroEl) numeroEl.textContent = 'N° ' + numero;
+    supprimerBrouillon(false);
+    if (bouton) bouton.disabled = false;
+    showPage('page-confirmation');
+    majAttestation();
+    toast('Plainte enregistrée sur cet appareil','success');
+  } catch (error) {
+    if (bouton) bouton.disabled = false;
+    toast('Enregistrement impossible : ' + error.message,'error');
+  }
 }
 
 /* Renseigne le QR et le code de controle de l'attestation affichee. */
@@ -106,64 +150,139 @@ function majAttestation() {
 let isRecording = false;
 let recTimer = null;
 let recSecs = 0;
-const FAKE_TRANSCRIPTIONS = [
-  'Le quinze mai deux mille vingt-six, ',
-  'vers quatorze heures, ',
-  'je me trouvais au marche Mokolo a Yaounde. ',
-  'Un individu inconnu, jeune, environ vingt-cinq ans, ',
-  'a arrache mon telephone Samsung Galaxy de couleur noire ',
-  'et a pris la fuite en direction de la rue principale. ',
-  'La valeur du telephone est de cent cinquante mille francs CFA. ',
-  "Je n'ai pas pu identifier le suspect clairement."
-];
-let transIdx = 0;
 let transText = '';
+let audioRecorder = null;
+let audioStream = null;
+let audioChunks = [];
+let browserRecognition = null;
+let browserTranscript = '';
+let browserRecognitionError = '';
+let browserRecognitionFinished = Promise.resolve();
 
-function toggleRecording() {
+function demarrerTranscriptionNavigateur() {
+  var Recognition = window.SpeechRecognition || window.webkitSpeechRecognition;
+  browserTranscript = '';
+  browserRecognitionError = '';
+  browserRecognition = null;
+  browserRecognitionFinished = Promise.resolve();
+  if (!Recognition) return false;
+
+  try {
+    browserRecognition = new Recognition();
+    browserRecognition.lang = 'fr-FR';
+    browserRecognition.continuous = true;
+    browserRecognition.interimResults = true;
+    browserRecognitionFinished = new Promise(function (resolve) {
+      browserRecognition.onend = resolve;
+    });
+    browserRecognition.onresult = function (event) {
+      var interim = '';
+      for (var index = event.resultIndex; index < event.results.length; index++) {
+        var result = event.results[index];
+        if (result.isFinal) browserTranscript += result[0].transcript.trim() + ' ';
+        else interim += result[0].transcript;
+      }
+      var output = document.getElementById('transcription-live');
+      if (output) output.textContent = (browserTranscript + interim).trim();
+    };
+    browserRecognition.onerror = function (event) {
+      browserRecognitionError = event.error === 'not-allowed'
+        ? 'Autorisez le microphone pour la transcription locale.'
+        : 'La transcription locale du navigateur est indisponible.';
+    };
+    browserRecognition.start();
+    return true;
+  } catch (_) {
+    browserRecognition = null;
+    browserRecognitionError = 'La transcription locale du navigateur n’a pas pu démarrer.';
+    return false;
+  }
+}
+
+async function toggleRecording() {
   const btn = document.getElementById('mic-btn');
   const statusEl = document.getElementById('rec-status');
   const timerEl = document.getElementById('rec-timer');
   const transEl = document.getElementById('transcription-live');
-  const transcribeBtn = document.getElementById('validate-transcription');
-
   if (!isRecording) {
+    if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia || typeof MediaRecorder === 'undefined') {
+      toast('Ce navigateur ne permet pas l’enregistrement audio. Ouvrez l’application via localhost.','error'); return;
+    }
+    try { audioStream = await navigator.mediaDevices.getUserMedia({ audio: true }); }
+    catch (_) { toast('Autorisez l’accès au microphone pour enregistrer votre déclaration.','error'); return; }
+    audioChunks = [];
+    var mime = ['audio/webm;codecs=opus','audio/webm','audio/mp4'].find(function (type) { return MediaRecorder.isTypeSupported(type); });
+    audioRecorder = new MediaRecorder(audioStream, mime ? { mimeType: mime } : undefined);
+    audioRecorder.ondataavailable = function (event) { if (event.data && event.data.size) audioChunks.push(event.data); };
+    audioRecorder.onstop = traiterEnregistrement;
+    audioRecorder.start();
+    var localTranscription = demarrerTranscriptionNavigateur();
     isRecording = true;
-    btn.classList.add('recording');
-    btn.innerHTML = icone('stop', 26);
-    btn.setAttribute('aria-label', 'Arrêter l\'enregistrement');
-    btn.setAttribute('aria-pressed', 'true');
-    statusEl.textContent = 'Enregistrement en cours...';
-    statusEl.style.color = 'var(--red)';
-    transIdx = 0; transText = '';
-    transEl.textContent = '';
-
+    btn.classList.add('recording'); btn.innerHTML = icone('stop', 26);
+    btn.setAttribute('aria-label', 'Arrêter l’enregistrement'); btn.setAttribute('aria-pressed', 'true');
+    statusEl.textContent = 'Enregistrement en cours…'; statusEl.style.color = 'var(--red)';
+    transEl.textContent = localTranscription
+      ? 'Transcription locale en direct…'
+      : 'Le texte sera transcrit après l’arrêt de l’enregistrement.';
     recSecs = 0;
-    recTimer = setInterval(() => {
-      recSecs++;
-      const m = String(Math.floor(recSecs / 60)).padStart(2, '0');
-      const s = String(recSecs % 60).padStart(2, '0');
-      timerEl.textContent = `${m}:${s}`;
-      if (transIdx < FAKE_TRANSCRIPTIONS.length) {
-        transText += FAKE_TRANSCRIPTIONS[transIdx++];
-        transEl.textContent = transText;
-      }
-    }, 900);
+    recTimer = setInterval(function () { recSecs++; timerEl.textContent = String(Math.floor(recSecs / 60)).padStart(2,'0') + ':' + String(recSecs % 60).padStart(2,'0'); }, 1000);
   } else {
-    isRecording = false;
-    clearInterval(recTimer);
-    btn.classList.remove('recording');
-    btn.innerHTML = icone('micro', 26);
-    btn.setAttribute('aria-label', 'Démarrer l\'enregistrement');
-    btn.setAttribute('aria-pressed', 'false');
-    statusEl.textContent = 'Enregistrement terminé';
-    statusEl.style.color = 'var(--green-lt)';
-    if (transcribeBtn) transcribeBtn.style.display = '';
-    const mainTxt = document.getElementById('declaration-text');
-    if (mainTxt && transText) mainTxt.value = transText;
-    toast('Transcription terminée','success');
+    isRecording = false; clearInterval(recTimer);
+    btn.classList.remove('recording'); btn.innerHTML = icone('micro', 26);
+    btn.setAttribute('aria-label', 'Démarrer l’enregistrement'); btn.setAttribute('aria-pressed', 'false');
+    statusEl.textContent = 'Transcription en cours…';
+    if (browserRecognition) { try { browserRecognition.stop(); } catch (_) {} }
+    if (audioRecorder && audioRecorder.state !== 'inactive') audioRecorder.stop();
+    if (audioStream) { audioStream.getTracks().forEach(function (track) { track.stop(); }); audioStream = null; }
   }
 }
 
+async function traiterEnregistrement() {
+  var statusEl = document.getElementById('rec-status');
+  var transEl = document.getElementById('transcription-live');
+  var transcribeBtn = document.getElementById('validate-transcription');
+  try {
+    await Promise.race([browserRecognitionFinished, new Promise(function (resolve) { setTimeout(resolve, 1200); })]);
+    var blob = new Blob(audioChunks, { type: audioRecorder.mimeType || 'audio/webm' }); audioChunks = [];
+    if (!blob.size) throw new Error('Aucun son n’a été enregistré.');
+    if (blob.size > 18 * 1024 * 1024) throw new Error('L’enregistrement dépasse la limite de 18 Mo.');
+    var ext = blob.type.indexOf('mp4') !== -1 ? 'mp4' : 'webm';
+    var audioFile = new File([blob], 'declaration-' + Date.now() + '.' + ext, { type: blob.type });
+    piecesJointes.push(audioFile);
+    renderPiecesJointes();
+    var mainTxt = document.getElementById('declaration-text');
+    try {
+      var result = await LocalAPI.transcribeAudio(audioFile);
+      transText = String(result.text || '').trim();
+      if (!transText) throw new Error('Grok n’a renvoyé aucun texte.');
+      statusEl.textContent = 'Transcription Grok terminée. Relisez et corrigez le texte.';
+      toast('Transcription Grok terminée','success');
+    } catch (error) {
+      transText = browserTranscript.trim();
+      if (transText) {
+        statusEl.textContent = 'Transcription locale utilisée. Grok indisponible : ' + error.message;
+        toast('Transcription locale terminée ; audio joint à la plainte.','info');
+      } else {
+        statusEl.textContent = error.message + (browserRecognitionError ? ' ' + browserRecognitionError : '');
+        transEl.textContent = 'Transcription automatique indisponible. L’audio est conservé comme pièce jointe ; vous pouvez saisir le texte manuellement.';
+        if (mainTxt) { mainTxt.focus(); mainTxt.scrollIntoView({ behavior: 'smooth', block: 'center' }); }
+        sauverBrouillon();
+        toast('Transcription indisponible ; audio conservé et saisie manuelle possible.','warning');
+        return;
+      }
+    }
+    transEl.textContent = transText;
+    if (mainTxt) {
+      mainTxt.value = transText;
+      mainTxt.dispatchEvent(new Event('input', { bubbles: true }));
+      sauverBrouillon();
+    }
+    if (transcribeBtn) transcribeBtn.style.display = '';
+  } catch (error) {
+    transEl.textContent = 'La transcription a échoué. L’enregistrement peut être réessayé ou transcrit manuellement.';
+    statusEl.textContent = error.message; toast('Transcription impossible : ' + error.message,'error');
+  }
+}
 function validateTranscription() {
   const transEl = document.getElementById('transcription-live');
   const mainTxt = document.getElementById('declaration-text');
@@ -207,12 +326,36 @@ function icone(nom, taille) {
 }
 
 /* ── SUIVI CITOYEN ───────────────────────────────────────── */
-function initSuivi() {
+async function initSuivi() {
   const num = document.getElementById('suivi-numero').value.trim();
   if (!num) return;
-  const d = DOSSIERS.find(d => d.id === num) || DOSSIERS[0];
+  const sessionUser = await AuthService.getUser();
+  if (!sessionUser || sessionUser.role !== 'citoyen') return;
+  let d = DOSSIERS.find(d => d.id === num && d.citoyen === sessionUser.id);
+  try {
+    const stored = await LocalAPI.request('/records/plaintes');
+    const plainte = stored.find(row => row.numero_dossier === num || row.id === num);
+    if (plainte) {
+      d = { ...plainte, id: plainte.numero_dossier || plainte.id, citoyen: sessionUser.id,
+        plaignant: sessionUser.name, type: plainte.type_infraction || 'Non renseigné',
+        date: new Date(plainte.created_at || Date.now()).toLocaleDateString('fr-FR'),
+        lieu: plainte.adresse_faits || plainte.lieu || 'Non renseigné',
+        prejudice: { montant: plainte.prejudice_montant || '', nature: plainte.prejudice_nature || '', detail: plainte.prejudice_detail || '' } };
+      const oldIndex = DOSSIERS.findIndex(row => row.id === d.id);
+      if (oldIndex < 0) DOSSIERS.push(d); else DOSSIERS.splice(oldIndex, 1, d);
+      if (!HISTORIQUE[d.id]) HISTORIQUE[d.id] = [{ etape: 'RECU', type: 'depot', date: d.date,
+        heure: new Date(plainte.created_at || Date.now()).toLocaleTimeString('fr-FR', { hour: '2-digit', minute: '2-digit' }).replace(':', 'h'),
+        libelle: 'Plainte déposée en ligne', detail: 'Enregistrée sur PlainteCam' }];
+    }
+  } catch (error) {
+    console.error('Lecture du dossier local impossible', error);
+  }
   const result = document.getElementById('suivi-result');
   result.style.display = '';
+  if (!d || d.citoyen !== CITOYEN_CONNECTE) {
+    result.innerHTML = '<div class="alert alert-warning">Aucun dossier correspondant à ce numéro dans votre espace citoyen.</div>';
+    return;
+  }
 
   const statut = d.statut;
   const statutInfo = STATUT_LABELS[statut];
@@ -540,9 +683,13 @@ function majAnalyseLive() {
   var texte  = (document.getElementById('declaration-text') || {}).value || '';
   var nature = (document.getElementById('nature-infraction') || {}).value || 'Autre';
   var detail = analyserSignaux(texte, nature);
-  var score  = detail.length
-    ? Math.round(detail.filter(function(s) { return s.trouve; }).length / detail.length * 100)
-    : 0;
+  var reponses = typeof qaAnswers === 'object' && qaAnswers ? qaAnswers : {};
+  var couvert = function (signal) {
+    return signal.trouve || (signal.question && String(reponses[signal.question.q] || '').trim());
+  };
+  var score = typeof scoreCompletude === 'function'
+    ? scoreCompletude(texte, nature, reponses)
+    : (detail.length ? Math.round(detail.filter(function(s) { return s.trouve; }).length / detail.length * 100) : 0);
 
   /* Seuils du §9.3 : rouge < 50, orange 50-80, vert > 80. */
   bloc.classList.remove('niv-bas', 'niv-moyen', 'niv-bon');
@@ -561,20 +708,38 @@ function majAnalyseLive() {
 
   document.getElementById('analyse-chips').innerHTML = detail.map(function(s) {
     var lbl = LIBELLES_SIGNAUX[s.key] || s.key;
-    return '<span class="chip ' + (s.trouve ? 'chip-ok' : 'chip-ko') + '">' +
-      (s.trouve ? icone('valide', 12) : '') + echapper(lbl) + '</span>';
+    var fait = !!couvert(s);
+    return '<span class="chip ' + (fait ? 'chip-ok' : 'chip-ko') + '">' +
+      (fait ? icone('valide', 12) : '') + echapper(lbl) + '</span>';
   }).join('');
 
-  var manquants = detail.filter(function(s) { return !s.trouve; }).length;
+  var manquants = detail.filter(function(s) { return !couvert(s); }).length;
   var note = document.getElementById('analyse-note');
   if (!texte.trim()) {
     note.textContent = 'Commencez à écrire : l\'assistant repère au fil de la saisie les éléments déjà présents.';
   } else if (!manquants) {
-    note.textContent = 'Votre déclaration couvre tous les points attendus. Aucune question complémentaire ne vous sera posée.';
+    note.textContent = 'Tous les points sont couverts par la déclaration ou vos réponses. Votre dossier est complet.';
   } else {
     note.textContent = manquants + ' élément' + (manquants > 1 ? 's' : '') + ' encore absent' + (manquants > 1 ? 's' : '') +
       '. Vous pouvez les ajouter maintenant, ou répondre aux questions de l\'assistant à l\'étape 4.';
   }
+}
+
+async function demanderConseilGrok() {
+  var texte = (document.getElementById('declaration-text') || {}).value || '';
+  var nature = (document.getElementById('nature-infraction') || {}).value || 'Autre';
+  var sortie = document.getElementById('grok-suggestion');
+  var bouton = document.getElementById('grok-suggestion-btn');
+  if (!texte.trim()) { toast('Décrivez d’abord les faits.', 'error'); return; }
+  if (bouton) bouton.disabled = true;
+  if (sortie) sortie.textContent = 'Grok prépare une suggestion…';
+  try {
+    var prompt = 'Réponds en français comme aide à la rédaction factuelle d’une plainte. Ne donne pas de conseil juridique, ne tire pas de conclusion sur la culpabilité et n’invente aucun fait. Indique brièvement les informations factuelles utiles qui manquent éventuellement (date, heure, lieu, déroulement, témoins, préjudice), puis propose au maximum trois questions neutres. Type indiqué : ' + nature + '. Déclaration :\n' + texte;
+    var resultat = await LocalAPI.askGrok(prompt);
+    if (sortie) sortie.textContent = resultat.text || 'Aucune suggestion disponible.';
+  } catch (error) {
+    if (sortie) sortie.textContent = error.message;
+  } finally { if (bouton) bouton.disabled = false; }
 }
 
 /* ============================================================

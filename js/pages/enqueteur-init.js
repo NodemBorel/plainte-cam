@@ -953,7 +953,7 @@ function confirmerAudition(id) {
     ajouterEvenementStatut(id, 'Audition programmée', 'Convocation du plaignant émise');
   }
 
-  toast('Convocation envoyée ' + lib, 'success');
+  toast('Convocation créée (envoi externe non configuré) — ' + lib, 'success');
   renderMesDossiers();
   majKPI();
   rendreDossier();
@@ -969,6 +969,8 @@ function confirmerAudition(id) {
    frappe au clavier reste possible et le bouton dit pourquoi le cas
    echeant, plutot que d'echouer en silence. */
 var sonAudition = null;   /* enregistrement capte pendant la deposition */
+var demarrageCaptureAudition = null;
+var finCaptureAudition = null;
 
 function enregistrerAudition(id, cle) {
   var zone = document.getElementById('acte-form-' + (cle || 'AUDITION'));
@@ -1008,9 +1010,11 @@ function enregistrerAudition(id, cle) {
           'placeholder="Dictez ou saisissez les déclarations du comparant, à la première personne."></textarea>' +
         '<div class="dictee-etat" id="dictee-etat">' +
           (dictable
-            ? 'La transcription alimente le procès-verbal ; elle reste modifiable.'
+              ? 'La transcription du navigateur alimente le PV. Enregistrez l’audio pour pouvoir demander une retranscription Grok.'
             : ech(raison)) +
         '</div>' +
+          '<button type="button" class="btn btn-outline btn-sm" id="dictee-grok" style="display:none;margin-top:8px" onclick="retranscrireAuditionGrok(\'' + id + '\')">Retranscrire avec Grok</button>' +
+        '<div class="form-hint" id="dictee-grok-consent" style="display:none">La retranscription envoie cet enregistrement à xAI. Relisez le texte retourné avant de l’utiliser dans le procès-verbal.</div>' +
       '</div>' +
 
       '<button class="btn btn-primary btn-sm" onclick="confirmerAuditionTenue(\'' + id + '\')">' +
@@ -1064,7 +1068,12 @@ function basculerDictee() {
 
   /* Le son est un complement : son refus n'interrompt pas la dictee. */
   if (Dictee.captureSonPossible()) {
-    Dictee.capturerSon().catch(function () { sonAudition = null; });
+    demarrageCaptureAudition = Dictee.capturerSon().then(function () { return true; }).catch(function (error) {
+      sonAudition = null;
+      var statut = document.getElementById('dictee-etat');
+      if (statut) statut.textContent = 'Dictée active ; audio non enregistré (' + error.message + ').';
+      return false;
+    });
   }
 }
 
@@ -1079,9 +1088,42 @@ function arreterDictee() {
     etat.className = 'dictee-etat';
   }
 
-  if (Dictee.captureSonPossible()) {
-    Dictee.arreterCapture().then(function (son) { sonAudition = son; });
-  }
+  finaliserCaptureAudition();
+}
+
+async function finaliserCaptureAudition() {
+  if (finCaptureAudition) return finCaptureAudition;
+  finCaptureAudition = (async function () {
+    if (demarrageCaptureAudition) await demarrageCaptureAudition;
+    if (typeof Dictee !== 'undefined' && Dictee.captureSonPossible()) {
+      sonAudition = await Dictee.arreterCapture();
+    }
+    var grok = document.getElementById('dictee-grok');
+    if (grok) grok.style.display = sonAudition && sonAudition.blob ? '' : 'none';
+    var consent = document.getElementById('dictee-grok-consent');
+    if (consent) consent.style.display = sonAudition && sonAudition.blob ? '' : 'none';
+    return sonAudition;
+  })().finally(function () { finCaptureAudition = null; demarrageCaptureAudition = null; });
+  return finCaptureAudition;
+}
+
+async function retranscrireAuditionGrok(id) {
+  var status = document.getElementById('dictee-etat'), button = document.getElementById('dictee-grok');
+  if (!sonAudition || !sonAudition.blob) { toast('Aucun enregistrement audio à transcrire.', 'error'); return; }
+  if (button) button.disabled = true;
+  if (status) { status.textContent = 'Transcription Grok en cours…'; status.className = 'dictee-etat actif'; }
+  try {
+    var mime = sonAudition.blob.type || 'audio/webm';
+    var extension = /mp4|m4a/i.test(mime) ? 'm4a' : 'webm';
+    var file = new File([sonAudition.blob], 'audition-' + id + '.' + extension, { type: mime });
+    var result = await LocalAPI.transcribeAudio(file);
+    var field = document.getElementById('tenue-texte');
+    if (!result.text || !field) throw new Error('La transcription ne contient aucun texte.');
+    field.value = result.text.trim();
+    if (status) { status.textContent = 'Retranscription Grok terminée. Relisez le texte avant de créer le PV.'; status.className = 'dictee-etat'; }
+  } catch (error) {
+    if (status) { status.textContent = error.message + ' La transcription navigateur reste disponible dans le champ.'; status.className = 'dictee-etat erreur'; }
+  } finally { if (button) button.disabled = false; }
 }
 
 function majBoutonDictee(enCours) {
@@ -1091,31 +1133,40 @@ function majBoutonDictee(enCours) {
   b.classList.toggle('enregistre', !!enCours);
 }
 
-function confirmerAuditionTenue(id) {
+async function confirmerAuditionTenue(id) {
   var date = (document.getElementById('tenue-date') || {}).value || '';
   var heure = (document.getElementById('tenue-heure') || {}).value || '09:00';
   var texte = ((document.getElementById('tenue-texte') || {}).value || '').trim();
   var err = document.getElementById('err-tenue-date');
   if (!date) { if (err) err.textContent = 'Indiquez la date de l\'audition.'; return; }
+  if (!texte) { if (err) err.textContent = 'Transcrivez ou saisissez la déposition avant de créer le procès-verbal.'; return; }
+  if (pvEstSigne(id)) { if (err) err.textContent = 'Le procès-verbal est déjà signé ; créez une correction tracée si nécessaire.'; return; }
 
-  /* Une dictee laissee ouverte continuerait a ecouter apres coup. */
-  if (typeof Dictee !== 'undefined' && Dictee.enCours()) Dictee.arreter();
+  /* L'arrêt du microphone est asynchrone : attendre sa fin évite de perdre le clip. */
+  if (typeof Dictee !== 'undefined' && Dictee.enCours()) { Dictee.arreter(); majBoutonDictee(false); }
+  if (demarrageCaptureAudition || (typeof Dictee !== 'undefined' && Dictee.captureSonPossible())) await finaliserCaptureAudition();
 
   var d = dossierParId(id);
+  if (!d || !HISTORIQUE[id]) { if (err) err.textContent = 'Dossier introuvable ou historique indisponible.'; return; }
   var p = date.split('-');
-  var pieces = sonAudition
-    ? [{ nom: 'audition-' + id + '.webm',
-         taille: tailleFichier(sonAudition.octets),
-         url: sonAudition.url }]
-    : [];
+  var pieces = [];
+  if (sonAudition && sonAudition.blob) {
+    try {
+      var audioFile = new File([sonAudition.blob], 'audition-' + id + '.webm', { type: sonAudition.blob.type || 'audio/webm' });
+      var stored = await LocalAPI.upload(audioFile, id);
+      pieces.push({ nom: stored.name, taille: tailleFichier(stored.size), url: stored.url, id: stored.id });
+    } catch (error) { toast('Enregistrement audio non conservé : ' + error.message, 'error'); return; }
+  }
+
+  var etablie = corrigerPV(id, 'plaignant', '« ' + texte + ' »',
+                          ENQUETEUR_COURANT, declarationOriginale(d, 'plaignant'));
+  if (!etablie) { if (err) err.textContent = 'Le procès-verbal n’a pas pu être établi. Vérifiez son état et réessayez.'; return; }
 
   HISTORIQUE[id].push({
     etape: 'AUDITION', type: 'audition',
     date: p[2] + '/' + p[1] + '/' + p[0], heure: heure.replace(':', 'h'),
     libelle: 'Votre audition',
-    detail: texte
-      ? 'Déclarations recueillies — procès-verbal établi à partir de la déposition'
-      : 'Déclarations recueillies — procès-verbal en cours de relecture',
+    detail: 'Déclarations recueillies — procès-verbal établi à partir de la déposition',
     pieces: pieces
   });
 
@@ -1123,18 +1174,16 @@ function confirmerAuditionTenue(id) {
      a l'audition qui doit y figurer, non le texte du formulaire en ligne.
      La substitution passe par corrigerPV, donc elle est horodatee et
      signee comme toute autre reecriture. */
-  var etabli = false;
-  if (texte && d) {
-    etabli = corrigerPV(id, 'plaignant', '« ' + texte + ' »',
-                        ENQUETEUR_COURANT, declarationOriginale(d, 'plaignant'));
-  }
-
   sonAudition = null;
-  toast(etabli
-    ? 'Audition enregistrée — procès-verbal établi à partir de la déposition'
-    : 'Audition enregistrée — le procès-verbal peut être établi', 'success');
-  majKPI();
-  rendreDossier();
+  try {
+    if (typeof sauverEtatMetier === 'function') await sauverEtatMetier();
+    toast('Audition enregistrée — procès-verbal généré et sauvegardé', 'success');
+    majKPI();
+    rendreDossier();
+  } catch (error) {
+    toast('PV créé à l’écran, mais sauvegarde impossible : ' + error.message, 'error');
+    rendreDossier();
+  }
 }
 
 /* ── Annulation d'une étape, par le commissaire ──────────────
@@ -1541,7 +1590,7 @@ function tailleFichier(o) {
   return (o / (1024 * 1024)).toFixed(1).replace('.', ',') + ' Mo';
 }
 
-function ajouterEcrit(id) {
+async function ajouterEcrit(id) {
   var champ = document.getElementById('ecrit-texte');
   var err = document.getElementById('err-ecrit-texte');
   var texte = champ ? champ.value.trim() : '';
@@ -1559,16 +1608,19 @@ function ajouterEcrit(id) {
   var maintenant = new Date();
   var deuxChiffres = function (n) { return String(n).padStart(2, '0'); };
 
-  /* Les fichiers joints restent en memoire du navigateur : createObjectURL
-     donne un lien reellement telechargeable pendant la session, faute de
-     serveur de stockage. */
+  /* Les pièces restent disponibles après fermeture du navigateur. */
   var champFichiers = document.getElementById('ecrit-pieces');
   var pieces = [];
-  if (champFichiers && champFichiers.files) {
-    Array.prototype.forEach.call(champFichiers.files, function (f) {
-      pieces.push({ nom: f.name, taille: tailleFichier(f.size), url: URL.createObjectURL(f) });
-    });
-  }
+  try {
+    if (champFichiers && champFichiers.files) {
+      for (var i = 0; i < champFichiers.files.length; i++) {
+        var f = champFichiers.files[i];
+        if (f.size > 20 * 1024 * 1024) throw new Error(f.name + ' dépasse la limite de 20 Mo.');
+        var stored = await LocalAPI.upload(f, id);
+        pieces.push({ nom: stored.name, taille: tailleFichier(stored.size), url: stored.url, id: stored.id });
+      }
+    }
+  } catch (uploadError) { toast('Pièce jointe non enregistrée : ' + uploadError.message, 'error'); return; }
 
   if (typeof HISTORIQUE === 'undefined') return;
   if (!HISTORIQUE[id]) HISTORIQUE[id] = [];
@@ -2225,7 +2277,7 @@ function emettreConvocation(id) {
     toast('Convocation établie — à imprimer et remettre', 'info');
     lireConvocation(d, conv, convDestinataire);
   } else {
-    toast('Convocation envoyée ' + libelleCanal, 'success');
+    toast('Convocation créée (envoi externe non configuré) — ' + libelleCanal, 'success');
   }
 
   rafraichirConvocations(id);
@@ -2303,3 +2355,8 @@ function avancerStatut(id) {
   majCompteurDossiers();
   majKPI();
 })();
+
+window.addEventListener('plaintecam:state-restored', function () {
+  if (!document.getElementById('mes-dossiers-tbody')) return;
+  renderMesDossiers(); majCompteurDossiers(); majKPI();
+});

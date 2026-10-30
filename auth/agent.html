@@ -56,6 +56,11 @@
           <div class="role-card-name">Enquêteur</div>
           <div class="role-card-desc">Instruction, procès-verbaux, convocations</div>
         </button>
+        <button type="button" class="role-card" onclick="selectRole('accueil', this)">
+          <div class="role-card-icon" style="background:rgba(10,48,24,.08);border-color:rgba(10,48,24,.2)">A</div>
+          <div class="role-card-name">Accueil</div>
+          <div class="role-card-desc">Réception et suivi des dossiers</div>
+        </button>
       </div>
     </div>
 
@@ -90,6 +95,7 @@
             aria-label="Afficher le mot de passe" aria-pressed="false">Afficher</button>
         </div>
         <div class="field-error" id="err-password"></div>
+        <div class="hint">Code de connexion local : <strong>343982</strong> (fonctionne avec les comptes locaux).</div>
       </div>
 
       <div class="form-check">
@@ -106,7 +112,7 @@
     <div class="auth-step" id="step-reset">
       <button type="button" class="back-link" onclick="showStep('step-login')">Retour à la connexion</button>
       <div class="auth-card-title">Mot de passe oublié</div>
-      <div class="auth-card-sub">Une demande est adressée au service informatique de la DGSN.</div>
+      <div class="auth-card-sub">La réinitialisation par e-mail n’est pas configurée ici. Connectez-vous avec le code local 343982 ou contactez le commissaire pour obtenir un nouveau code personnel.</div>
 
       <div class="form-group">
         <label for="reset-matricule">Matricule</label>
@@ -134,8 +140,8 @@
         <div class="success-icon">
           <svg width="24" height="24" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="8" cy="8" r="5.75"/><path d="M5.5 8.25 7.25 10l3.25-4"/></svg>
         </div>
-        <h3>Demande envoyée</h3>
-        <p>Un e-mail de réinitialisation a été adressé à votre adresse institutionnelle.</p>
+        <h3>Instructions de connexion</h3>
+        <p>Aucun e-mail n’a été envoyé. Utilisez le code local 343982 ou demandez un nouveau code personnel au commissaire.</p>
         <button type="button" class="btn btn-primary" onclick="showStep('step-login')">Retour à la connexion</button>
       </div>
     </div>
@@ -144,6 +150,8 @@
 </div>
 </div><!-- /auth-layout -->
 
+<script src="../js/services/local.js"></script>
+<script src="../js/services/auth.js"></script>
 <script>
   /* ── Messages d'erreur de champ ─────────────────────────────
      Remplace les échecs silencieux (`if (!mat || !pw) return;`) :
@@ -179,12 +187,12 @@
 
     document.getElementById('role-label').textContent = role === 'commissaire'
       ? 'Commissaire — Espace de supervision'
-      : 'Enquêteur — Espace d\'instruction';
+      : role === 'accueil' ? 'Accueil — Espace des dossiers' : 'Enquêteur — Espace d\'instruction';
     showStep('step-login');
     document.getElementById('matricule').focus();
   }
 
-  function handleLogin() {
+  async function handleLogin() {
     var mat = document.getElementById('matricule').value.trim();
     var pw  = document.getElementById('password').value;
     setError('matricule', '');
@@ -203,6 +211,16 @@
     if (!pw) {
       setError('password', 'Saisissez votre mot de passe.');
       document.getElementById('password').focus();
+      return;
+    }
+    var result = await AuthService.signInWithPassword(mat, pw);
+    if (result.error) {
+      setError('password', result.error.message);
+      return;
+    }
+    if (result.data.user.role !== currentRole) {
+      await AuthService.signOut();
+      setError('password', 'Ce compte ne correspond pas au rôle sélectionné.');
       return;
     }
     window.location.href = currentRole === 'commissaire'

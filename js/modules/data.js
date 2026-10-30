@@ -166,7 +166,7 @@ const CITOYENS = [
 
 /* Compte ouvert dans l'espace citoyen. Une seule ligne à changer pour
    présenter la plateforme sous une autre identité. */
-const CITOYEN_CONNECTE = 'CIT-001';
+let CITOYEN_CONNECTE = 'CIT-001';
 
 /* ── Agents du commissariat ─────────────────────────────────
    La liste des enquêteurs vivait dans commissaire-init.js, réduite à deux

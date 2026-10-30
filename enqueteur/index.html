@@ -5,7 +5,6 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>PlainteCam — Espace Enquêteur</title>
   <link rel="stylesheet" href="../css/style.css">
-  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 </head>
 <body>
 <div id="toast-container"></div>
@@ -133,11 +132,11 @@
     <div class="form-row">
       <div class="form-group">
         <label class="form-label">Nom</label>
-        <input class="form-control" value="KANA">
+        <input class="form-control" id="profil-agent-nom" value="">
       </div>
       <div class="form-group">
         <label class="form-label">Prénom</label>
-        <input class="form-control" value="Nicole">
+        <input class="form-control" id="profil-agent-prenom" value="">
       </div>
       <div class="form-group">
         <label class="form-label">Grade</label>
@@ -150,19 +149,19 @@
     </div>
     <div class="form-group">
       <label class="form-label">E-mail institutionnel</label>
-      <input class="form-control" value="n.kana@police.cm" disabled>
+      <input class="form-control" id="profil-agent-email" value="" disabled>
     </div>
-    <button class="btn btn-primary" onclick="toast('Profil mis à jour','success')">Enregistrer les modifications</button>
+    <button class="btn btn-primary" onclick="enregistrerProfilAgent()">Enregistrer les modifications</button>
     <div class="divider"></div>
     <div class="form-group">
       <label class="form-label">Nouveau mot de passe</label>
-      <input class="form-control" type="password" placeholder="••••••••••">
+      <input class="form-control" type="password" id="ancien-mot-de-passe" autocomplete="current-password" placeholder="Mot de passe ou code personnel">
     </div>
     <div class="form-group">
       <label class="form-label">Confirmer le mot de passe</label>
-      <input class="form-control" type="password" placeholder="••••••••••">
+      <input class="form-control" type="password" id="nouveau-mot-de-passe" autocomplete="new-password" placeholder="12 caractères minimum">
     </div>
-    <button class="btn btn-outline" onclick="toast('Mot de passe mis à jour','success')">Changer le mot de passe</button>
+    <button class="btn btn-outline" onclick="changerMotDePasseAgent()">Changer le mot de passe</button>
   </div>
 </div>
 
@@ -238,15 +237,53 @@
   </div>
 </footer>
 
-<script src="../js/config.js"></script>
-<script src="../js/services/supabase.js"></script>
+<script src="../js/services/local.js"></script>
 <script src="../js/services/auth.js"></script>
 <script src="../js/services/plaintes.js"></script>
 <script src="../js/modules/utils.js"></script>
 <script src="../js/modules/data.js"></script>
+<script src="../js/services/persistence.js"></script>
 <script src="../js/modules/qrcode.js"></script>
 <script src="../js/modules/documents.js"></script>
 <script src="../js/modules/dictee.js"></script>
 <script src="../js/pages/enqueteur-init.js"></script>
+<script>
+  async function enregistrerProfilAgent() {
+    var nom = document.getElementById('profil-agent-nom').value.trim(), prenom = document.getElementById('profil-agent-prenom').value.trim();
+    if (!nom || !prenom) { toast('Le nom et le prénom sont obligatoires.', 'error'); return; }
+    try {
+      var user = await AuthService.getUser(), profile = Object.assign({}, user.profile, { nomFamille: nom, prenom: prenom });
+      var updated = await LocalAPI.request('/auth/me', { method: 'PATCH', body: JSON.stringify({ name: prenom + ' ' + nom, profile: profile }) });
+      var agent = AGENTS.find(function (item) { return item.email === user.email; });
+      if (agent) { agent.nomFamille = nom; agent.prenom = prenom; }
+      document.querySelector('#page-profil .form-group input[disabled]').value = updated.user.email;
+      toast('Profil enregistré.', 'success');
+    } catch (error) { toast('Enregistrement impossible : ' + error.message, 'error'); }
+  }
+
+  async function changerMotDePasseAgent() {
+    var current = document.getElementById('ancien-mot-de-passe').value, next = document.getElementById('nouveau-mot-de-passe').value;
+    if (next.length < 12) { toast('Le nouveau mot de passe doit comporter au moins 12 caractères.', 'error'); return; }
+    try {
+      await LocalAPI.request('/auth/password', { method: 'PUT', body: JSON.stringify({ current_password: current, new_password: next }) });
+      document.getElementById('ancien-mot-de-passe').value = '';
+      document.getElementById('nouveau-mot-de-passe').value = '';
+      toast('Mot de passe modifié.', 'success');
+    } catch (error) { toast('Modification impossible : ' + error.message, 'error'); }
+  }
+
+  async function securiserEspaceEnqueteur() {
+    var user = await AuthService.getUser();
+    if (!user || !['enqueteur', 'accueil'].includes(user.role)) { window.location.replace('../auth/agent.html'); return; }
+    var agent = AGENTS.find(function (item) { return item.email === user.email; }), profile = user.profile || {};
+    document.getElementById('profil-agent-nom').value = profile.nomFamille || (agent && agent.nomFamille) || user.name.split(/\s+/).slice(-1)[0];
+    document.getElementById('profil-agent-prenom').value = profile.prenom || (agent && agent.prenom) || user.name.split(/\s+/)[0];
+    document.getElementById('profil-agent-email').value = user.email;
+    document.querySelectorAll('.btn-deconnexion, .sidebar-logout').forEach(function (link) {
+      link.addEventListener('click', async function (event) { event.preventDefault(); try { await AuthService.signOut(); } finally { window.location.href = '../auth/agent.html'; } });
+    });
+  }
+  securiserEspaceEnqueteur();
+</script>
 </body>
 </html>

@@ -5,7 +5,6 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>PlainteCam — Espace Commissaire</title>
   <link rel="stylesheet" href="../css/style.css">
-  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 </head>
 <body>
 <div id="toast-container"></div>
@@ -699,12 +698,12 @@
   </div>
 </footer>
 
-<script src="../js/config.js"></script>
-<script src="../js/services/supabase.js"></script>
+<script src="../js/services/local.js"></script>
 <script src="../js/services/auth.js"></script>
 <script src="../js/services/plaintes.js"></script>
 <script src="../js/modules/utils.js"></script>
 <script src="../js/modules/data.js"></script>
+<script src="../js/services/persistence.js"></script>
 <!-- La vue d'un dossier est celle de l'enquêteur : mêmes documents, mêmes
      étapes, mêmes procès-verbaux. Son initialisation ne se déclenche pas
      ici, faute de la page à laquelle elle s'adresse. -->
@@ -717,5 +716,15 @@
 <script src="../js/pages/enqueteur-init.js"></script>
 <script src="../js/pages/agent.js"></script>
 <script src="../js/pages/commissaire-init.js"></script>
+<script>
+  async function securiserEspaceCommissaire() {
+    var user = await AuthService.getUser();
+    if (!user || user.role !== 'commissaire') { window.location.replace('../auth/agent.html'); return; }
+    document.querySelectorAll('.btn-deconnexion, .sidebar-logout').forEach(function (link) {
+      link.addEventListener('click', async function (event) { event.preventDefault(); try { await AuthService.signOut(); } finally { window.location.href = '../auth/agent.html'; } });
+    });
+  }
+  securiserEspaceCommissaire();
+</script>
 </body>
 </html>

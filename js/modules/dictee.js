@@ -139,7 +139,7 @@ var Dictee = (function () {
         if (!morceaux.length) { resoudre(null); return; }
         var bloc = new Blob(morceaux, { type: enregistreur.mimeType || 'audio/webm' });
         morceaux = [];
-        resoudre({ url: URL.createObjectURL(bloc), octets: bloc.size });
+        resoudre({ url: URL.createObjectURL(bloc), octets: bloc.size, blob: bloc });
       };
       try { enregistreur.stop(); } catch (e) { resoudre(null); }
     });

@@ -58,10 +58,10 @@
           <input class="form-control" type="email" id="login-email"
             placeholder="votre@email.com" autocomplete="email">
           <div class="field-error" id="err-login-email"></div>
-          <div class="hint">Un code de vérification à 6 chiffres vous sera envoyé par e-mail.</div>
+          <div class="hint">Utilisez votre code personnel ou le code de connexion local <strong>343982</strong>.</div>
         </div>
         <div class="auth-actions">
-          <button type="button" class="btn btn-primary btn-lg" onclick="goLoginStep2()">Recevoir le code par e-mail</button>
+          <button type="button" class="btn btn-primary btn-lg" onclick="goLoginStep2()">Continuer</button>
         </div>
         <div class="auth-switch">
           Pas encore de compte ? <a onclick="switchTab('register')" tabindex="0" role="button">Créer un compte</a>
@@ -71,8 +71,8 @@
       <!-- Étape 2 : OTP -->
       <div class="auth-step" id="login-step2">
         <button type="button" class="back-link" onclick="goBack('login')">Modifier l'adresse e-mail</button>
-        <div class="otp-dest">Code envoyé à <strong id="login-email-display">votre@email.com</strong></div>
-        <div class="otp-label" id="lbl-login-otp">Entrez le code à 6 chiffres</div>
+        <div class="otp-dest">Compte : <strong id="login-email-display">votre@email.com</strong></div>
+        <div class="otp-label" id="lbl-login-otp">Entrez votre code personnel à 6 chiffres</div>
         <div class="otp-inputs" id="login-otp-inputs" role="group" aria-labelledby="lbl-login-otp">
           <input type="text" class="otp-box" maxlength="1" inputmode="numeric" aria-label="Chiffre 1">
           <input type="text" class="otp-box" maxlength="1" inputmode="numeric" aria-label="Chiffre 2">
@@ -82,7 +82,7 @@
           <input type="text" class="otp-box" maxlength="1" inputmode="numeric" aria-label="Chiffre 6">
         </div>
         <div class="field-error" id="err-login-otp"></div>
-        <div class="otp-resend">Vous n'avez pas reçu le code ? <a onclick="resendOtp('login-otp-inputs')" tabindex="0" role="button">Renvoyer</a></div>
+        <div class="otp-resend">Saisissez votre code personnel ou le code local 343982. Votre code personnel reste propre à votre compte.</div>
         <div class="auth-actions">
           <button type="button" class="btn btn-primary btn-lg" onclick="validateOtp('login')">Valider et se connecter</button>
         </div>
@@ -199,9 +199,10 @@
 </div><!-- /auth-layout -->
 
 <script src="../js/data/geo.js"></script>
+<script src="../js/services/local.js"></script>
 <script>
   /* ══════════════════════════════════════════════════════════
-     Authentification citoyen — e-mail + code OTP envoye par mail.
+    Authentification citoyen — e-mail + code personnel local.
      Le telephone est facultatif : il ne sert qu'a joindre le plaignant,
      jamais a l'identifier ni a l'authentifier.
      ══════════════════════════════════════════════════════════ */
@@ -369,9 +370,13 @@
       return;
     }
 
-    document.getElementById('reg-email-display').textContent = email;
-    showStep('register-step2');
-    document.querySelector('#register-otp-inputs .otp-box').focus();
+    LocalAPI.request('/auth/register', { method: 'POST', body: JSON.stringify({ email: email, name: prenom + ' ' + nom, profile: { prenom: prenom, nom: nom, pays: document.getElementById('reg-pays').value, region: region, ville: ville, telephone: phone ? '+237 ' + phone : '' } }) })
+      .then(function(result) {
+        alert('Votre code personnel de connexion est : ' + result.login_code + '\nConservez-le : il est unique à votre compte et ne sera affiché qu’une seule fois.');
+        return LocalAPI.request('/auth/login', { method: 'POST', body: JSON.stringify({ email: email, code: result.login_code }) });
+      })
+      .then(function(session) { LocalAPI.setSession(session.token); window.location.href = '../citoyen/index.html'; })
+      .catch(function(error) { setError('reg-email', error.message); });
   }
 
   /* ── Validation du code ─────────────────────────────────── */
@@ -388,7 +393,18 @@
       (boxes[code.length] || boxes[0]).focus();
       return;
     }
-    window.location.href = '../citoyen/index.html';
+    var email = document.getElementById(panel === 'login' ? 'login-email' : 'reg-email').value.trim();
+    var action = panel === 'login'
+      ? LocalAPI.request('/auth/login', { method: 'POST', body: JSON.stringify({ email: email, code: code }) })
+      : LocalAPI.request('/auth/register', { method: 'POST', body: JSON.stringify({ email: email, name: document.getElementById('reg-prenom').value.trim() + ' ' + document.getElementById('reg-nom').value.trim() }) });
+    action.then(function(result) {
+      if (panel === 'register') {
+        alert('Votre code personnel de connexion est : ' + result.login_code + '\nConservez-le : il est différent pour chaque compte et ne sera affiché qu’une seule fois.');
+      } else {
+        LocalAPI.setSession(result.token);
+      }
+      window.location.href = '../citoyen/index.html';
+    }).catch(function(error) { setError(errId, error.message); });
   }
 
   function resendOtp(containerId) {

@@ -910,7 +910,7 @@ function nomDUsage(grade, nomFamille) {
   return (abrege ? abrege + ' ' : '') + String(nomFamille || '').toUpperCase();
 }
 
-function enregistrerAgent() {
+async function enregistrerAgent() {
   var lu = function (champ) {
     var el = document.getElementById('agent-' + champ);
     return el ? String(el.value || '').trim() : '';
@@ -948,6 +948,11 @@ function enregistrerAgent() {
     toast('Fiche de ' + nom + ' mise à jour', 'success');
   } else {
     if (agentParNom(nom)) { dire('Un agent porte déjà le nom d\'usage ' + nom + '.'); return; }
+    try {
+      var login = await LocalAPI.createStaff({ matricule: matricule, role: role, name: prenom + ' ' + nomFamille,
+        displayName: nom, email: lu('email') || undefined });
+      alert('Compte créé pour ' + nom + '. Son code de connexion personnel est : ' + login.login_code + '. Communiquez-le à l’agent.');
+    } catch (error) { dire(error.message); return; }
     var m = new Date(), dd = function (n) { return String(n).padStart(2, '0'); };
     AGENTS.push({
       id: 'AG-' + String(AGENTS.length + 1).padStart(3, '0'),
@@ -1623,3 +1628,8 @@ function demanderAffectation() {
   majStatistiques();
   rendreAudit();
 })();
+
+window.addEventListener('plaintecam:state-restored', function () {
+  remplirListeEnqueteurs(); remplirFiltreEnqueteurs(); remplirFiltreAuteurs();
+  rendreAgents(); initDashboard(); rafraichirTableauDeBord(); majStatistiques(); rendreAudit();
+});

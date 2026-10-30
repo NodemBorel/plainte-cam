@@ -5,7 +5,6 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>PlainteCam — Espace Citoyen</title>
   <link rel="stylesheet" href="../css/style.css">
-  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 </head>
 <body>
 <div id="toast-container"></div>
@@ -230,6 +229,9 @@
           <div class="jauge"><div class="jauge-barre" id="analyse-barre"></div></div>
           <div class="analyse-live-chips" id="analyse-chips"></div>
           <div class="analyse-live-note" id="analyse-note"></div>
+          <button type="button" class="btn btn-outline btn-sm" id="grok-suggestion-btn" onclick="demanderConseilGrok()">Demander une suggestion à Grok</button>
+          <div class="form-hint">Cette action transmet le texte de votre déclaration à xAI. Relisez toute suggestion avant le dépôt.</div>
+          <div id="grok-suggestion" aria-live="polite" style="white-space:pre-wrap;margin-top:10px"></div>
         </div>
       </div>
 
@@ -530,22 +532,7 @@
         <thead><tr>
           <th>N° dossier</th><th>Type</th><th>Date dépôt</th><th>Statut</th><th>Action</th>
         </tr></thead>
-        <tbody>
-          <tr>
-            <td><strong>2026-00451</strong></td>
-            <td>Vol simple</td>
-            <td>15/05/2026</td>
-            <td><span class="badge badge-orange">En instruction</span></td>
-            <td><button class="btn btn-primary btn-sm" onclick="showPage('page-suivi');document.getElementById('suivi-numero').value='2026-00451';initSuivi()">Consulter</button></td>
-          </tr>
-          <tr>
-            <td><strong>2024-00102</strong></td>
-            <td>Dégradation</td>
-            <td>10/03/2024</td>
-            <td><span class="badge badge-green">Clôturé</span></td>
-            <td><button class="btn btn-outline btn-sm">Consulter</button></td>
-          </tr>
-        </tbody>
+        <tbody id="mes-plaintes-tbody"></tbody>
       </table>
     </div>
   </div>
@@ -623,7 +610,7 @@
         </div>
         
         <div style="display: flex; justify-content: flex-end; margin-top: 16px;">
-          <button class="btn btn-primary" onclick="toast('Informations personnelles mises à jour avec succès', 'success')">Enregistrer les modifications</button>
+          <button class="btn btn-primary" onclick="enregistrerProfil()">Enregistrer les modifications</button>
         </div>
       </div>
       
@@ -636,13 +623,12 @@
           <div class="form-group">
             <label class="form-label">Numéro de téléphone principal <span style="color:var(--green-lt); margin-left:4px; display:inline-flex; vertical-align:-2px;"><svg width="13" height="13" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="8" cy="8" r="5.75"/><path d="M5.5 8.25 7.25 10l3.25-4"/></svg><span class="sr-only">Vérifié</span></span></label>
             <div style="display: flex; align-items: center; gap: 8px;">
-              <input class="form-control" value="+237 677 000 000" disabled style="background-color: var(--gray-1); cursor: not-allowed; flex: 1;">
-              <button class="btn btn-outline btn-sm" style="height: 42px;" onclick="toast('Un code OTP sera envoyé pour changer de numéro', 'info')">Modifier</button>
+              <input class="form-control" id="moi-telephone" style="flex: 1;">
             </div>
           </div>
           <div class="form-group">
             <label class="form-label">Adresse Email (Optionnelle)</label>
-            <input class="form-control" value="jean.mbida@email.com">
+            <input class="form-control" id="moi-email" disabled>
           </div>
         </div>
 
@@ -792,12 +778,12 @@
   </div>
 </footer>
 
-<script src="../js/config.js"></script>
-<script src="../js/services/supabase.js"></script>
+<script src="../js/services/local.js"></script>
 <script src="../js/services/auth.js"></script>
 <script src="../js/services/plaintes.js"></script>
 <script src="../js/modules/utils.js"></script>
 <script src="../js/modules/data.js"></script>
+<script src="../js/services/persistence.js"></script>
 <script src="../js/modules/questionnaire.js"></script>
 <script src="../js/modules/qrcode.js"></script>
 <script src="../js/modules/documents.js"></script>
@@ -805,6 +791,57 @@
 <script src="../js/pages/citoyen.js"></script>
 <script src="../js/pages/citoyen-geo.js"></script>
 <script>
+  async function initialiserEspaceCitoyen() {
+    var session;
+    try { session = await AuthService.getUser(); } catch (_) { session = null; }
+    if (!session || session.role !== 'citoyen') { window.location.replace('../auth/citoyen.html'); return; }
+    var profile = session.profile || {}, nom = profile.prenom ? profile.prenom + ' ' + profile.nom : session.name;
+    CITOYEN_CONNECTE = session.id;
+    var citoyen = CITOYENS.find(function (person) { return person.id === session.id || person.email === session.email; });
+    if (!citoyen) { citoyen = { id: session.id, prenom: profile.prenom || session.name.split(/\s+/)[0], nom: profile.nom || session.name.split(/\s+/).slice(1).join(' '), email: session.email, telephone: profile.telephone || '', pays: profile.pays || '', region: profile.region || '', ville: profile.ville || '', profession: profile.profession || '', adresse: '' }; CITOYENS.push(citoyen); }
+    else citoyen.id = session.id;
+    ['moi-nom-barre', 'moi-nom-lateral', 'moi-nom-profil'].forEach(function (id) { var el = document.getElementById(id); if (el) el.textContent = nom; });
+    var initiales = (nom.match(/\b\p{L}/gu) || []).slice(0, 2).join('').toUpperCase();
+    document.querySelectorAll('.avatar, .sidebar-avatar, #moi-initiales').forEach(function (el) { el.textContent = initiales; });
+    document.getElementById('moi-nom-famille').value = profile.nom || '';
+    document.getElementById('moi-prenom').value = profile.prenom || '';
+    document.getElementById('moi-residence').value = [profile.ville, profile.region, profile.pays].filter(Boolean).join(', ');
+    document.getElementById('moi-profession').value = profile.profession || '';
+    document.getElementById('moi-telephone').value = profile.telephone || '';
+    document.getElementById('moi-email').value = session.email;
+    var response = await PlaintesService.lister({});
+    var plaintes = (response.data || []).filter(function (plainte) { return plainte.citoyen_id === session.id; });
+    var body = document.getElementById('mes-plaintes-tbody');
+    body.innerHTML = plaintes.length ? plaintes.map(function (plainte) {
+      var label = (STATUT_LABELS[plainte.statut] || ['badge-gray', plainte.statut || 'Inconnu']);
+      var date = new Date(plainte.created_at || Date.now()).toLocaleDateString('fr-FR');
+      return '<tr><td><strong>' + echapper(plainte.numero_dossier || plainte.id) + '</strong></td><td>' + echapper(plainte.type_infraction || 'Non renseigné') + '</td><td>' + date + '</td><td><span class="badge ' + label[0] + '">' + echapper(label[1]) + '</span></td><td><button class="btn btn-primary btn-sm" onclick="document.getElementById(\'suivi-numero\').value=\'' + echapper(plainte.numero_dossier || plainte.id) + '\';showPage(\'page-suivi\');initSuivi()">Consulter</button></td></tr>';
+    }).join('') : '<tr><td colspan="5">Aucune plainte déposée.</td></tr>';
+    document.getElementById('moi-nb-plaintes').textContent = plaintes.length;
+    document.getElementById('moi-nb-closes').textContent = plaintes.filter(function (plainte) { return plainte.statut === 'CLOTURE'; }).length;
+  }
+
+  function brancherDeconnexion(role) {
+    document.querySelectorAll('.btn-deconnexion, .sidebar-logout').forEach(function (link) {
+      link.addEventListener('click', async function (event) {
+        event.preventDefault();
+        try { await AuthService.signOut(); } finally { window.location.href = '../auth/' + role + '.html'; }
+      });
+    });
+  }
+
+  async function enregistrerProfil() {
+    try {
+      var nom = document.getElementById('moi-nom-famille').value.trim(), prenom = document.getElementById('moi-prenom').value.trim();
+      var residence = document.getElementById('moi-residence').value.split(',').map(function (value) { return value.trim(); });
+      var response = await LocalAPI.request('/auth/me', { method: 'PATCH', body: JSON.stringify({ name: [prenom, nom].filter(Boolean).join(' '), profile: { prenom: prenom, nom: nom, ville: residence[0] || '', region: residence[1] || '', pays: residence[2] || '', profession: document.getElementById('moi-profession').value.trim(), telephone: document.getElementById('moi-telephone').value.trim() } }) });
+      toast('Profil enregistré sur cet appareil.', 'success');
+      document.getElementById('moi-nom-profil').textContent = response.user.name;
+      document.getElementById('moi-nom-barre').textContent = response.user.name;
+      document.getElementById('moi-nom-lateral').textContent = response.user.name;
+    } catch (error) { toast('Enregistrement impossible : ' + error.message, 'error'); }
+  }
+
   document.getElementById('lieu-adresse').addEventListener('input', function() {
     if (document.getElementById('lieu-quartier').value) updateLieuFaits();
   });
@@ -813,7 +850,13 @@
   document.querySelectorAll('.sidebar-item').forEach(i => {
     i.addEventListener('click', () => showPage(i.dataset.page));
   });
+  window.addEventListener('plaintecam:state-restored', function () {
+    if (typeof majCompteCitoyen === 'function') majCompteCitoyen();
+    if (location.hash === '#suivi') showPage('page-suivi');
+  });
   if (location.hash === '#suivi') showPage('page-suivi');
+  initialiserEspaceCitoyen();
+  brancherDeconnexion('citoyen');
 
   function toggleFaq(item) {
     const answer = item.querySelector('.faq-answer');
@@ -832,16 +875,19 @@
     }
   }
 
-  function envoyerMessageAssistance() {
-    const objet   = document.getElementById('assist-objet').value;
+  async function envoyerMessageAssistance() {
+    const objet = document.getElementById('assist-objet').value;
     const message = document.getElementById('assist-message').value.trim();
-    if (!objet)   { toast('Veuillez sélectionner un objet', 'error'); return; }
-    if (!message) { toast('Veuillez rédiger votre message', 'error'); return; }
-    // Simuler l'envoi
-    document.getElementById('assist-message').value = '';
-    document.getElementById('assist-dossier').value = '';
-    document.getElementById('assist-objet').value   = '';
-    toast('Message transmis au service d\'assistance', 'success');
+    if (!objet) { toast('Veuillez sélectionner un objet', 'error'); return; }
+    if (message.length < 10) { toast('Décrivez votre demande en au moins 10 caractères.', 'error'); return; }
+    const categorie = /technique/i.test(objet) ? 'technique' : /compte|oubli/i.test(objet) ? 'compte' : /dossier|plainte|procédure/i.test(objet) ? 'plainte' : 'autre';
+    try {
+      await LocalAPI.submitSupport({ type: categorie, message: objet + '\n\n' + message, complaint_id: document.getElementById('assist-dossier').value.trim() || null });
+      document.getElementById('assist-message').value = '';
+      document.getElementById('assist-dossier').value = '';
+      document.getElementById('assist-objet').value = '';
+      toast('Votre demande a été enregistrée.', 'success');
+    } catch (error) { toast('Envoi impossible : ' + error.message, 'error'); }
   }
 
 </script>
